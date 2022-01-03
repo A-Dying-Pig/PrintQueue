@@ -1,0 +1,13 @@
+build/*
+.vscode/*
+bf_drivers.log
+bf_drivers.log.0
+bf_drivers.log.1
+bf_drivers.log.2
+bf_drivers.log.3
+bf_drivers.log.4
+ptf.log
+ptf.pcap
+zlog-cfg-cur
+host/.idea/*
+src/control/control.pyc
