@@ -56,7 +56,27 @@ header_type tcp_t {
     }
 }
 
+header_type int_t {
+    fields {
+        dequeue_ts : 32;
+        queue_length : 32;
+    }
+}
 
+header_type TW_metadata_t {
+    fields {
+        src_addr: 32;
+        dst_addr: 32;
+        src_port: 16;
+        dst_port: 16;
+        idx : 16;
+        tts : 32;
+        tts_delta : 32;
+        tts_r: 32;
+        b1: 1;
+        b2: 1;
+    }
+}
 
 // constant value definition
 #define ETHERTYPE_VLAN          0x8100
@@ -65,7 +85,7 @@ header_type tcp_t {
 #define ETHERTYPE_ARP           0x0806
 #define ETHERTYPE_RARP          0x8035
 #define ETHERTYPE_NSH           0x894f
-#define ETHERTYPE_RC            0x080b
+#define ETHERTYPE_PRINTQUEUE    0x080c
 #define ETHERTYPE_NEVER         0xffff
 
 #define IP_PROTOCOLS_ICMP              1
@@ -97,4 +117,11 @@ header_type tcp_t {
 #define S106_PORT  106
 #define DROP_PORT  129
 #define ROUTING_FLOW_NUMBER         1024   // 1K possible IPv4 prefixes
+
+
+#define TW0_TB 7
+#define INDEX_BIT_NUM 10
+#define INDEX_NUM 1024
+#define ALPHA 1
+
 #endif
