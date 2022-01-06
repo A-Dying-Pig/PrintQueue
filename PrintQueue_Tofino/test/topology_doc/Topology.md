@@ -45,6 +45,10 @@ Add & Enable ports:
 (for 10G ports, `an-set` needs to be set to 2 before being enabled; for 40G ports, no `an-set` is needed)
 
 ```bash
+ucli
+pm
+show
+
 port-add 1/0 10G NONE
 an-set 1/0 2
 port-enb 1/0
@@ -68,6 +72,8 @@ port-add 4/0 40G NONE
 port-enb 4/0
 
 ```
+
+Check the interface connected to the Tofino by MAC address.
 
 Disable & Delete ports:
 

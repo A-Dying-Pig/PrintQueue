@@ -51,7 +51,7 @@ parser parse_tcp {
     return ingress;
 }
 
-parser parse_tcp {
+parser parse_tcp_int {
     extract(tcp);
     return parse_int;
 }

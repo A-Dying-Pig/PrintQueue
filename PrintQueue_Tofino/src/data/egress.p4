@@ -139,7 +139,7 @@ table TW0_check_src_port_tb{
 }
 
 register TW0_src_port_r{
-    width: 16:
+    width: 16;
     instance_count: INDEX_NUM;
 }
 

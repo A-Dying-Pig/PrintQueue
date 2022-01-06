@@ -25,7 +25,7 @@ from ptf.thriftutils import *
 
 import os
 
-from dove.p4_pd_rpc.ttypes import *
+from printqueue.p4_pd_rpc.ttypes import *
 
 
 from conn_mgr_pd_rpc.ttypes import *
@@ -90,11 +90,11 @@ def read_csv_table(file_name):
                         n_row.append(c.strip())
                 ret.append(n_row)
                 line_count += 1
-    print('Processed ' +  str(line_count) +  'lines.')
+    print('Processed ' +  str(line_count) +  ' lines.')
     return ret
 
 
-ipv4_routing_tb = read_csv_table('./src/controlplane/settings/routing.csv')
+ipv4_routing_tb = read_csv_table('./src/control/settings/routing.csv')
 
 class PopulateTables(pd_base_tests.ThriftInterfaceDataPlane):
     def __init__(self):

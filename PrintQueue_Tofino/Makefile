@@ -1,6 +1,5 @@
+BUILD=$(SDE)/pkgsrc/p4-build/
 CWD=$(shell pwd)
-BUILD= $(CWD)/build
-
 
 compile: clean
 	cd $(BUILD); make -j6; make -j6 install
