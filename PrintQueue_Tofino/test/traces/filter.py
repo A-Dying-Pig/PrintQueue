@@ -134,4 +134,4 @@ def save(signal, frame):
 if __name__ == '__main__':
     # test
     filter = PacketFilter()
-    filter.receive('p2p2')
+    filter.receive('p4p2')
