@@ -38,25 +38,28 @@ class TrafficGenerator:
         ip_addr = socket.gethostbyname(ip_addr_str)
         pkt =  Ether(src=get_if_hwaddr(self.iface), dst='ff:ff:ff:ff:ff:ff', type=ETHERTYPE_PRINTQUEUE)
         int_data = INT(dequeue_ts=random.randint(0,4096), queue_length=random.randint(0,4096))
-        pkt = pkt / IP(dst=ip_addr) / TCP(dport=2222, sport=3333)  / int_data / msg
+        pkt = pkt / IP(src='101.101.101.101', dst=ip_addr) / TCP(dport=2222, sport=3333)  / int_data / msg
         sendp(pkt, iface=self.iface, verbose=False)
+        return pkt
+
+    def tcp_pkt(self,ip_addr_str,msg='tcp data packet'):
+        ip_addr = socket.gethostbyname(ip_addr_str)
+        pkt = Ether(src=get_if_hwaddr(self.iface), dst='ff:ff:ff:ff:ff:ff', type=ETHERTYPE_IPV4) / IP(src='101.101.101.101', dst=ip_addr) / TCP(dport=2222, sport=3333)  / msg
+        sendp(pkt, iface=self.iface, verbose=False)
+        return pkt
 
     def send_loop(self):
         while True:
-            self.printqueue_pkt(args.ip)
+            # self.printqueue_pkt(args.ip)
+            self.tcp_pkt(args.ip)
             self.send_pkt_num += 1
             print('.',end='')
             sys.stdout.flush()
 
     def send(self,ip_addr_str,msg):
         print("sending on interface {} to IP address {}".format(self.iface, ip_addr_str))
-        ip_addr = socket.gethostbyname(ip_addr_str)
-        if not msg:
-            pkt = Ether(src=get_if_hwaddr(self.iface), dst='ff:ff:ff:ff:ff:ff') / IP(dst=ip_addr) / TCP(dport=1234, sport=random.randint(32414,65535))
-        else:
-            pkt = Ether(src=get_if_hwaddr(self.iface), dst='ff:ff:ff:ff:ff:ff') / IP(dst=ip_addr) / TCP(dport=1234, sport=random.randint(32414,65535)) / msg
+        pkt = self.tcp_pkt(ip_addr_str,msg)
         pkt.show2()
-        sendp(pkt, iface=self.iface, verbose=False)
 
     def handle_pkt(self,pkt):
         if pkt[Ether].type == ETHERTYPE_PRINTQUEUE or pkt[Ether].type == ETHERTYPE_IPV4 :
@@ -78,12 +81,12 @@ if __name__=='__main__':
     parser.add_argument('-r', action='store_true', help="receive packets")
     parser.add_argument('-host', type=str, help="Host",choices=['S101', 'S102', 'S103', 'S104', 'S105', 'S106'])
     parser.add_argument('-ip', type=str, help="The destination IP address to use")
-    parser.add_argument('-msg', type=str, help="The message to include in packet")
+    parser.add_argument('-msg', type=str, help="The message to include in packet", default="hello")
     args = parser.parse_args()
     t_g = TrafficGenerator(args.host)
-    if args.s:
-        t_g.send(args.ip,args.msg)
-    elif args.r:
-        t_g.receive()
+    # if args.s:
+    #     t_g.send(args.ip,args.msg)
+    # elif args.r:
+    #     t_g.receive()
 
-    # t_g.send_loop()
+    t_g.send_loop()

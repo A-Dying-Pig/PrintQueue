@@ -71,8 +71,10 @@ header_type TW_metadata_t {
         dst_port: 16;
         idx : 16;
         tts : 32;
+        tts_pre_cycle : 32;
         tts_delta : 32;
         tts_r: 32;
+        index_num: 16;
         b1: 1;
         b2: 1;
     }

@@ -50,6 +50,7 @@ class PacketFilter:
 
     def filter_pcap(self, pcap_path):
         filtered_pkts = []
+        total_len = 0
         pkts = rdpcap(pcap_path)
         for pkt in pkts:
             # filter tcp packet
@@ -60,7 +61,8 @@ class PacketFilter:
             if pkt[IP].fields['proto'] != IP_PROTOCOLS_TCP:
                 continue
             filtered_pkts += pkt
-        print('The total number of packets: {0}, the number of TCP packets: {1}'.format(len(pkts), len(filtered_pkts)))
+            total_len += len(pkt)
+        print('The total number of packets: {0}, the number of TCP packets: {1}, the average packet size: {2}'.format(len(pkts), len(filtered_pkts). int(total_len/filtered_pkts)))
         wl = pcap_path.split('.')
         wl[-2] += '_tcp'
         wrpcap('.'.join(wl), filtered_pkts)
@@ -110,15 +112,18 @@ class PacketFilter:
             return
         if pkt[Ether].type != ETHERTYPE_PRINTQUEUE:
             return
-        FID_bytes = socket.inet_aton(pkt[IP].fields['src']) \
-                    + socket.inet_aton(pkt[IP].fields['dst']) \
+        # print('-------A PrintQueue Packet----------')
+        pkt = IP(pkt[Ether].load)
+        FID_bytes = socket.inet_aton(pkt.fields['src']) \
+                    + socket.inet_aton(pkt.fields['dst']) \
                     + pkt[TCP].fields['sport'].to_bytes(2, byteorder='big') \
                     + pkt[TCP].fields['dport'].to_bytes(2, byteorder='big')
         FID_hex = FID_bytes.hex()
-        queue_info = INT(pkt[TCP].payload)
+        queue_info = INT(raw(pkt[TCP].payload))        
         pkt_info = {'dequeue_ts': queue_info.fields['dequeue_ts'], 'queue_length': queue_info.fields['queue_length'], 'FID': FID_hex}
+        print(pkt_info)
         self.received_pkts.append(pkt_info)
-        return
+        
 
 def save(signal, frame):
     print("Saving received packets...")
@@ -129,9 +134,4 @@ def save(signal, frame):
 if __name__ == '__main__':
     # test
     filter = PacketFilter()
-    signal.signal(signal.SIGINT, save)
-    filter.load_pcap('./test.pcap')
-    filter.hex2fields('f0ffffffffffffff000a000f')
-    filter.handle_pkt(Ether(type=ETHERTYPE_PRINTQUEUE)/IP(src='123.111.111.222',dst='34.34.34.34')/TCP(sport=3123,dport=34234)/b'123123123123')
-    print(filter.received_pkts)
-    filter.save()
+    filter.receive('p4p2')
