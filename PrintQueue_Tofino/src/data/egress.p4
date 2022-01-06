@@ -35,6 +35,7 @@ action prepare_TW0(){
     add_header(queue_int);
     modify_field(queue_int.dequeue_ts, eg_intr_md_from_parser_aux.egress_global_tstamp);
     // modify_field(queue_int.queue_length, );
+    modify_field(ethernet.ether_type, ETHERTYPE_PRINTQUEUE);
 }
 
 
