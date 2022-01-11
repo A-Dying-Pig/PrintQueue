@@ -15,18 +15,11 @@ if_list = {'S101':'p4p2',
 ETHERTYPE_PRINTQUEUE = 0x080c
 ETHERTYPE_IPV4 = 0x0800
 
-class Dove(Packet):
-    name = "Dove "
-    fields_desc=[BitField('control_bit',0,1),
-                 BitField('color_bit',0,1),
-                 BitField('reserved_bit',0,6),
-                 ShortField("packet_num",0),                 \
-                 IntField('ts',0),]
-
 class INT(Packet):
     name = "INT"
     fields_desc=[IntField('dequeue_ts',0),
-                 IntField('queue_length', 0)]
+                 IntField('queue_length', 0),
+                 ShortField('idx', 0)]
 
 class TrafficGenerator:
     def __init__(self,host):

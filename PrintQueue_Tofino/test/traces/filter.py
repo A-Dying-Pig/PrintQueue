@@ -26,7 +26,11 @@ IP_PROTOCOLS_TCP = 6
 class INT(Packet):
     name = "INT"
     fields_desc=[IntField('dequeue_ts',0),
-                 IntField('queue_length', 0)]
+                 IntField('queue_length', 0),
+                 IntField('idx', 0),
+                 IntField('tts_delta', 0),
+                 IntField('tts_r', 0),]
+
 
 class FlowID(Packet):
     name = "FlowID"
@@ -120,7 +124,7 @@ class PacketFilter:
                     + pkt[TCP].fields['dport'].to_bytes(2, byteorder='big')
         FID_hex = FID_bytes.hex()
         queue_info = INT(raw(pkt[TCP].payload))        
-        pkt_info = {'dequeue_ts': queue_info.fields['dequeue_ts'], 'queue_length': queue_info.fields['queue_length'], 'FID': FID_hex}
+        pkt_info = {'dequeue_ts': queue_info.fields['dequeue_ts'], 'queue_length': queue_info.fields['queue_length'], 'FID': FID_hex, 'idx': queue_info.fields['idx'], 'tts_delta': queue_info.fields['tts_delta'], 'tts_r': queue_info.fields['tts_r']}
         print(pkt_info)
         self.received_pkts.append(pkt_info)
         
@@ -134,4 +138,4 @@ def save(signal, frame):
 if __name__ == '__main__':
     # test
     filter = PacketFilter()
-    filter.receive('p4p2')
+    filter.receive('p2p2')
