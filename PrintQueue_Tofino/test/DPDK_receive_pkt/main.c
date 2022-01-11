@@ -43,12 +43,13 @@ static volatile bool force_quit;
 /* Ports set in promiscuous mode off by default. */
 static int promiscuous_on;
 #define ETHERTYPE_PRINTQUEUE    0x080c
+#define ETHERTYPE_VLAN          0x8100
 
 #define RTE_LOGTYPE_PRINTQUEUE RTE_LOGTYPE_USER1
 
-#define MAX_PKT_BURST 2560
+#define MAX_PKT_BURST 256
 #define BURST_TX_DRAIN_US 100 /* TX drain every ~100us */
-#define MEMPOOL_CACHE_SIZE 256
+#define MEMPOOL_CACHE_SIZE 512
 
 /*
  * Configurable number of RX/TX ring descriptors
@@ -84,15 +85,15 @@ static struct rte_eth_conf port_conf = {
 };
 
 // write collected data to file
-#define SAVE_THRESHOLD 2000000
+#define SAVE_THRESHOLD 200000
+// use a different pointer to store information in new file
 struct printqueue_file{
 	FILE * fptr;
+	FILE * prev_fptr;
 	uint32_t count;
 }__rte_cache_aligned;
 struct printqueue_file pfile[RTE_MAX_LCORE];
 #define MAX_FILE_NAME_LEN 32
-char pfname[MAX_FILE_NAME_LEN];
-const char* pf_mode = "w";
 
 
 /* Per-port statistics struct */
@@ -157,18 +158,27 @@ print_stats(void)
 static int
 printqueue_openfile(unsigned lcore_id){
 	uint64_t cts = rte_rdtsc();
+	char pfname[MAX_FILE_NAME_LEN];
+	FILE * tmp;
 	memset(pfname,0, MAX_FILE_NAME_LEN);
 	sprintf(pfname, "./data/%ld.bin", cts);
-	pfile[lcore_id].fptr = fopen(pfname,pf_mode);
+	pfile[lcore_id].prev_fptr = pfile[lcore_id].fptr;
+	pfile[lcore_id].fptr = fopen(pfname,"wb");
 	if(pfile[lcore_id].fptr == NULL){
 		printf("fail to save to file %s\n", pfname);
 		return 0;
 	}
-	printf("save to file: %s\n", pfname);
+	if (pfile[lcore_id].prev_fptr != NULL){
+		fclose(pfile[lcore_id].prev_fptr);
+	}
+	pfile[lcore_id].count = 0;
+	printf("new FILE: %d, old file: %d\n", pfile[lcore_id].fptr, pfile[lcore_id].prev_fptr);
 	return 1;
 }
 
-static void printqueue_savefile(unsigned lcore_id){
+static void
+printqueue_savefile(unsigned lcore_id){
+	printf("lcore %d closing file: %d, count: %d\n", lcore_id, pfile[lcore_id].fptr, pfile[lcore_id].count);
 	if (pfile[lcore_id].fptr != NULL)
 		fclose(pfile[lcore_id].fptr);
 	pfile[lcore_id].count = 0;
@@ -180,28 +190,30 @@ static void
 printqueue_collect(struct rte_mbuf *m, unsigned portid, unsigned lcore_id)
 {
 	uint16_t * ether_type;
-	uint32_t dequeue_ts;
-	uint32_t queue_length;
-	uint8_t * value_buffer[8];
+	uint32_t int_buffer[2];
+	uint8_t  value_buffer[8];
 	uint8_t FID[12];
 	uint8_t * FID_ptr;
+	uint32_t hdr_len = 14;
 	ether_type = (uint16_t *) rte_pktmbuf_read(m, 12, 2, (void *) value_buffer); // src dst mac address
+	if (rte_be_to_cpu_16(*ether_type) == ETHERTYPE_VLAN){
+		ether_type =  (uint16_t *) rte_pktmbuf_read(m, 16, 2, (void *) value_buffer); // Ether 14 + 2 
+		hdr_len += 4;
+	}
 	if (rte_be_to_cpu_16(*ether_type) == ETHERTYPE_PRINTQUEUE){
 		port_statistics[portid].prx += 1;
-		dequeue_ts = rte_be_to_cpu_32(*((uint32_t *) rte_pktmbuf_read(m, 54, 4, (void *) value_buffer)));
-		queue_length = rte_be_to_cpu_32(*((uint32_t *) rte_pktmbuf_read(m, 58, 4, (void *) value_buffer)));
-		FID_ptr = (uint8_t *) rte_pktmbuf_read(m,26,4,(void *) value_buffer);	// src ip, dst ip
+		int_buffer[0] = rte_be_to_cpu_32(*((uint32_t *) rte_pktmbuf_read(m, hdr_len + 40, 4, (void *) value_buffer))); // dequeue ts
+		int_buffer[1] = rte_be_to_cpu_32(*((uint32_t *) rte_pktmbuf_read(m, hdr_len + 44, 4, (void *) value_buffer))); // queue length
+		FID_ptr = (uint8_t *) rte_pktmbuf_read(m,hdr_len + 12, 8,(void *) value_buffer);	// src ip, dst ip
 		memcpy(FID, FID_ptr, 8);
-		FID_ptr = (uint8_t *)rte_pktmbuf_read(m,34,4,(void *) value_buffer);
+		FID_ptr = (uint8_t *) rte_pktmbuf_read(m,hdr_len + 20, 4,(void *) value_buffer);
 		memcpy(FID + 8, FID_ptr, 4);
 		// store dequeue ts and queue length to file
 		if (pfile[lcore_id].count > SAVE_THRESHOLD){
-			printqueue_savefile(lcore_id);
 			printqueue_openfile(lcore_id);
 		}
-		fwrite(&dequeue_ts, sizeof(uint32_t), 1, pfile[lcore_id].fptr);
-		fwrite(&queue_length, sizeof(uint32_t), 1, pfile[lcore_id].fptr);
-		fwrite(FID, 1, 12, pfile[lcore_id].fptr);
+		fwrite(int_buffer, 4 , 2, pfile[lcore_id].fptr); // dequeue ts + queue length
+		fwrite(FID, 1 , 12, pfile[lcore_id].fptr);
 		pfile[lcore_id].count ++;
 	}
 	// drop packet
@@ -281,6 +293,7 @@ printqueue_main_loop(void)
 				m = pkts_burst[j];
 				rte_prefetch0(rte_pktmbuf_mtod(m, void *));
 				printqueue_collect(m, portid, lcore_id);
+				// rte_pktmbuf_free(m);
 			}
 		}
 		/* >8 End of read packet from RX queues. */

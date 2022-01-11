@@ -57,7 +57,9 @@ class GroundTruth:
         self.total_duration = self.last_dts - self.first_dts
         print('Packet number {0}, total duration: {1} nanoseconds, average queue length: {2}, average interval: {3}'
               .format(self.pkt_num, self.total_duration, self.average_queue_len, self.average_interval))
-        self.draw_flow_distribution()
+        # self.draw_flow_distribution()
+        self.draw_top(self.first_dts, self.last_dts)
+        self.draw_top_flow_distribution(K=5)
 
     def draw_queue_length(self):
         print("plotting queue length...")
@@ -66,8 +68,50 @@ class GroundTruth:
         plt.ylabel('queue length')
         plt.title('Queue Length with Time')
         plt.savefig(os.path.join('fig', 'QueueLength.png'))
+        plt.close()
 
-    def draw_flow_distribution(self, n_period = 100, K = 10):
+    def top(self, ts, te, K = 0):
+        # return a sorted list in descending order
+        ret = {} # {FID: NUMBER}
+        for (index, t) in enumerate(self.dequeue_ts_array):
+            if ts <= t and t <= te:
+                ret[self.FID_array[index]] = ret.get(self.FID_array[index], 0) + 1
+        ret = dict(sorted(ret.items(), key=lambda item: item[1], reverse= True))
+        if K == 0:
+            return ret
+        K = min(K, len(ret))
+        return dict(list(ret.items())[0 : K])
+
+    def draw_top(self, ts, te, K = 10):
+        ret = self.top(ts, te)
+        K = min(K, len(ret))
+        ret = list(ret.items())[0 : K]
+        print("plotting top {0} flows from {1} to {2}".format(K, ts, te))
+        flow_ids = []
+        pkt_num = []
+        for (key,val) in ret:
+            flow_ids.append(key)
+            pkt_num.append(val)
+        plt.bar(flow_ids, pkt_num)
+        plt.xlabel('flow ID')
+        plt.ylabel('packet number')
+        bar_title = "top {0} flows from {1} to {2}".format(K, ts, te)
+        plt.title(bar_title)
+        plt.xticks(rotation=-15)
+        plt.tight_layout()
+        plt.savefig(os.path.join('fig', bar_title + '.png'))
+        plt.close()
+
+    def draw_top_flow_distribution(self, n_period = 100, K = 10):
+        ret = self.top(self.first_dts,self.last_dts,K)
+        self.draw_flow_distribution(n_period, ret.keys())
+
+    def draw_flow_distribution(self, n_period = 100, filter_list=[]):
+        # only draw flows in the list
+        if filter_list == []:
+            is_filter = False
+        else:
+            is_filter = True
         period_len = self.total_duration / n_period
         pkt_per_period = {} #{FID1: [], FID2:[]}
         period = []
@@ -92,6 +136,8 @@ class GroundTruth:
                 if key in tmp:
                     del tmp[key]
             for (new_key, value) in tmp.items():
+                if is_filter and new_key not in filter_list:
+                    continue
                 if new_one_len == 0:
                     temp_list = []
                 else:
@@ -109,6 +155,7 @@ class GroundTruth:
             plt.plot(period, flow_number)
             # plt.hold(True)
         plt.savefig(os.path.join('fig', 'FlowSize.png'))
+        plt.close()
 
 if __name__ == '__main__':
     gt = GroundTruth()
