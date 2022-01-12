@@ -15,8 +15,15 @@ table ipv4_routing {
     actions{
         pkt_forward;
         pkt_drop;
+        pkt_forward_S101;
     }
+    default_action: pkt_forward_S101;
     size : ROUTING_FLOW_NUMBER; 
+}
+
+action pkt_forward_S101(){
+    add_to_field(ipv4.ttl, -1);
+    modify_field(ig_intr_md_for_tm.ucast_egress_port,128);
 }
 
 action pkt_forward(dst_port){
@@ -30,7 +37,7 @@ action pkt_drop(){
     modify_field(ig_intr_md_for_tm.ucast_egress_port,DROP_PORT);
 }
 
+
 control ingress_pipe{
     apply(ipv4_routing);
-
 }

@@ -56,10 +56,28 @@ header_type tcp_t {
     }
 }
 
+header_type register_metadata_t{
+    fields{
+        half: 16;
+    }
+}
+
 header_type int_t {
     fields {
         dequeue_ts : 32;
         queue_length : 32;
+        idx: 32;
+        tts_delta: 32;
+        tts_r: 32;
+    }
+}
+
+header_type vlan_tag_t {
+    fields {
+        pri     : 3;
+        cfi     : 1;
+        vlan_id : 12;
+        etherType : 16;
     }
 }
 
@@ -74,7 +92,7 @@ header_type TW_metadata_t {
         tts_pre_cycle : 32;
         tts_delta : 32;
         tts_r: 32;
-        index_num: 16;
+        half_index_num: 16;
         b1: 1;
         b2: 1;
     }
@@ -121,9 +139,11 @@ header_type TW_metadata_t {
 #define ROUTING_FLOW_NUMBER         1024   // 1K possible IPv4 prefixes
 
 
-#define TW0_TB 7
-#define INDEX_BIT_NUM 10
-#define INDEX_NUM 1024
+#define TW0_TB 6
+#define INDEX_NUM 8192
+#define HALF_INDEX_NUM 4096
+#define HALF_INDEX_BIT 12
+#define HALF_INDEX_MASK 0xfff
 #define ALPHA 1
 
 #endif

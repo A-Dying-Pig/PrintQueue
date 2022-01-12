@@ -22,6 +22,17 @@ header ethernet_t ethernet;
 parser parse_ethernet {
     extract(ethernet);
     return select(latest.ether_type) {
+        ETHERTYPE_VLAN : parse_vlan_tag;
+        ETHERTYPE_IPV4 : parse_ipv4;
+        ETHERTYPE_PRINTQUEUE: parse_ipv4_int;
+        default: parse_error protocol_not_supported;
+    }
+}
+
+header vlan_tag_t vlan_tag;
+parser parse_vlan_tag {
+    extract(vlan_tag);
+    return select(latest.etherType) {
         ETHERTYPE_IPV4 : parse_ipv4;
         ETHERTYPE_PRINTQUEUE: parse_ipv4_int;
         default: parse_error protocol_not_supported;
@@ -64,4 +75,5 @@ parser parse_int {
 
 metadata TW_metadata_t TW0_md;
 metadata TW_metadata_t TW1_md;
+metadata register_metadata_t R_md;
 #endif

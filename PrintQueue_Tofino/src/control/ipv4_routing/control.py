@@ -16,6 +16,7 @@ import csv
 
 import unittest
 import random
+import pathlib
 
 import pd_base_tests
 
@@ -93,11 +94,13 @@ def read_csv_table(file_name):
     print('Processed ' +  str(line_count) +  ' lines.')
     return ret
 
-
-ipv4_routing_tb = read_csv_table('./src/control/settings/routing.csv')
+print(pathlib.Path().resolve())
+ipv4_routing_tb = read_csv_table('./src/control/ipv4_routing/routing.csv')
+k = 12
 
 class PopulateTables(pd_base_tests.ThriftInterfaceDataPlane):
     def __init__(self):
+        self.half = 0
         pd_base_tests.ThriftInterfaceDataPlane.__init__(self, [PROGRAM_NAME])
 
     def setUp(self):
@@ -106,6 +109,13 @@ class PopulateTables(pd_base_tests.ThriftInterfaceDataPlane):
         self.dev_tgt = DevTarget_t(dev_id, hex_to_i16(0xFFFF))
         self.entries = {}
 
+    def set_first_half_bit(self):
+        param = self.half << k
+        action_spec = printqueue_prepare_TW0_action_spec_t(param)
+        self.client.prepare_TW0_tb_set_default_action_prepare_TW0(self.sess_hdl, self.dev_tgt, action_spec)
+        self.conn_mgr.complete_operations(self.sess_hdl)
+        self.half ^= 0x01 
+        
 
     def addTableEntry(self, table_name, action_name, match_fields, action_parameters, priority=None):
         command_str = "%s_%s_match_spec_t" % (PROGRAM_NAME, table_name)
@@ -139,6 +149,12 @@ class PopulateTables(pd_base_tests.ThriftInterfaceDataPlane):
         for e in ipv4_routing_tb:
             self.addTableEntry('ipv4_routing','pkt_forward',(ipv4Addr_to_i32(e[0]),e[1]),(e[2],))
 
-
     def runTest(self):
+        self.set_first_half_bit()
         self.configRouting()
+    
+    def tearDown(self):
+        print("Closing!")
+        self.conn_mgr.client_cleanup(self.sess_hdl)
+        print("Closed Session %d" % self.sess_hdl)
+        pd_base_tests.ThriftInterfaceDataPlane.tearDown(self)

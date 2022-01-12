@@ -26,4 +26,7 @@ configure:
 	cd $(BUILD); $(SDE)/pkgsrc/p4-build/configure --prefix=$(SDE_INSTALL) --with-tofino enable_thrift=yes P4_NAME=printqueue P4_PATH=$(CWD)/src/data/main.p4
 
 populate:
-	$(SDE)/run_p4_tests.sh -p printqueue -t $(CWD)/src/control/
+	$(SDE)/run_p4_tests.sh -p printqueue -t $(CWD)/src/control/ipv4_routing
+
+read:
+	$(SDE)/run_p4_tests.sh -p printqueue -t $(CWD)/src/control/read_flip
