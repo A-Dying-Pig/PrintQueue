@@ -47,7 +47,7 @@ static int promiscuous_on;
 
 #define RTE_LOGTYPE_PRINTQUEUE RTE_LOGTYPE_USER1
 
-#define MAX_PKT_BURST 256
+#define MAX_PKT_BURST 1024
 #define BURST_TX_DRAIN_US 100 /* TX drain every ~100us */
 #define MEMPOOL_CACHE_SIZE 512
 
@@ -85,16 +85,9 @@ static struct rte_eth_conf port_conf = {
 };
 
 // write collected data to file
-#define SAVE_THRESHOLD 200000
-// use a different pointer to store information in new file
-struct printqueue_file{
-	FILE * fptr;
-	FILE * prev_fptr;
-	uint32_t count;
-}__rte_cache_aligned;
-struct printqueue_file pfile[RTE_MAX_LCORE];
+#define MAX_FILE_BUFFER_SIZE 2000000
+#define MAX_COUNT 100000
 #define MAX_FILE_NAME_LEN 32
-
 
 /* Per-port statistics struct */
 struct printqueue_port_statistics {
@@ -155,70 +148,28 @@ print_stats(void)
 	fflush(stdout);
 }
 
-static int
-printqueue_openfile(unsigned lcore_id){
+static FILE *
+openfile(unsigned lcore_id){
 	uint64_t cts = rte_rdtsc();
 	char pfname[MAX_FILE_NAME_LEN];
-	FILE * tmp;
 	memset(pfname,0, MAX_FILE_NAME_LEN);
 	sprintf(pfname, "./data/%ld.bin", cts);
-	pfile[lcore_id].prev_fptr = pfile[lcore_id].fptr;
-	pfile[lcore_id].fptr = fopen(pfname,"wb");
-	if(pfile[lcore_id].fptr == NULL){
-		printf("fail to save to file %s\n", pfname);
-		return 0;
+	FILE * tmp = NULL;
+	while(tmp == NULL){
+		tmp = fopen(pfname,"wb");
 	}
-	if (pfile[lcore_id].prev_fptr != NULL){
-		fclose(pfile[lcore_id].prev_fptr);
-	}
-	pfile[lcore_id].count = 0;
-	printf("new FILE: %d, old file: %d\n", pfile[lcore_id].fptr, pfile[lcore_id].prev_fptr);
-	return 1;
+	return tmp;
 }
 
-static void
-printqueue_savefile(unsigned lcore_id){
-	printf("lcore %d closing file: %d, count: %d\n", lcore_id, pfile[lcore_id].fptr, pfile[lcore_id].count);
-	if (pfile[lcore_id].fptr != NULL)
-		fclose(pfile[lcore_id].fptr);
-	pfile[lcore_id].count = 0;
-	pfile[lcore_id].fptr = NULL;
-}
+
+static uint8_t FID[MAX_FILE_BUFFER_SIZE];
+uint8_t value_buffer[8];
 
 /* collect packet information. 8< */
 static void
 printqueue_collect(struct rte_mbuf *m, unsigned portid, unsigned lcore_id)
 {
-	uint16_t * ether_type;
-	uint32_t int_buffer[2];
-	uint8_t  value_buffer[8];
-	uint8_t FID[12];
-	uint8_t * FID_ptr;
-	uint32_t hdr_len = 14;
-	ether_type = (uint16_t *) rte_pktmbuf_read(m, 12, 2, (void *) value_buffer); // src dst mac address
-	if (rte_be_to_cpu_16(*ether_type) == ETHERTYPE_VLAN){
-		ether_type =  (uint16_t *) rte_pktmbuf_read(m, 16, 2, (void *) value_buffer); // Ether 14 + 2 
-		hdr_len += 4;
-	}
-	if (rte_be_to_cpu_16(*ether_type) == ETHERTYPE_PRINTQUEUE){
-		port_statistics[portid].prx += 1;
-		int_buffer[0] = rte_be_to_cpu_32(*((uint32_t *) rte_pktmbuf_read(m, hdr_len + 40, 4, (void *) value_buffer))); // dequeue ts
-		int_buffer[1] = rte_be_to_cpu_32(*((uint32_t *) rte_pktmbuf_read(m, hdr_len + 44, 4, (void *) value_buffer))); // queue length
-		FID_ptr = (uint8_t *) rte_pktmbuf_read(m,hdr_len + 12, 8,(void *) value_buffer);	// src ip, dst ip
-		memcpy(FID, FID_ptr, 8);
-		FID_ptr = (uint8_t *) rte_pktmbuf_read(m,hdr_len + 20, 4,(void *) value_buffer);
-		memcpy(FID + 8, FID_ptr, 4);
-		// store dequeue ts and queue length to file
-		if (pfile[lcore_id].count > SAVE_THRESHOLD){
-			printqueue_openfile(lcore_id);
-		}
-		fwrite(int_buffer, 4 , 2, pfile[lcore_id].fptr); // dequeue ts + queue length
-		fwrite(FID, 1 , 12, pfile[lcore_id].fptr);
-		pfile[lcore_id].count ++;
-	}
-	// drop packet
-	rte_pktmbuf_free(m);
-	port_statistics[portid].dropped += 1;
+	
 }
 /* >8 End of collect. */
 
@@ -236,6 +187,10 @@ printqueue_main_loop(void)
 	// const uint64_t drain_tsc = (rte_get_tsc_hz() + US_PER_S - 1) / US_PER_S * BURST_TX_DRAIN_US;
 	struct rte_eth_dev_tx_buffer *buffer;
 	bool check = false;
+	FILE * fptr;
+	uint32_t count;
+	uint16_t * ether_type;
+	uint32_t hdr_len;
 
 	prev_tsc = 0;
 
@@ -254,15 +209,10 @@ printqueue_main_loop(void)
 		portid = qconf->rx_port_list[i];
 		RTE_LOG(INFO, PRINTQUEUE, " -- lcoreid=%u portid=%u\n", lcore_id,
 			portid);
-
 	}
 
-	ret = printqueue_openfile(lcore_id);
-	if (ret == 0){
-		RTE_LOG(INFO, PRINTQUEUE, "lcore %u cannot create file\n", lcore_id);
-		return;
-	}
-
+	count = 0;
+	memset(FID, 0, MAX_FILE_BUFFER_SIZE);
 	while (!force_quit) {
 
 		cur_tsc = rte_rdtsc();
@@ -292,14 +242,42 @@ printqueue_main_loop(void)
 			for (j = 0; j < nb_rx; j++) {
 				m = pkts_burst[j];
 				rte_prefetch0(rte_pktmbuf_mtod(m, void *));
-				printqueue_collect(m, portid, lcore_id);
-				// rte_pktmbuf_free(m);
+				hdr_len = 14;
+				ether_type = (uint16_t *) rte_pktmbuf_read(m, 12, 2, (void *) value_buffer); // src dst mac address
+				if (rte_be_to_cpu_16(*ether_type) == ETHERTYPE_VLAN){
+					ether_type =  (uint16_t *) rte_pktmbuf_read(m, 16, 2, (void *) value_buffer); // Ether 14 + 2 
+					hdr_len += 4;
+				}
+				if (rte_be_to_cpu_16(*ether_type) == ETHERTYPE_PRINTQUEUE){
+					port_statistics[portid].prx += 1;
+					rte_memcpy(FID + 20 * count, rte_pktmbuf_read(m, hdr_len + 40, 4, (void *) value_buffer), 4);	// dequeue ts
+					rte_memcpy(FID + 4 + 20 * count, rte_pktmbuf_read(m, hdr_len + 44, 4, (void *) value_buffer), 4);	// queue length
+					rte_memcpy(FID + 8 + 20 * count, rte_pktmbuf_read(m,hdr_len + 12, 8,(void *) value_buffer), 8);	// src and dst ip
+					rte_memcpy(FID + 16 + 20 * count, rte_pktmbuf_read(m,hdr_len + 20, 4,(void *) value_buffer), 4);	// src and dst port
+				}
+				// drop packet
+				rte_pktmbuf_free(m);
+				port_statistics[portid].dropped += 1;
+				count ++;
+
+				if (count == MAX_COUNT){
+					fptr = openfile(lcore_id);
+					fwrite(FID, 1 , MAX_FILE_BUFFER_SIZE, fptr);
+					fclose(fptr);
+					memset(FID, 0, MAX_FILE_BUFFER_SIZE);
+					count = 0;
+				}
+
 			}
 		}
 		/* >8 End of read packet from RX queues. */
 	}
 	//save data
-	printqueue_savefile(lcore_id);
+	if (count > 0){
+		fptr = openfile(lcore_id);
+		fwrite(FID, 1 , count * 20, fptr);
+		fclose(fptr);
+	}
 }
 
 static int

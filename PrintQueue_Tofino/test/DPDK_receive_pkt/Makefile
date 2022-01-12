@@ -54,4 +54,4 @@ clean:
 	rm -rf fig && mkdir fig
 
 run:
-	sudo ./build/printqueue l 0-2 -n 4 -- -P -p 1
+	sudo ./build/printqueue -l 0-2 -n 4 -- -P -p 1
