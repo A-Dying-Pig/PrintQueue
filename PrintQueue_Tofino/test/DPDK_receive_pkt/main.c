@@ -251,9 +251,9 @@ printqueue_main_loop(void)
 				if (rte_be_to_cpu_16(*ether_type) == ETHERTYPE_PRINTQUEUE){
 					port_statistics[portid].prx += 1;
 					rte_memcpy(FID + 20 * count, rte_pktmbuf_read(m, hdr_len + 40, 4, (void *) value_buffer), 4);	// dequeue ts
-					rte_memcpy(FID + 4 + 20 * count, rte_pktmbuf_read(m, hdr_len + 44, 4, (void *) value_buffer), 4);	// queue length
-					rte_memcpy(FID + 8 + 20 * count, rte_pktmbuf_read(m,hdr_len + 12, 8,(void *) value_buffer), 8);	// src and dst ip
-					rte_memcpy(FID + 16 + 20 * count, rte_pktmbuf_read(m,hdr_len + 20, 4,(void *) value_buffer), 4);	// src and dst port
+					rte_memcpy(FID + 4 + 20 * count, rte_pktmbuf_read(m, hdr_len + 44, 4, (void *) value_buffer), 4);	// enqueue ts
+					rte_memcpy(FID + 8 + 20 * count, rte_pktmbuf_read(m, hdr_len + 48, 4, (void *) value_buffer), 4);	// enqueue queue length
+					rte_memcpy(FID + 12 + 20 * count, rte_pktmbuf_read(m,hdr_len + 12, 8,(void *) value_buffer), 8);	// src and dst ip
 				}
 				// drop packet
 				rte_pktmbuf_free(m);
@@ -499,6 +499,7 @@ main(int argc, char **argv)
 
 	/* convert to number of cycles */
 	timer_period *= rte_get_timer_hz();
+	printf("timer hz: %ld\n",rte_get_timer_hz() );
 
 	nb_ports = rte_eth_dev_count_avail();
 	if (nb_ports == 0)
