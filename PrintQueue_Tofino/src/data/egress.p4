@@ -39,8 +39,9 @@ action prepare_TW0(half){
     modify_field(TW1_md.idx, half);
     // pass the queue information to the end to get the ground truth
     add_header(queue_int);
-    add(queue_int.dequeue_ts, eg_intr_md.enq_tstamp, eg_intr_md.deq_timedelta);
-    modify_field(queue_int.queue_length, eg_intr_md.deq_qdepth);
+    modify_field(queue_int.dequeue_ts, eg_intr_md_from_parser_aux.egress_global_tstamp);
+    add(queue_int.enqueue_ts, ig_intr_md_from_parser_aux.ingress_global_tstamp, INGRESS_PROCESSING_TIME);
+    modify_field(queue_int.enq_qdepth, eg_intr_md.enq_qdepth);
 }
 
 /***************************************************

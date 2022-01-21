@@ -65,10 +65,8 @@ header_type register_metadata_t{
 header_type int_t {
     fields {
         dequeue_ts : 32;
-        queue_length : 32;
-        idx: 32;
-        tts_delta: 32;
-        tts_r: 32;
+        enqueue_ts : 32;
+        enq_qdepth : 32;
     }
 }
 
@@ -145,5 +143,6 @@ header_type TW_metadata_t {
 #define HALF_INDEX_BIT 12
 #define HALF_INDEX_MASK 0xfff
 #define ALPHA 1
+#define INGRESS_PROCESSING_TIME 47
 
 #endif

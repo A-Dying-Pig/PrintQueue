@@ -91,7 +91,7 @@ class PollTimeWindows(pd_base_tests.ThriftInterfaceDataPlane):
         self.half = 1
         self.total_duration_us = total_duration / 1e3
         self.TW_registers = [] # [[{FID: hex, tts:}]]
-        self.poll_duration = 1e6
+        self.poll_duration = 1e6 * 0.5
 
     def setUp(self):
         pd_base_tests.ThriftInterfaceDataPlane.setUp(self)      

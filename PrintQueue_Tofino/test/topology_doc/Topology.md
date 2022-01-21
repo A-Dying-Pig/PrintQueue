@@ -71,6 +71,9 @@ port-enb 3/0
 port-add 4/0 40G NONE
 port-enb 4/0
 
+port-add 5/0 40G NONE
+port-enb 5/0
+
 ```
 
 Check the interface connected to the Tofino by MAC address.
