@@ -13,5 +13,6 @@ control ingress {
 }
 
 control egress {
-    egress_pipe();
+    // egress_pipe();
+    queue_monitor_pipe();
 }

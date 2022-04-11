@@ -76,4 +76,5 @@ parser parse_int {
 metadata TW_metadata_t TW0_md;
 metadata TW_metadata_t TW1_md;
 metadata register_metadata_t R_md;
+metadata QM_matadata_t QM_md;
 #endif

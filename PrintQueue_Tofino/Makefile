@@ -45,3 +45,7 @@ runPQ:
 clean_tw:
 	rm -rf tw_data
 	mkdir tw_data
+
+clean_qm:
+	rm -rf qm_data
+	mkdir qm_data

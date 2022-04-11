@@ -289,8 +289,8 @@ p4_pd_printqueue_register_range_read
     int handle_id[] = {100663297, 100663298, 100663299, 
                        100663302, 100663303, 100663304, 
                        100663307, 100663308, 100663309, 
-                       100663312, 100663313, 100663314, 
-                       100663317, 100663318, 100663319};
+                       100663312, 100663313, 100663314};
+                      //  100663317, 100663318, 100663319};
     uint total = 0;
     for (int rn = 0; rn < T * 3; rn ++){
         /* Perform the query. */
@@ -321,7 +321,6 @@ free_query_data:
   if (stage_data) bf_sys_free(stage_data);
   return status;
 }
-
 
 
 /* bf_switchd main */
@@ -399,135 +398,112 @@ int main(int argc, char *argv[]) {
   uint32_t* handlers = (uint32_t*)malloc(sizeof(uint32_t) * HDL_BUF_SIZE);
   memset(handlers, 0, sizeof(uint32_t) * HDL_BUF_SIZE);  
 
-  // set half bit
-  uint16_t half = 0, k = 12;
-  p4_pd_printqueue_prepare_TW0_action_spec_t action_set_half;
-  action_set_half.action_half = half << k;
-  status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_half, &handlers[0]);
-    if(status_tmp!=0) {
-      printf("Error setting half bit!\n");
-      return false;
-  }
-  half = 1;
-  printf("Successfully set first half bit!\n");
-
-
 //------------ read registers --------------------
-uint index, cell_number = 1 << k, T = 5;
 uint actual_read, value_count, value_total = 0;
-struct timeval s_us, e_us, initial_us;
+struct timeval s_us, e_us, initial_us, last_us;
+
+//--------------------------------------------------------------------
+//
+//                  Time          Window
+//
+//------------------------------------------------------------------- 
+// set half bit
+// uint16_t half = 0, k = 12;
+// p4_pd_printqueue_prepare_TW0_action_spec_t action_set_half;
+// action_set_half.action_half = half << k;
+// status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_half, &handlers[0]);
+// if(status_tmp!=0) {
+//   printf("Error setting half bit!\n");
+//   return false;
+// }
+// half = 1;
+// printf("Successfully set first half bit!\n");
+// uint index, cell_number = 1 << k, T = 4, a = 2;
+// uint64_t retrieve_interval = ((1 << (a * T)) - 1) * (1 << (k + 6)) / ((1<<a)-1) / 1000 - 12000; // us 6000
+// printf("Retrieve interval: %ld\n", retrieve_interval);
+
+// // reading register of TW
+// uint8_t buffer[245760];
+// char data_dir[100];
+// long duration = 2; // 2s
+// uint32_t delta_time;
+// while(running_flag){
+//     gettimeofday(&initial_us, NULL);
+//     while(loop_flag){
+//       gettimeofday(&s_us, NULL);
+//       delta_time = (s_us.tv_sec - e_us.tv_sec) * 1000000 + s_us.tv_usec - e_us.tv_usec;
+//       if(delta_time >= retrieve_interval){
+//         memset(buffer, 0, 245760);
+//         memset(data_dir, 0, 100);
+//         index = half << k;
+//         p4_pd_printqueue_register_range_read(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, buffer, &value_count, 1, T);
+//         action_set_half.action_half = half << k;
+//         status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_half, &handlers[0]);
+//         if(status_tmp!=0) {
+//           printf("Error setting half bit!\n");
+//           return false;
+//         }
+//         half ^= 1;
+//         sprintf(data_dir, "./tw_data/%ld_%ld.bin",s_us.tv_sec,s_us.tv_usec);
+//         FILE * f = fopen(data_dir, "wb");
+//         fwrite(buffer, 1, cell_number * 12 * T, f);
+//         fclose(f);
+//         gettimeofday(&e_us, NULL);
+//         if (e_us.tv_sec - initial_us.tv_sec > duration){
+//           printf("Retrieve Ends!\n", retrieve_interval);
+//           loop_flag = false;
+//         }
+//       }
+//     }
+// }
 
 
-// uint8_t tw0_buffer[131072]; // 8192 * (4 + 4 + 4 + 2 + 2) = 131072 tts,  src ip, dst ip, src port, dst port
-// uint8_t tw1_buffer[131072];
-// uint8_t tw2_buffer[131072];
-// uint8_t tw3_buffer[131072];
-// uint8_t tw4_buffer[131072];
-// memset(tw0_buffer, 0, 131072);
-// memset(tw1_buffer, 0, 131072);
-// memset(tw2_buffer, 0, 131072);
-// memset(tw3_buffer, 0, 131072);
-// memset(tw4_buffer, 0, 131072);
-
-
-// gettimeofday(&s_us, NULL);
-// // tw0
-// p4_pd_printqueue_register_range_read_TW0_tts_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint32_t*)tw0_buffer, &value_count);
-// value_total += value_count;
-// p4_pd_printqueue_register_range_read_TW0_src_ip_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint32_t*)(tw0_buffer + cell_number * 4), &value_count);
-// value_total += value_count;
-// p4_pd_printqueue_register_range_read_TW0_dst_ip_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint32_t*)(tw0_buffer + cell_number * 8), &value_count);
-// value_total += value_count;
-// // p4_pd_printqueue_register_range_read_TW0_src_port_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint16_t*)(tw0_buffer + cell_number * 12), &value_count);
-// // value_total += value_count;
-// // p4_pd_printqueue_register_range_read_TW0_dst_port_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint16_t*)(tw0_buffer + cell_number * 14), &value_count);
-// // value_total += value_count;
-// printf("tw0 value read: %d\n", value_total);
-// // tw1
-// value_total = 0;
-// p4_pd_printqueue_register_range_read_TW1_tts_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint32_t*)tw1_buffer, &value_count);
-// value_total += value_count;
-// p4_pd_printqueue_register_range_read_TW1_src_ip_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint32_t*)(tw1_buffer + cell_number * 4), &value_count);
-// value_total += value_count;
-// p4_pd_printqueue_register_range_read_TW1_dst_ip_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint32_t*)(tw1_buffer + cell_number * 8), &value_count);
-// value_total += value_count;
-// // p4_pd_printqueue_register_range_read_TW1_src_port_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint16_t*)(tw1_buffer + cell_number * 12), &value_count);
-// // value_total += value_count;
-// // p4_pd_printqueue_register_range_read_TW1_dst_port_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint16_t*)(tw1_buffer + cell_number * 14), &value_count);
-// // value_total += value_count;
-// printf("tw1 value read: %d\n", value_total);
-// // tw2
-// value_total = 0;
-// p4_pd_printqueue_register_range_read_TW2_tts_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint32_t*)tw2_buffer, &value_count);
-// value_total += value_count;
-// p4_pd_printqueue_register_range_read_TW2_src_ip_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint32_t*)(tw2_buffer + cell_number * 4), &value_count);
-// value_total += value_count;
-// p4_pd_printqueue_register_range_read_TW2_dst_ip_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint32_t*)(tw2_buffer + cell_number * 8), &value_count);
-// value_total += value_count;
-// // p4_pd_printqueue_register_range_read_TW2_src_port_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint16_t*)(tw2_buffer + cell_number * 12), &value_count);
-// // value_total += value_count;
-// // p4_pd_printqueue_register_range_read_TW2_dst_port_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint16_t*)(tw2_buffer + cell_number * 14), &value_count);
-// // value_total += value_count;
-// printf("tw2 value read: %d\n", value_total);
-// // tw3
-// value_total = 0;
-// p4_pd_printqueue_register_range_read_TW3_tts_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint32_t*)tw3_buffer, &value_count);
-// value_total += value_count;
-// p4_pd_printqueue_register_range_read_TW3_src_ip_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint32_t*)(tw3_buffer + cell_number * 4), &value_count);
-// value_total += value_count;
-// p4_pd_printqueue_register_range_read_TW3_dst_ip_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint32_t*)(tw3_buffer + cell_number * 8), &value_count);
-// value_total += value_count;
-// // p4_pd_printqueue_register_range_read_TW3_src_port_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint16_t*)(tw3_buffer + cell_number * 12), &value_count);
-// // value_total += value_count;
-// // p4_pd_printqueue_register_range_read_TW3_dst_port_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint16_t*)(tw3_buffer + cell_number * 14), &value_count);
-// // value_total += value_count;
-// printf("tw3 value read: %d\n", value_total);
-// // tw4
-// value_total = 0;
-// p4_pd_printqueue_register_range_read_TW4_tts_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint32_t*)tw4_buffer, &value_count);
-// value_total += value_count;
-// p4_pd_printqueue_register_range_read_TW4_src_ip_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint32_t*)(tw4_buffer + cell_number * 4), &value_count);
-// value_total += value_count;
-// p4_pd_printqueue_register_range_read_TW4_dst_ip_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint32_t*)(tw4_buffer + cell_number * 8), &value_count);
-// value_total += value_count;
-// // p4_pd_printqueue_register_range_read_TW4_src_port_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint16_t*)(tw4_buffer + cell_number * 12), &value_count);
-// // value_total += value_count;
-// // p4_pd_printqueue_register_range_read_TW4_dst_port_r(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, (uint16_t*)(tw4_buffer + cell_number * 14), &value_count);
-// // value_total += value_count;
-// printf("tw4 value read: %d\n", value_total);
-// gettimeofday(&e_us, NULL);
-// printf("Total read duration is: %ld us\n", e_us.tv_usec - s_us.tv_usec);
-
-
-//new way of reading register
-uint8_t buffer[245760];
-char data_dir[100];
-long duration = 2; // 2s
+//--------------------------------------------------------------------
+//
+//                  Queue            Monitor
+//
+//------------------------------------------------------------------- 
+// reading register of QM
+uint32_t reading_qdepth_interval = 1000, threshold = 8000, re_read = 500000, duration = 4, time_pass; 
+uint32_t qdepth[2], enqueue_ts[2];
+uint8_t src_ip[200000];
+uint8_t dst_ip[200000];
+char data_path[100];
+gettimeofday(&s_us, NULL);
+gettimeofday(&last_us, NULL);
 while(running_flag){
-    gettimeofday(&initial_us, NULL);
-    while(loop_flag){
-      memset(buffer, 0, 245760);
-      memset(data_dir, 0, 100);
-      gettimeofday(&s_us, NULL);
-      index = half << k;
-      p4_pd_printqueue_register_range_read(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, buffer, &value_count, 1, T);
-      action_set_half.action_half = half << k;
-      status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_half, &handlers[0]);
-      if(status_tmp!=0) {
-        printf("Error setting half bit!\n");
-        return false;
-      }
-      half ^= 1;
-
-      sprintf(data_dir, "./tw_data/%ld_%ld.bin",s_us.tv_sec,s_us.tv_usec);
-      FILE * f = fopen(data_dir, "wb");
-      fwrite(buffer, 1, cell_number * 12 * T, f);
-      fclose(f);
+  gettimeofday(&initial_us, NULL);
+  while(loop_flag){
       gettimeofday(&e_us, NULL);
+      time_pass = (e_us.tv_sec - s_us.tv_sec) * 1000000 + e_us.tv_usec - s_us.tv_usec;
+      if (time_pass > reading_qdepth_interval){
+        p4_pd_printqueue_register_read_qdepth_r(sess_hdl, dev_tgt, 0, 1, qdepth ,&value_count);
+        // printf("queue length: %d, %d, value_read: %d\n", qdepth[0], qdepth[1], value_count);
+        time_pass = (e_us.tv_sec - last_us.tv_sec) * 1000000 + e_us.tv_usec - last_us.tv_usec;
+        if (qdepth[1] > threshold && time_pass >= re_read){
+          // read and store stack
+          p4_pd_printqueue_register_read_QM_enqueue_ts_r(sess_hdl, dev_tgt, 0, 1, enqueue_ts, &value_count);
+          // printf("enqueue ts: %d, queue length: %d, reading stack from data plane\n",enqueue_ts[1], qdepth[1]);
+          p4_pd_printqueue_register_range_read_QM_src_ip_r(sess_hdl, dev_tgt, 0,  25000, 1, &actual_read, (uint32_t *)src_ip, &value_count);
+          p4_pd_printqueue_register_range_read_QM_dst_ip_r(sess_hdl, dev_tgt, 0,  25000, 1, &actual_read, (uint32_t *)dst_ip, &value_count);
 
-      if (e_us.tv_sec - initial_us.tv_sec > duration)
+          sprintf(data_path, "./qm_data/%ld_%ld.bin",e_us.tv_sec,e_us.tv_usec);
+          FILE * f = fopen(data_path, "wb");
+          fwrite(&qdepth[1], 1, 4, f);
+          fwrite(&enqueue_ts[1], 1, 4, f);
+          fwrite(src_ip, 1, 200000, f);
+          fwrite(dst_ip, 1, 200000, f);
+          fclose(f);
+          gettimeofday(&last_us, NULL);
+        }
+        gettimeofday(&s_us, NULL);
+      }
+      gettimeofday(&e_us, NULL);
+      if (e_us.tv_sec - initial_us.tv_sec > duration){
+        printf("Retrieve Ends!\n");
         loop_flag = false;
-    }
+      }
+  }
 }
 
 

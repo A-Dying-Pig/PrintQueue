@@ -15,7 +15,6 @@
 *********************0   0**************************
 **********************0 0***************************
 ****************************************************/
-//TODO: add mantis
 
 @pragma stage 0
 table prepare_TW0_tb{
@@ -942,6 +941,251 @@ control egress_pipe{
                     }
                 }
             }
+        }
+    }
+}
+
+
+/***************************************************
+**********************0 0***************************
+*********************0   0**************************
+*********************0   0**************************
+**********************0 0***************************
+****************************************************/
+register stack_top_r{
+    width: 32;
+    instance_count: 1;
+}
+
+blackbox stateful_alu check_stack_bb{
+    reg: stack_top_r;
+    update_lo_1_value: eg_intr_md.enq_qdepth;
+    condition_lo: eg_intr_md.enq_qdepth == register_lo;
+    update_hi_1_predicate: condition_lo;
+    update_hi_1_value: 0;
+    update_hi_2_predicate: not condition_lo;
+    update_hi_2_value: 1;
+    output_dst: QM_md.stack_len_change;
+    output_value: alu_hi;
+}
+
+@pragma stage 0
+table check_stack_tb{
+    actions{
+        check_stack;
+    }
+    default_action: check_stack;
+    size: 1;
+}
+
+action check_stack(){
+    check_stack_bb.execute_stateful_alu(0);
+    // update QM metadata
+    modify_field(QM_md.flow_idx, eg_intr_md.enq_qdepth);
+    modify_field(QM_md.src_addr, ipv4.src_addr);
+    modify_field(QM_md.dst_addr, ipv4.dst_addr);
+    // pass the queue information to the end to get the ground truth
+    // add_header(queue_int);
+    // modify_field(queue_int.dequeue_ts, eg_intr_md_from_parser_aux.egress_global_tstamp);
+    // add(queue_int.enqueue_ts, ig_intr_md_from_parser_aux.ingress_global_tstamp, INGRESS_PROCESSING_TIME);
+    // modify_field(queue_int.enq_qdepth, eg_intr_md.enq_qdepth);
+}
+
+register seq_num_r{
+    width: 32;
+    instance_count: 1;
+}
+
+blackbox stateful_alu increment_seq_num_bb{
+    reg: seq_num_r;
+    update_lo_1_value: register_lo + 1;
+    output_dst: QM_md.seq_num;
+    output_value: register_lo;
+}
+
+@pragma stage 0
+table increment_seq_num_tb{
+    actions{
+        increment_seq_num;
+    }
+    default_action: increment_seq_num;
+    size: 1;
+}
+
+action increment_seq_num(){
+    increment_seq_num_bb.execute_stateful_alu(0);
+}
+
+
+/***************************************************
+************************1***************************
+************************1***************************
+************************1***************************
+************************1***************************
+****************************************************/
+
+register seq_mask_r{
+    width: 32;
+    instance_count: 1;
+}
+
+blackbox stateful_alu update_seq_mask_bb{
+    reg: seq_mask_r;
+    update_lo_1_value: HALF_SEQ_NUM ^ register_lo;
+    output_dst: QM_md.seq_mask;
+    output_value: alu_lo;
+}
+
+blackbox stateful_alu read_seq_mask_bb{
+    reg: seq_mask_r;
+    output_dst: QM_md.seq_mask;
+    output_value: register_lo;
+}
+
+@pragma stage 1
+table update_seq_mask_tb{
+    actions{
+        update_seq_mask;
+    }
+    default_action: update_seq_mask;
+    size: 1;
+}
+
+action update_seq_mask(){
+    update_seq_mask_bb.execute_stateful_alu(0);
+    //TODO: signal seq_num overflow to the control plane
+}
+
+@pragma stage 1
+table read_seq_mask_tb{
+    actions{
+        read_seq_mask;
+    }
+    default_action: read_seq_mask;
+    size: 1;
+}
+
+action read_seq_mask(){
+    read_seq_mask_bb.execute_stateful_alu(0);
+}
+
+/***************************************************
+***********************222**************************
+**********************    2*************************
+**********************  22**************************
+**********************222222************************
+****************************************************/
+@pragma stage 2
+table cal_seq_idx_tb{
+    actions{
+        cal_seq_idx;
+    }
+    default_action: cal_seq_idx;
+    size: 1;
+}
+
+action cal_seq_idx(){
+    bit_or(QM_md.seq_idx, QM_md.seq_mask, QM_md.flow_idx);
+}
+
+register src_ip_r{
+    width: 32;
+    instance_count: MAX_QUEUE_DEPTH;
+}
+
+blackbox stateful_alu update_src_ip_bb{
+    reg: src_ip_r;
+    update_lo_1_value: QM_md.src_addr;
+}
+
+@pragma stage 2
+table update_src_ip_tb{
+    actions{
+        update_src_ip;
+    }
+    default_action: update_src_ip;
+    size: 1;
+}
+
+action update_src_ip(){
+    update_src_ip_bb.execute_stateful_alu(QM_md.flow_idx);    
+}
+
+register dst_ip_r{
+    width: 32;
+    instance_count: MAX_QUEUE_DEPTH;
+}
+
+blackbox stateful_alu update_dst_ip_bb{
+    reg: dst_ip_r;
+    update_lo_1_value: QM_md.dst_addr;
+}
+
+@pragma stage 2
+table update_dst_ip_tb{
+    actions{
+        update_dst_ip;
+    }
+    default_action: update_dst_ip;
+    size: 1;
+}
+
+action update_dst_ip(){
+    update_dst_ip_bb.execute_stateful_alu(QM_md.flow_idx);
+}
+/***************************************************
+**********************333***************************
+**********************   33*************************
+**********************333***************************
+**********************   33*************************
+**********************333***************************
+****************************************************/
+register seq_array_r{
+    width: 32;
+    instance_count: TOTAL_SEQ_NUM;
+}
+
+blackbox stateful_alu update_seq_array_bb{
+    reg: seq_array_r;
+    update_lo_1_value: QM_md.seq_num;
+}
+
+@pragma stage 3
+table update_seq_array_tb{
+    actions{
+        update_seq_array;
+    }
+    default_action: update_seq_array;
+    size: 1;
+}
+
+action update_seq_array(){
+    update_seq_array_bb.execute_stateful_alu(QM_md.seq_idx);
+}
+
+
+control queue_monitor_pipe{
+    if(valid(ipv4) and valid(tcp)){
+        // if(valid(vlan_tag)){
+        //     apply(modify_vlan_tb);
+        // }else{
+        //     apply(modify_ether_tb);
+        // }
+        apply(check_stack_tb);
+        apply(increment_seq_num_tb);
+        if(QM_md.seq_num == 0){
+            // seq_num overflow
+            apply(update_seq_mask_tb);
+        }else{
+            apply(read_seq_mask_tb);
+        }
+
+        if(QM_md.stack_len_change == 1){
+            // switch queue length changes
+            apply(cal_seq_idx_tb);
+            apply(update_src_ip_tb);
+            apply(update_dst_ip_tb);
+            apply(update_seq_array_tb);
         }
     }
 }

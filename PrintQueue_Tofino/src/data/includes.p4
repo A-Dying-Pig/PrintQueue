@@ -96,6 +96,20 @@ header_type TW_metadata_t {
     }
 }
 
+header_type QM_matadata_t{
+    fields{
+        src_addr: 32;
+        dst_addr: 32;
+        src_port: 16;
+        dst_port: 16;
+        seq_mask: 32;
+        seq_num: 32;
+        seq_idx: 32;
+        flow_idx: 16;
+        stack_len_change: 1;
+    }
+}
+
 // constant value definition
 #define ETHERTYPE_VLAN          0x8100
 #define ETHERTYPE_IPV4          0x0800
@@ -142,7 +156,13 @@ header_type TW_metadata_t {
 #define HALF_INDEX_NUM 4096
 #define HALF_INDEX_BIT 12
 #define HALF_INDEX_MASK 0xfff
-#define ALPHA 1
+#define ALPHA 2
 #define INGRESS_PROCESSING_TIME 47
+
+#define MAX_QUEUE_DEPTH 32768 // 2^15
+#define TOTAL_SEQ_NUM 65536  // 2^16
+#define HALF_SEQ_NUM 32768
+#define HALF_SEQ_BIT 15
+#define HALF_SEQ_MASK 0x7fff
 
 #endif
