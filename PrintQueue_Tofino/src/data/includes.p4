@@ -58,7 +58,8 @@ header_type tcp_t {
 
 header_type register_metadata_t{
     fields{
-        half: 16;
+        highest: 32;    
+        second_highest: 32; 
     }
 }
 
@@ -79,18 +80,34 @@ header_type vlan_tag_t {
     }
 }
 
+header_type printqueue_probe_t{
+    fields {
+        qdepth_threshold: 32;
+    }
+}
+
+header_type PQ_metadata_t {
+    fields{
+        qdepth_threshold: 32;
+        probe: 1;
+        lock: 1;
+        exceed: 1;
+        stack_len_change: 1;
+    }
+}
+
 header_type TW_metadata_t {
     fields {
         src_addr: 32;
         dst_addr: 32;
         src_port: 16;
         dst_port: 16;
-        idx : 16;
+        idx : 32;
         tts : 32;
         tts_pre_cycle : 32;
         tts_delta : 32;
         tts_r: 32;
-        half_index_num: 16;
+        quarter_index_num: 16;
         b1: 1;
         b2: 1;
     }
@@ -102,11 +119,8 @@ header_type QM_matadata_t{
         dst_addr: 32;
         src_port: 16;
         dst_port: 16;
-        seq_mask: 32;
+        idx: 32;
         seq_num: 32;
-        seq_idx: 32;
-        flow_idx: 16;
-        stack_len_change: 1;
     }
 }
 
@@ -118,6 +132,7 @@ header_type QM_matadata_t{
 #define ETHERTYPE_RARP          0x8035
 #define ETHERTYPE_NSH           0x894f
 #define ETHERTYPE_PRINTQUEUE    0x080c
+#define ETHERTYPE_PRINTQUEUE_PROBE    0x080d
 #define ETHERTYPE_NEVER         0xffff
 
 #define IP_PROTOCOLS_ICMP              1
@@ -152,17 +167,20 @@ header_type QM_matadata_t{
 
 
 #define TW0_TB 6
-#define INDEX_NUM 8192
-#define HALF_INDEX_NUM 4096
-#define HALF_INDEX_BIT 12
-#define HALF_INDEX_MASK 0xfff
+#define INDEX_NUM 16384
+#define HALF_INDEX_NUM 8192
+#define QUARTER_INDEX_NUM 4096
+#define QUARTER_INDEX_BIT 12
+#define QUARTER_INDEX_MASK 0xfff
 #define ALPHA 2
 #define INGRESS_PROCESSING_TIME 47
 
-#define MAX_QUEUE_DEPTH 32768 // 2^15
-#define TOTAL_SEQ_NUM 65536  // 2^16
-#define HALF_SEQ_NUM 32768
-#define HALF_SEQ_BIT 15
-#define HALF_SEQ_MASK 0x7fff
+#define QUARTER_QDEPTH 32768 // 2^15 = 32768
+#define HALF_QDEPTH 65536 // 2^16 = 65536
+#define TOTAL_QDEPTH 131072 // 2^17 = 131072
+#define QUARTER_QDEPTH_MASK 0x7fff
+
+#define DEFAULT_QDEPTH_THRESHOLD 0xffffffff
+#define THRESHOLD_FLOW_NUMBER 1024
 
 #endif

@@ -11,3 +11,4 @@ ptf.pcap
 zlog-cfg-cur
 host/.idea/*
 src/control/control.pyc
+workspace.*

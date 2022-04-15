@@ -37,7 +37,60 @@ action pkt_drop(){
     modify_field(ig_intr_md_for_tm.ucast_egress_port,DROP_PORT);
 }
 
+// get threshold to trigger alerts for different flows
+table qdepth_alerting_threshold_4{
+    reads{
+        ipv4.src_addr: exact;
+        ipv4.dst_addr: exact;
+        tcp.src_port: exact;
+        tcp.dst_port: exact;
+    }
+    actions{
+        set_threshold;
+        no_matching_threshold;
+    }
+    default_action: no_matching_threshold;
+    size: THRESHOLD_FLOW_NUMBER;
+}
+
+table qdepth_alerting_threshold_2{
+    reads{
+        ipv4.src_addr: exact;
+        ipv4.dst_addr: exact;
+    }
+    actions{
+        set_threshold;
+        no_matching_threshold;
+    }
+    default_action: no_matching_threshold;
+    size: THRESHOLD_FLOW_NUMBER;
+}
+
+action no_matching_threshold(){
+    modify_field(PQ_md.qdepth_threshold, DEFAULT_QDEPTH_THRESHOLD);
+}
+
+action set_threshold(flow_threshold){
+    modify_field(PQ_md.qdepth_threshold, flow_threshold);
+}
+
+table set_threshold_from_probe_pkt_tb{
+    actions{
+        set_threshold_from_probe_pkt;
+    }
+    default_action: set_threshold_from_probe_pkt;
+    size: 1;
+}
+
+action set_threshold_from_probe_pkt(){
+    modify_field(PQ_md.qdepth_threshold, printqueue_probe.qdepth_threshold);
+}
 
 control ingress_pipe{
     apply(ipv4_routing);
+    if (PQ_md.probe == 1){
+        apply(set_threshold_from_probe_pkt_tb);
+    }else{
+        apply(qdepth_alerting_threshold_4);
+    }
 }

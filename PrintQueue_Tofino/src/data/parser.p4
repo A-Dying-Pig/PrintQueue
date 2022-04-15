@@ -25,6 +25,7 @@ parser parse_ethernet {
         ETHERTYPE_VLAN : parse_vlan_tag;
         ETHERTYPE_IPV4 : parse_ipv4;
         ETHERTYPE_PRINTQUEUE: parse_ipv4_int;
+        ETHERTYPE_PRINTQUEUE_PROBE: parse_printqueue_probe;
         default: parse_error protocol_not_supported;
     }
 }
@@ -35,6 +36,7 @@ parser parse_vlan_tag {
     return select(latest.etherType) {
         ETHERTYPE_IPV4 : parse_ipv4;
         ETHERTYPE_PRINTQUEUE: parse_ipv4_int;
+        ETHERTYPE_PRINTQUEUE_PROBE: parse_printqueue_probe;
         default: parse_error protocol_not_supported;
     }
 }
@@ -73,8 +75,18 @@ parser parse_int {
     return ingress;
 }
 
+header printqueue_probe_t printqueue_probe;
+parser parse_printqueue_probe {
+    extract(ipv4);
+    extract(tcp);
+    extract(printqueue_probe);
+    set_metadata(PQ_md.probe, 1);
+    return ingress;
+}
+
 metadata TW_metadata_t TW0_md;
 metadata TW_metadata_t TW1_md;
 metadata register_metadata_t R_md;
 metadata QM_matadata_t QM_md;
+metadata PQ_metadata_t PQ_md;
 #endif
