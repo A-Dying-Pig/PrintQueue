@@ -6,9 +6,9 @@
  */
  
 #include "ingress.p4"
-#include "time_windows.p4"
+// #include "time_windows.p4"
 // #include "time_windows_data_query.p4"
-// #include "queue_monitor.p4"
+#include "queue_monitor.p4"
 
 
 control ingress {
@@ -16,7 +16,7 @@ control ingress {
 }
 
 control egress {
-    time_windows_periodical_pipe();
+    // time_windows_periodical_pipe();
     // time_windows_data_pipe();
-    // queue_monitor_pipe();
+    queue_monitor_pipe();
 }

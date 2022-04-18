@@ -91,6 +91,6 @@ control ingress_pipe{
     if (PQ_md.probe == 1){
         apply(set_threshold_from_probe_pkt_tb);
     }else{
-        apply(qdepth_alerting_threshold_4);
+        apply(qdepth_alerting_threshold_2);
     }
 }

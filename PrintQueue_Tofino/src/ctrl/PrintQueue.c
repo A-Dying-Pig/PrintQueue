@@ -218,7 +218,7 @@ static void setup_coverage_sighandler() {
 
 static bool loop_flag = false;
 static void sigusr1_handler(int signum) {
-  printf("printqueue: bf_switchd:received signal %d\n", signum);
+  printf("printqueue: received signal %d, flip loop_flag\n", signum);
   if(loop_flag) {
     loop_flag = false;
   }
@@ -229,7 +229,7 @@ static void sigusr1_handler(int signum) {
 
 static bool running_flag = true;
 static void sigusr2_handler(int signum) {
-  printf("printqueue: bf_switchd:received signal %d\n", signum);
+  printf("printqueue: received signal %d, flip running_flag\n", signum);
   if(running_flag) {
     running_flag = false;
   }
@@ -239,7 +239,7 @@ static void sigusr2_handler(int signum) {
 }
 
 p4_pd_status_t
-p4_pd_printqueue_register_range_read
+p4_pd_time_windows_register_range_read
 (
  p4_pd_sess_hdl_t sess_hdl,
  p4_pd_dev_target_t dev_tgt,
@@ -291,8 +291,93 @@ p4_pd_printqueue_register_range_read
                        100663307, 100663308, 100663309, 
                        100663312, 100663313, 100663314};
                       //  100663317, 100663318, 100663319};
+    int handle_id_data_query[] = {100663300, 100663301, 100663302, 
+                            100663305, 100663306, 100663307,
+                            100663310, 100663311, 100663312,
+                            100663315, 100663316, 100663317
+                          };
     uint total = 0;
     for (int rn = 0; rn < T * 3; rn ++){
+        /* Perform the query. */
+        status = pipe_stful_ent_query_range(sess_hdl, pipe_mgr_dev_tgt,
+                                            handle_id_data_query[rn], index, count,
+                                            stful_query, num_actually_read,
+                                            pipe_api_flags);
+        // if(status != PIPE_MGR_SUCCESS) goto free_query_data;
+        /* Convert the query data to PD format. */
+        *value_count = 0;
+        // printf("num_actual_read: %d\n", *num_actually_read);
+        for (int i=0; i<*num_actually_read; ++i) {
+            *value_count += 1 * stful_query->instance_per_pipe_count;
+
+            for(int s = 0; s < stful_query->instance_per_pipe_count; s++) {
+                memcpy(register_values, &(stful_query + i)->data[output_pipe_id][s].word, 4);
+                register_values += 4;
+                total++;
+            }
+        }
+        // printf("value count: %d\n", *value_count);
+    }
+    // printf("total: %d\n", total);
+  
+free_query_data:
+  if (stful_query) bf_sys_free(stful_query);
+  if (pipe_data) bf_sys_free(pipe_data);
+  if (stage_data) bf_sys_free(stage_data);
+  return status;
+}
+
+
+p4_pd_status_t
+p4_pd_queue_monitor_register_range_read
+(
+ p4_pd_sess_hdl_t sess_hdl,
+ p4_pd_dev_target_t dev_tgt,
+ int index,
+ int count,
+ int flags,
+ int *num_actually_read,
+ uint8_t *register_values,
+ int *value_count,
+ int output_pipe_id
+)
+{
+  p4_pd_status_t status;
+  dev_target_t pipe_mgr_dev_tgt;
+  pipe_mgr_dev_tgt.device_id = dev_tgt.device_id;
+  pipe_mgr_dev_tgt.dev_pipe_id = dev_tgt.dev_pipe_id;
+
+  uint32_t pipe_api_flags = flags & REGISTER_READ_HW_SYNC ?
+                            PIPE_FLAG_SYNC_REQ : 0;
+  /* Get the maximum number of elements the query can return. */
+  int pipe_count, num_vals_per_pipe;
+  status = pipe_stful_query_get_sizes(sess_hdl,
+                                      dev_tgt.device_id,
+                                      100663303,
+                                      &pipe_count,
+                                      &num_vals_per_pipe);
+  if(status != PIPE_MGR_SUCCESS) return status;
+  /* Allocate space for the query results. */
+  pipe_stful_mem_query_t *stful_query = bf_sys_calloc(count, sizeof *stful_query);
+  pipe_stful_mem_spec_t **pipe_data = bf_sys_calloc(pipe_count * count, sizeof *pipe_data);
+  pipe_stful_mem_spec_t *stage_data = bf_sys_calloc(pipe_count * num_vals_per_pipe * count, sizeof *stage_data);
+  if (!stful_query || !pipe_data || !stage_data) {
+    status = PIPE_NO_SYS_RESOURCES;
+    goto free_query_data;
+  }
+
+  for (int j=0; j<count; ++j) {
+    stful_query[j].pipe_count = pipe_count;
+    stful_query[j].instance_per_pipe_count = num_vals_per_pipe;
+    stful_query[j].data = pipe_data + (pipe_count * j);
+    for (int o=0; o<pipe_count; ++o) {
+      stful_query[j].data[o] = stage_data + (pipe_count * j * num_vals_per_pipe) + (num_vals_per_pipe * o);
+    }
+  }
+//   printf("pipe count: %d, instance_per_pipe_count: %d, count: %d\n", pipe_count, num_vals_per_pipe, count);
+    int handle_id[] = {100663303, 100663304,100663305}; // src_ip, dst_ip, seq_num
+    uint total = 0;
+    for (int rn = 0; rn < 3; rn ++){
         /* Perform the query. */
         status = pipe_stful_ent_query_range(sess_hdl, pipe_mgr_dev_tgt,
                                             handle_id[rn], index, count,
@@ -322,6 +407,15 @@ free_query_data:
   return status;
 }
 
+typedef struct ipv4_address{
+  union
+  {
+    struct{
+      uint8_t b1, b2, b3, b4;
+    } bytes_addr;
+    uint32_t uint32_addr;
+  } addr;
+} ipv4_address_t;
 
 /* bf_switchd main */
 int main(int argc, char *argv[]) {
@@ -378,8 +472,8 @@ int main(int argc, char *argv[]) {
 //----------------------------------------------------
 //  PrintQueue Control Plane
 //---------------------------------------------------
-  printf("-----------------------------------------------------\nPrintQueue Control Plane is Activating\n-----------------------------------------------------\n");
-  printf("pid: %ld\n", getpid());
+  printf("\n\n\n\n\n\n\n\n-----------------------------------------------------\nPrintQueue Control Plane is Activating\n-----------------------------------------------------\n");
+  printf("Program ID: %ld\nUse command 'kill -s USR1 %ld', 'kill -s USR2 %ld' to send signals\n\n", getpid(), getpid(), getpid());
 
  // Get session handler and device object
   uint32_t sess_hdl = 0;
@@ -400,106 +494,171 @@ int main(int argc, char *argv[]) {
 
 //------------ read registers --------------------
 uint actual_read, value_count, value_total = 0;
-struct timeval s_us, e_us, initial_us, last_us;
+struct timeval s_us, e_us, initial_us;
 
-//--------------------------------------------------------------------
-//
-//                  Time          Window
-//
-//------------------------------------------------------------------- 
-// set half bit
-// uint16_t half = 0, k = 12;
-// p4_pd_printqueue_prepare_TW0_action_spec_t action_set_half;
-// action_set_half.action_half = half << k;
-// status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_half, &handlers[0]);
+//--------------------------------------------------------------------//
+//                                                                    //
+//                     Data Plane Query Support                       //
+//                                                                    //
+//--------------------------------------------------------------------//
+uint32_t THRESHOLD_FLOW_NUMBER = 1024;
+p4_pd_printqueue_qdepth_alerting_threshold_2_match_spec_t* matches = (p4_pd_printqueue_qdepth_alerting_threshold_2_match_spec_t*) malloc(sizeof(p4_pd_printqueue_qdepth_alerting_threshold_2_match_spec_t) * THRESHOLD_FLOW_NUMBER);
+p4_pd_printqueue_set_threshold_action_spec_t * actions = (p4_pd_printqueue_set_threshold_action_spec_t *) malloc(sizeof(p4_pd_printqueue_set_threshold_action_spec_t) * THRESHOLD_FLOW_NUMBER);
+FILE * f = fopen("./src/ctrl/qdepth_threshold.csv", "r");
+char *line = NULL, * ptr;
+char *fields[3]; 
+size_t len = 0;
+ssize_t read;
+uint32_t first = 0, i = 0, j = 0;
+while ((read = getline(&line, &len, f)) != -1) {
+    if (first == 0){ // skip first line
+      first = 1;
+      continue;
+    }
+    ptr = strtok (line," ");
+    i = 0;
+    while (ptr != NULL){
+      fields[i] = ptr;
+      ptr = strtok(NULL, " ");
+      i++;
+    }
+    // src IP
+    ipv4_address_t ip_addr;
+    sscanf(fields[0],"%u.%u.%u.%u", &ip_addr.addr.bytes_addr.b1, &ip_addr.addr.bytes_addr.b2, &ip_addr.addr.bytes_addr.b3, &ip_addr.addr.bytes_addr.b4);
+    matches[j].ipv4_src_addr = ip_addr.addr.uint32_addr;
+    // printf("src IP: %lu, ", matches[j].ipv4_src_addr);
+    // dst IP
+    sscanf(fields[1],"%u.%u.%u.%u", &ip_addr.addr.bytes_addr.b1, &ip_addr.addr.bytes_addr.b2, &ip_addr.addr.bytes_addr.b3, &ip_addr.addr.bytes_addr.b4);
+    matches[j].ipv4_dst_addr = ip_addr.addr.uint32_addr;
+    // printf("dst IP: %lu, ", matches[j].ipv4_dst_addr);
+    // threshold
+    sscanf(fields[2], "%lu", &actions[j].action_flow_threshold);
+    // printf("threshold: %lu\n", actions[j].action_flow_threshold);
+    j++;
+}
+free(line);
+fclose(f);
+printf("Adding %d entries to the qdepth_threshold table\n", j);
+for (i = 0; i < j; i++){
+  status_tmp = p4_pd_printqueue_qdepth_alerting_threshold_2_table_add_with_set_threshold(sess_hdl, dev_tgt, &matches[i], &actions[i], &handlers[0]);
+  if(status_tmp != 0){
+    printf("Error adding table entries - qdepth_alerting_threshold_2!\n");
+    return false;
+  }
+}
+free(matches);
+free(actions);
+printf("Successfully set the qdepth_threshold table\n");
+//--------------------------------------------------------------------//
+//                                                                    //
+//                      Time          Windows                         //
+//                                                                    //
+//--------------------------------------------------------------------//
+// printf("-----------------------------------------------------\nTime Windows is Activating\n-----------------------------------------------------\n");
+// uint32_t second_highest = 0, highest = 0, k = 12;
+// p4_pd_printqueue_prepare_TW0_action_spec_t action_set_second_highest_bit;
+// action_set_second_highest_bit.action_second_highest = second_highest << k;
+// status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
 // if(status_tmp!=0) {
-//   printf("Error setting half bit!\n");
+//   printf("Error setting the second highest bit!\n");
 //   return false;
 // }
-// half = 1;
-// printf("Successfully set first half bit!\n");
+// second_highest = 1;
+// printf("Successfully set the second highest bit\n");
 // uint index, cell_number = 1 << k, T = 4, a = 2;
-// uint64_t retrieve_interval = ((1 << (a * T)) - 1) * (1 << (k + 6)) / ((1<<a)-1) / 1000 - 12000; // us 6000
-// printf("Retrieve interval: %ld\n", retrieve_interval);
+// uint64_t retrieve_interval = ((1 << (a * T)) - 1) * (1 << (k + 6)) / ((1<<a)-1) / 1000 - 10; // us, give a little time ahead to trigger reading
+// printf("Time window retrieve interval: %ld us\n", retrieve_interval);
 
-// // reading register of TW
 // uint8_t buffer[245760];
 // char data_dir[100];
 // long duration = 2; // 2s
 // uint32_t delta_time;
+// memset(buffer, 0, 245760);
+// memset(data_dir, 0, 100);
 // while(running_flag){
 //     gettimeofday(&initial_us, NULL);
+//     gettimeofday(&e_us, NULL);
 //     while(loop_flag){
 //       gettimeofday(&s_us, NULL);
 //       delta_time = (s_us.tv_sec - e_us.tv_sec) * 1000000 + s_us.tv_usec - e_us.tv_usec;
 //       if(delta_time >= retrieve_interval){
-//         memset(buffer, 0, 245760);
-//         memset(data_dir, 0, 100);
-//         index = half << k;
-//         p4_pd_printqueue_register_range_read(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, buffer, &value_count, 1, T);
-//         action_set_half.action_half = half << k;
-//         status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_half, &handlers[0]);
+//         action_set_second_highest_bit.action_second_highest = second_highest << k;
+//         status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
+//         gettimeofday(&e_us, NULL);
 //         if(status_tmp!=0) {
-//           printf("Error setting half bit!\n");
+//           printf("Error setting second highest bit!\n");
 //           return false;
 //         }
-//         half ^= 1;
+//         second_highest ^= 1;
+//         // read just recorded TW
+//         index = second_highest << k;
+//         p4_pd_time_windows_register_range_read(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, buffer, &value_count, 1, T);
 //         sprintf(data_dir, "./tw_data/%ld_%ld.bin",s_us.tv_sec,s_us.tv_usec);
 //         FILE * f = fopen(data_dir, "wb");
 //         fwrite(buffer, 1, cell_number * 12 * T, f);
 //         fclose(f);
-//         gettimeofday(&e_us, NULL);
-//         if (e_us.tv_sec - initial_us.tv_sec > duration){
-//           printf("Retrieve Ends!\n", retrieve_interval);
+//         memset(buffer, 0, 245760);
+//         memset(data_dir, 0, 100);
+//       }
+//       gettimeofday(&s_us, NULL);
+//       if (s_us.tv_sec - initial_us.tv_sec > duration){
+//           printf("Retrieve Ends!\n");
 //           loop_flag = false;
 //         }
-//       }
 //     }
 // }
 
+//--------------------------------------------------------------------//
+//                                                                    //
+//                    Queue            Monitor                        //
+//                                                                    //
+//--------------------------------------------------------------------//
+printf("-----------------------------------------------------\nQueue Monitor is Activating\n-----------------------------------------------------\n");
+uint32_t second_highest = 0, highest = 0, k = 15, max_qdepth = 25000;
+p4_pd_printqueue_check_stack_action_spec_t action_set_second_highest_bit;
+action_set_second_highest_bit.action_second_highest = second_highest << k;
+status_tmp = p4_pd_printqueue_check_stack_tb_set_default_action_check_stack(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
+if(status_tmp!=0) {
+  printf("Error setting the second highest bit!\n");
+  return false;
+}
+second_highest = 1;
+printf("Successfully set the second highest bit\n");
 
-//--------------------------------------------------------------------
-//
-//                  Queue            Monitor
-//
-//------------------------------------------------------------------- 
-// reading register of QM
-uint32_t reading_qdepth_interval = 1000, threshold = 8000, re_read = 500000, duration = 4, time_pass; 
-uint32_t qdepth[2], enqueue_ts[2];
-uint8_t src_ip[200000];
-uint8_t dst_ip[200000];
+uint32_t read_interval = 100000, duration = 2, time_pass, index; 
+printf("Queue monitor retrieve interval: %ld us\n", read_interval);
+uint8_t buffer[300000];
 char data_path[100];
-gettimeofday(&s_us, NULL);
-gettimeofday(&last_us, NULL);
+memset(buffer, 0, 300000);
+memset(data_path, 0, 100);
 while(running_flag){
   gettimeofday(&initial_us, NULL);
+  gettimeofday(&e_us, NULL);
   while(loop_flag){
-      gettimeofday(&e_us, NULL);
-      time_pass = (e_us.tv_sec - s_us.tv_sec) * 1000000 + e_us.tv_usec - s_us.tv_usec;
-      if (time_pass > reading_qdepth_interval){
-        p4_pd_printqueue_register_read_qdepth_r(sess_hdl, dev_tgt, 0, 1, qdepth ,&value_count);
-        // printf("queue length: %d, %d, value_read: %d\n", qdepth[0], qdepth[1], value_count);
-        time_pass = (e_us.tv_sec - last_us.tv_sec) * 1000000 + e_us.tv_usec - last_us.tv_usec;
-        if (qdepth[1] > threshold && time_pass >= re_read){
-          // read and store stack
-          p4_pd_printqueue_register_read_QM_enqueue_ts_r(sess_hdl, dev_tgt, 0, 1, enqueue_ts, &value_count);
-          // printf("enqueue ts: %d, queue length: %d, reading stack from data plane\n",enqueue_ts[1], qdepth[1]);
-          p4_pd_printqueue_register_range_read_QM_src_ip_r(sess_hdl, dev_tgt, 0,  25000, 1, &actual_read, (uint32_t *)src_ip, &value_count);
-          p4_pd_printqueue_register_range_read_QM_dst_ip_r(sess_hdl, dev_tgt, 0,  25000, 1, &actual_read, (uint32_t *)dst_ip, &value_count);
-
-          sprintf(data_path, "./qm_data/%ld_%ld.bin",e_us.tv_sec,e_us.tv_usec);
-          FILE * f = fopen(data_path, "wb");
-          fwrite(&qdepth[1], 1, 4, f);
-          fwrite(&enqueue_ts[1], 1, 4, f);
-          fwrite(src_ip, 1, 200000, f);
-          fwrite(dst_ip, 1, 200000, f);
-          fclose(f);
-          gettimeofday(&last_us, NULL);
+      gettimeofday(&s_us, NULL);
+      time_pass = (s_us.tv_sec - e_us.tv_sec) * 1000000 + s_us.tv_usec - e_us.tv_usec;
+      if (time_pass >= read_interval){
+        action_set_second_highest_bit.action_second_highest = second_highest << k;
+        status_tmp = p4_pd_printqueue_check_stack_tb_set_default_action_check_stack(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
+        gettimeofday(&e_us, NULL);
+        if(status_tmp!=0) {
+          printf("Error setting second highest bit!\n");
+          return false;
         }
-        gettimeofday(&s_us, NULL);
+        second_highest ^= 1;
+        // read just recorded QM
+        index = second_highest << k;
+        p4_pd_queue_monitor_register_range_read(sess_hdl, dev_tgt, index, max_qdepth, 1, &actual_read, buffer, &value_count, 1);
+
+        sprintf(data_path, "./qm_data/%ld_%ld.bin",s_us.tv_sec,s_us.tv_usec);
+        FILE * f = fopen(data_path, "wb");
+        fwrite(buffer, 1, 300000, f);
+        fclose(f);
+        memset(buffer, 0, 300000);
+        memset(data_path, 0, 100);
       }
-      gettimeofday(&e_us, NULL);
-      if (e_us.tv_sec - initial_us.tv_sec > duration){
+      gettimeofday(&s_us, NULL);
+      if (s_us.tv_sec - initial_us.tv_sec > duration){
         printf("Retrieve Ends!\n");
         loop_flag = false;
       }
@@ -507,9 +666,9 @@ while(running_flag){
 }
 
 
-//----------------------------------------------------
-// End of PrintQueue Control Plane
-//---------------------------------------------------
+//----------------------------------------------------//
+//          End of PrintQueue Control Plane           //
+//----------------------------------------------------//
   pthread_join(switchd_main_ctx->tmr_t_id, NULL);
   pthread_join(switchd_main_ctx->dma_t_id, NULL);
   pthread_join(switchd_main_ctx->int_t_id, NULL);
