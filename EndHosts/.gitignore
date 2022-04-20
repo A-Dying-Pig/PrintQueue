@@ -1,3 +1,4 @@
 traces/*
+!traces/README.md
 DPDK_receive_pkt/build/*
 DPDK_receive_pkt/gt_data/*
