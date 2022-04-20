@@ -36,7 +36,7 @@ kill -s USR1 [PID]
 The experiments in the paper are carried on in the following testbed.
 
 
-<img src="./doc/testbed_topology.png" width="450" style="float: left;">
+<img src="./doc/testbed_topology.png" width="400">
 
 
 When you launch PrintQueue control plane program, first activate corresponding ports in the `port manager`, so that the device can switching packets.
