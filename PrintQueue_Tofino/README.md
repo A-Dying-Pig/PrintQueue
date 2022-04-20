@@ -34,7 +34,7 @@ kill -s USR1 [PID]
 
 ## Testbed Topology
 The experiments in the paper are carried on in the following testbed.
-<img src="./doc/testbed_topology.png" width="600">
+<img src="./doc/testbed_topology.png" width="450">
 
 When you launch PrintQueue control plane program, first activate corresponding ports in the `port manager`, so that the device can switching packets.
 For example, for the testbed:
