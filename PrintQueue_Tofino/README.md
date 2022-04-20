@@ -7,6 +7,7 @@ The code is tested under `SDE-8.4.0`. The concepts and terms are better explaine
 ## Compile and Run
 The control plane is written in C language located in `./src/ctrl/` folder.
 The data plane code is written in [P4<sub>14</sub>](https://p4.org/p4-spec/p4-14/v1.1.0/tex/p4.pdf) language located in `./src/data/` folder.
+The configuration file is `./config/printqueue.config`, which is specific to the device. You can get an example configuration file from `$SDE/pkgsrc/p4-examples/tofino`.
 
 Execute:
 ```shell script
