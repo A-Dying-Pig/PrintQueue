@@ -2,6 +2,14 @@
  * Copyright(c) 2010-2016 Intel Corporation
  */
 
+/*************************************************************************
+	> File Name: main.c
+	> Author: Yiran Lei
+	> Mail: leiyr20@mails.tsinghua.edu.cn
+	> Lase Update Time: 2022.4.20
+    > Description: DPDK-receiving-packet program: extract and store INT data
+**************************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,11 +50,15 @@ static volatile bool force_quit;
 
 /* Ports set in promiscuous mode off by default. */
 static int promiscuous_on;
-#define ETHERTYPE_PRINTQUEUE    0x080c
+#define ETHERTYPE_PRINTQUEUE    0x080c			// when see 0x080c or 0x8100, check whether it carries INT data
 #define ETHERTYPE_VLAN          0x8100
 
 #define RTE_LOGTYPE_PRINTQUEUE RTE_LOGTYPE_USER1
 
+//----------------------------------------------------//
+//	           Configurable Parameters                //
+//	           adjust DPDK buffer size                //
+//----------------------------------------------------//
 #define MAX_PKT_BURST 1024
 #define BURST_TX_DRAIN_US 100 /* TX drain every ~100us */
 #define MEMPOOL_CACHE_SIZE 512
@@ -85,6 +97,10 @@ static struct rte_eth_conf port_conf = {
 };
 
 // write collected data to file
+//----------------------------------------------------//
+//	           Configurable Parameters                //
+//      	 adjust ground truth file size            //
+//----------------------------------------------------//
 #define MAX_FILE_BUFFER_SIZE 2000000
 #define MAX_COUNT 100000
 #define MAX_FILE_NAME_LEN 32
@@ -117,7 +133,7 @@ print_stats(void)
 		/* Clear screen and move to top left */
 	printf("%s%s", clr, topLeft);
 
-	printf("\nPort statistics ====================================");
+	printf("\n\nPort statistics ====================================");
 
 	for (portid = 0; portid < RTE_MAX_ETHPORTS; portid++) {
 		/* skip disabled ports */
@@ -136,14 +152,14 @@ print_stats(void)
 		total_packets_prx += port_statistics[portid].prx;
 		total_packets_rx += port_statistics[portid].rx;
 	}
-	printf("\nAggregate statistics ==============================="
+	printf("\n\nAggregate statistics ==============================="
 		   "\nTotal PrintQueue packets received: %18"PRIu64
 		   "\nTotal packets received: %14"PRIu64
 		   "\nTotal packets dropped: %15"PRIu64,
 		   total_packets_prx,
 		   total_packets_rx,
 		   total_packets_dropped);
-	printf("\n====================================================\n");
+	printf("\n====================================================\n\n");
 
 	fflush(stdout);
 }
@@ -153,7 +169,7 @@ openfile(unsigned lcore_id){
 	uint64_t cts = rte_rdtsc();
 	char pfname[MAX_FILE_NAME_LEN];
 	memset(pfname,0, MAX_FILE_NAME_LEN);
-	sprintf(pfname, "./data/%ld.bin", cts);
+	sprintf(pfname, "./gt_data/%ld.bin", cts);
 	FILE * tmp = NULL;
 	while(tmp == NULL){
 		tmp = fopen(pfname,"wb");
@@ -241,7 +257,7 @@ printqueue_main_loop(void)
 
 			for (j = 0; j < nb_rx; j++) {
 				m = pkts_burst[j];
-				rte_prefetch0(rte_pktmbuf_mtod(m, void *));
+				rte_prefetch0(rte_pktmbuf_mtod(m, void *));	//fetch packet to the memory
 				hdr_len = 14;
 				ether_type = (uint16_t *) rte_pktmbuf_read(m, 12, 2, (void *) value_buffer); // src dst mac address
 				if (rte_be_to_cpu_16(*ether_type) == ETHERTYPE_VLAN){
@@ -249,18 +265,20 @@ printqueue_main_loop(void)
 					hdr_len += 4;
 				}
 				if (rte_be_to_cpu_16(*ether_type) == ETHERTYPE_PRINTQUEUE){
+					// the packet carries INT data
 					port_statistics[portid].prx += 1;
 					rte_memcpy(FID + 20 * count, rte_pktmbuf_read(m, hdr_len + 40, 4, (void *) value_buffer), 4);	// dequeue ts
 					rte_memcpy(FID + 4 + 20 * count, rte_pktmbuf_read(m, hdr_len + 44, 4, (void *) value_buffer), 4);	// enqueue ts
 					rte_memcpy(FID + 8 + 20 * count, rte_pktmbuf_read(m, hdr_len + 48, 4, (void *) value_buffer), 4);	// enqueue queue length
 					rte_memcpy(FID + 12 + 20 * count, rte_pktmbuf_read(m,hdr_len + 12, 8,(void *) value_buffer), 8);	// src and dst ip
 				}
-				// drop packet
+				// drop packet after getting INT data
 				rte_pktmbuf_free(m);
 				port_statistics[portid].dropped += 1;
 				count ++;
 
 				if (count == MAX_COUNT){
+					// write INT information to file every MAX_COUNT packets
 					fptr = openfile(lcore_id);
 					fwrite(FID, 1 , MAX_FILE_BUFFER_SIZE, fptr);
 					fclose(fptr);

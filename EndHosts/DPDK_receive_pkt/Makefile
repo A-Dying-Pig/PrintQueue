@@ -1,9 +1,16 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright(c) 2010-2014 Intel Corporation
-#
+
+#*************************************************************************
+#	> File Name: Makefile
+#	> Author: Yiran Lei
+#	> Mail: leiyr20@mails.tsinghua.edu.cn
+#	> Lase Update Time: 2022.4.20
+#   > Description: Makefile of DPDK receiving packet program
+#*************************************************************************
 
 # binary name
-APP = printqueue
+APP = printqueue_dpdk_receive_pkt
 
 # all source are stored in SRCS-y
 SRCS-y := main.c
@@ -50,8 +57,8 @@ build:
 clean:
 	rm -f build/$(APP) build/$(APP)-static build/$(APP)-shared
 	test -d build && rmdir -p build || true
-	rm -rf data && mkdir data
+	rm -rf gt_data && mkdir gt_data
 	rm -rf fig && mkdir fig
 
 run:
-	sudo ./build/printqueue -l 0-2 -n 4 -- -P -p 1
+	sudo ./build/$(APP) -l 0-2 -n 4 -- -P -p 1

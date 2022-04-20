@@ -1,13 +1,15 @@
-/**
- * Authors:
- *     Yiran Lei, Tsinghua University, leiyr20@mails.tsinghua.edu.cn
- * File Description:
- *     Actions and Control Logic of Time Windows with Data Plane Query Pipeline.
- */
+/*******************************************************************************************
+	> File Name: time_windows_data_query.p4
+	> Author: Yiran Lei
+	> Mail: leiyr20@mails.tsinghua.edu.cn
+	> Lase Update Time: 2022.4.20
+    > Description: Actions and control logic of time windows with data plane query pipeline.
+*********************************************************************************************/
 
+// Time windows without data plane query can support 5 windows at most.
+// Time windows with data plane query can support 4 windows at most.
 
 #include "parser.p4"
-
 
 /***************************************************
 **********************0 0***************************
@@ -44,6 +46,7 @@ table prepare_TW0_tb{
 }
 
 action prepare_TW0(second_highest){
+    // prepare metadata for the first time window
     modify_field(TW0_md.src_addr, ipv4.src_addr);
     modify_field(TW0_md.dst_addr, ipv4.dst_addr);
     modify_field(TW0_md.src_port, tcp.src_port);
@@ -51,12 +54,12 @@ action prepare_TW0(second_highest){
     modify_field(TW0_md.quarter_index_num, QUARTER_INDEX_NUM);
     modify_field(TW1_md.quarter_index_num, QUARTER_INDEX_NUM);
     //decide updating first/second quarter of the registers
-    modify_field(R_md.second_highest, second_highest);          // second_highest = 100000000000 or 000000000000
-    modify_field(TW0_md.idx, second_highest);
+    modify_field(R_md.second_highest, second_highest);
+    modify_field(TW0_md.idx, second_highest);                   // second highest bit flip based on control plane
     modify_field(TW1_md.idx, second_highest);
     //get threshold comparing result
     compare_pre_pkt_qdepth_bb.execute_stateful_alu(0);
-    // pass the queue information to the end to get the ground truth
+    // pass the queue information to end hosts to get the ground truth
     add_header(queue_int);
     modify_field(queue_int.dequeue_ts, eg_intr_md_from_parser_aux.egress_global_tstamp);
     add(queue_int.enqueue_ts, ig_intr_md_from_parser_aux.ingress_global_tstamp, INGRESS_PROCESSING_TIME);
@@ -73,7 +76,7 @@ table modify_ether_tb{
 }
 
 action modify_ether(){
-    modify_field(ethernet.ether_type, ETHERTYPE_PRINTQUEUE);
+    modify_field(ethernet.ether_type, ETHERTYPE_PRINTQUEUE);        // modify ethertype to notify end hosts of INT data
 }
 
 @pragma stage 0 
@@ -86,7 +89,7 @@ table modify_vlan_tb{
 }
 
 action modify_vlan(){
-    modify_field(vlan_tag.etherType, ETHERTYPE_PRINTQUEUE);
+    modify_field(vlan_tag.etherType, ETHERTYPE_PRINTQUEUE);         // modify ethertype to notify end hosts of INT data
 }
 
 /***************************************************
@@ -95,6 +98,7 @@ action modify_vlan(){
 ************************1***************************
 ************************1***************************
 ****************************************************/
+
 register data_query_lock_r{
     width: 1;
     instance_count: 1;
@@ -117,7 +121,7 @@ table data_query_lock_tb{
 }
 
 action data_query_lock(){
-    data_query_lock_bb.execute_stateful_alu(0);
+    data_query_lock_bb.execute_stateful_alu(0);      // lock to avoid another data plane query when registers are not ready
 }
 
 @pragma stage 1
@@ -130,10 +134,9 @@ table cal_TW0_tts_idx_tb{
 }
 
 action cal_TW0_tts_idx(){
-    shift_right(TW0_md.tts, queue_int.dequeue_ts, TW0_TB);
-    modify_field_with_shift(TW0_md.idx, queue_int.dequeue_ts, TW0_TB, QUARTER_INDEX_MASK);
+    shift_right(TW0_md.tts, queue_int.dequeue_ts, TW0_TB);      // calculate tts of the first window
+    modify_field_with_shift(TW0_md.idx, queue_int.dequeue_ts, TW0_TB, QUARTER_INDEX_MASK);  // move the lowest k bits of tts to index
 }
-
 
 /***************************************************
 ***********************222**************************
@@ -141,7 +144,6 @@ action cal_TW0_tts_idx(){
 **********************  22**************************
 **********************222222************************
 ****************************************************/
-
 
 register highest_bit_r{
     width: 32;
@@ -165,7 +167,7 @@ table reverse_highest_bit_tb{
 }
 
 action reverse_highest_bit(){
-    reverse_highest_bit_bb.execute_stateful_alu(0);
+    reverse_highest_bit_bb.execute_stateful_alu(0);     // flip the highest bit to execute data plane query
     // ---------------------------------------
     // ---------------------------------------
     // TODO - SEND SIGNAL TO THE CONTROL PLANE
@@ -189,9 +191,8 @@ table read_highest_bit_tb{
 }
 
 action read_highest_bit(){
-    read_highest_bit_bb.execute_stateful_alu(0);
+    read_highest_bit_bb.execute_stateful_alu(0);      // just read the highest bit
 }
-
 
 /***************************************************
 **********************333***************************
@@ -211,7 +212,7 @@ table update_idx_highest_bit_tb{
 }
 
 action update_idx_highest_bit(){
-    bit_or(TW0_md.idx, TW0_md.idx, R_md.highest);
+    bit_or(TW0_md.idx, TW0_md.idx, R_md.highest);       // pick the right set of registers (one out of four) as time windows
     bit_or(TW1_md.idx, TW1_md.idx, R_md.highest);
 }
 
@@ -245,8 +246,8 @@ blackbox stateful_alu TW0_check_tts_bb{
 }
 
 action TW0_check_tts(){
-    TW0_check_tts_bb.execute_stateful_alu(TW0_md.idx);
-    subtract(TW0_md.tts_pre_cycle, TW0_md.tts, TW0_md.quarter_index_num);
+    TW0_check_tts_bb.execute_stateful_alu(TW0_md.idx);                      // evict old cell and store incoming packet
+    subtract(TW0_md.tts_pre_cycle, TW0_md.tts, TW0_md.quarter_index_num);   // calculate the tts of the previous cycle
 }
 
 @pragma stage 4
@@ -271,7 +272,7 @@ blackbox stateful_alu TW0_check_src_ip_bb{
 }
 
 action TW0_check_src_ip(){
-    TW0_check_src_ip_bb.execute_stateful_alu(TW0_md.idx);
+    TW0_check_src_ip_bb.execute_stateful_alu(TW0_md.idx);       // evict old flow ID and store incoming flow ID
 }
 
 /***************************************************
@@ -303,7 +304,7 @@ blackbox stateful_alu TW0_check_dst_ip_bb{
 }
 
 action TW0_check_dst_ip(){
-    TW0_check_dst_ip_bb.execute_stateful_alu(TW0_md.idx);
+    TW0_check_dst_ip_bb.execute_stateful_alu(TW0_md.idx);   // evict old flow ID and store incoming flow ID
 }
 
 @pragma stage 5
@@ -328,7 +329,7 @@ blackbox stateful_alu TW0_check_src_port_bb{
 }
 
 action TW0_check_src_port(){
-    TW0_check_src_port_bb.execute_stateful_alu(TW0_md.idx);
+    TW0_check_src_port_bb.execute_stateful_alu(TW0_md.idx); // evict old flow ID and store incoming flow ID
 } 
 
 @pragma stage 5
@@ -353,7 +354,7 @@ blackbox stateful_alu TW0_check_dst_port_bb{
 }
 
 action TW0_check_dst_port(){
-    TW0_check_dst_port_bb.execute_stateful_alu(TW0_md.idx);
+    TW0_check_dst_port_bb.execute_stateful_alu(TW0_md.idx); // evict old flow ID and store incoming flow ID
 }
 
 @pragma stage 5
@@ -366,11 +367,12 @@ table TW0_check_pass_tb{
 }
 
 action TW0_check_pass(){
-    subtract(TW0_md.tts_delta, TW0_md.tts_pre_cycle, TW0_md.tts_r);
-    shift_right(TW1_md.tts, TW0_md.tts_r, ALPHA);
-    modify_field_with_shift(TW1_md.idx, TW0_md.tts_r, ALPHA, QUARTER_INDEX_MASK);
+    // if the evicted packet is of the previous cycle, tts_r should be the same as tts_pre_cycle
+    // in other words, cyleID of the evicted one is smaller than the incoming packet by exactly one
+    subtract(TW0_md.tts_delta, TW0_md.tts_pre_cycle, TW0_md.tts_r); 
+    shift_right(TW1_md.tts, TW0_md.tts_r, ALPHA);                                   // rightshift to get tts of next window
+    modify_field_with_shift(TW1_md.idx, TW0_md.tts_r, ALPHA, QUARTER_INDEX_MASK);   // calculate the index of next window
 }
-
 
 /***************************************************
 **********************666666************************
@@ -379,6 +381,7 @@ action TW0_check_pass(){
 **********************66  66************************
 **********************666666************************
 ****************************************************/
+
 @pragma stage 6
 table  TW1_check_tts_tb{
     actions{
@@ -437,6 +440,7 @@ action TW1_check_src_ip(){
 **********************  77  ************************
 **********************  77  ************************
 ****************************************************/
+
 @pragma stage 7
 table TW1_check_dst_ip_tb{
     actions{
@@ -526,6 +530,7 @@ action TW1_check_pass(){
     shift_right(TW0_md.tts, TW1_md.tts_r, ALPHA);
     modify_field_with_shift(TW0_md.idx, TW1_md.tts_r, ALPHA, QUARTER_INDEX_MASK);
 }
+
 /***************************************************
 **********************888888************************
 **********************8    8************************
@@ -533,6 +538,7 @@ action TW1_check_pass(){
 **********************8    8************************
 **********************888888************************
 ****************************************************/
+
 @pragma stage 8
 table  TW2_check_tts_tb{
     actions{
@@ -740,6 +746,7 @@ blackbox stateful_alu TW3_check_src_ip_bb{
 action TW3_check_src_ip(){
     TW3_check_src_ip_bb.execute_stateful_alu(TW1_md.idx);
 }
+
 /***************************************************
 *******************1*******1************************
 ******************11******11************************
@@ -838,7 +845,9 @@ action TW3_check_pass(){
     modify_field_with_shift(TW0_md.idx, TW1_md.tts_r, ALPHA, QUARTER_INDEX_MASK);
 }
 
-
+//--------------------------------------------------------------------------
+//        Control flow of time windows with data plane query pipeline
+//--------------------------------------------------------------------------
 control time_windows_data_pipe{
     if(valid(ipv4) and valid(tcp)){
         apply(prepare_TW0_tb);
@@ -847,10 +856,9 @@ control time_windows_data_pipe{
         }else{
             apply(modify_ether_tb);
         }
-        // data plane query - highest bit
         apply(cal_TW0_tts_idx_tb);
-        if (PQ_md.exceed == 1){
-            apply(data_query_lock_tb);
+        if (PQ_md.exceed == 1){ 
+            apply(data_query_lock_tb); 
             if (PQ_md.lock == 0){
                 // trigger data plane query
                 apply(reverse_highest_bit_tb);
@@ -861,6 +869,10 @@ control time_windows_data_pipe{
             apply(read_highest_bit_tb);
         }
         apply(update_idx_highest_bit_tb);
+//---------------------------------------------------------//
+//          Maximum 4 time windows in total                //
+//---------------------------------------------------------//
+// To reduce the number of time windows, direct comment the window parts
         // TW0
         apply(TW0_check_tts_tb);
         apply(TW0_check_src_ip_tb);

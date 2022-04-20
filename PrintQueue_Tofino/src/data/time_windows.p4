@@ -1,13 +1,15 @@
-/**
- * Authors:
- *     Yiran Lei, Tsinghua University, leiyr20@mails.tsinghua.edu.cn
- * File Description:
- *     Actions and Control Logic of Time Windows Pipeline.
- */
+/*******************************************************************************************
+	> File Name: time_windows_data_query.p4
+	> Author: Yiran Lei
+	> Mail: leiyr20@mails.tsinghua.edu.cn
+	> Lase Update Time: 2022.4.20
+    > Description: Actions and control logic of time windows without data plane query pipeline.
+*********************************************************************************************/
 
+// Time windows without data plane query can support 5 windows at most.
+// Time windows with data plane query can support 4 windows at most.
 
 #include "parser.p4"
-
 
 /***************************************************
 **********************0 0***************************
@@ -33,7 +35,7 @@ action prepare_TW0(second_highest){
     modify_field(TW0_md.quarter_index_num, QUARTER_INDEX_NUM);
     modify_field(TW1_md.quarter_index_num, QUARTER_INDEX_NUM);
     //decide updating first/second quarter of the registers
-    modify_field(R_md.second_highest, second_highest);          // second_highest = 100000000000 or 000000000000
+    modify_field(R_md.second_highest, second_highest);          // second highest bit flip based on control plane
     modify_field(TW0_md.idx, second_highest);
     modify_field(TW1_md.idx, second_highest);
     // pass the queue information to the end to get the ground truth
@@ -60,7 +62,7 @@ table modify_ether_tb{
 }
 
 action modify_ether(){
-    modify_field(ethernet.ether_type, ETHERTYPE_PRINTQUEUE);
+    modify_field(ethernet.ether_type, ETHERTYPE_PRINTQUEUE);     // modify ethertype to notify end hosts of INT data
 }
 
 @pragma stage 1 
@@ -73,7 +75,7 @@ table modify_vlan_tb{
 }
 
 action modify_vlan(){
-    modify_field(vlan_tag.etherType, ETHERTYPE_PRINTQUEUE);
+    modify_field(vlan_tag.etherType, ETHERTYPE_PRINTQUEUE);      // modify ethertype to notify end hosts of INT data
 }
 
 @pragma stage 1
@@ -86,10 +88,9 @@ table cal_TW0_tts_idx_tb{
 }
 
 action cal_TW0_tts_idx(){
-    shift_right(TW0_md.tts, queue_int.dequeue_ts, TW0_TB);
-    modify_field_with_shift(TW0_md.idx, queue_int.dequeue_ts, TW0_TB, QUARTER_INDEX_MASK);
+    shift_right(TW0_md.tts, queue_int.dequeue_ts, TW0_TB);          // calculate tts
+    modify_field_with_shift(TW0_md.idx, queue_int.dequeue_ts, TW0_TB, QUARTER_INDEX_MASK);  // move the lowest k bits of tts to index
 }
-
 
 /***************************************************
 ***********************222**************************
@@ -109,7 +110,7 @@ table TW0_check_tts_tb{
 
 register TW0_tts_r{
     width: 32;
-    instance_count: HALF_INDEX_NUM;
+    instance_count: HALF_INDEX_NUM;                 // without data plane query, only two (instead of four) sets of registers are needed
 }
 
 blackbox stateful_alu TW0_check_tts_bb{
@@ -120,8 +121,8 @@ blackbox stateful_alu TW0_check_tts_bb{
 }
 
 action TW0_check_tts(){
-    TW0_check_tts_bb.execute_stateful_alu(TW0_md.idx);
-    subtract(TW0_md.tts_pre_cycle, TW0_md.tts, TW0_md.quarter_index_num);
+    TW0_check_tts_bb.execute_stateful_alu(TW0_md.idx);          // evict the old packet and store the incoming one
+    subtract(TW0_md.tts_pre_cycle, TW0_md.tts, TW0_md.quarter_index_num);   // calculate the tts of the previous cycle
 }
 
 @pragma stage 2
@@ -146,10 +147,8 @@ blackbox stateful_alu TW0_check_src_ip_bb{
 }
 
 action TW0_check_src_ip(){
-    TW0_check_src_ip_bb.execute_stateful_alu(TW0_md.idx);
+    TW0_check_src_ip_bb.execute_stateful_alu(TW0_md.idx);       // evict old flow ID and store incoming flow ID
 }
-
-
 
 /***************************************************
 **********************333***************************
@@ -180,7 +179,7 @@ blackbox stateful_alu TW0_check_dst_ip_bb{
 }
 
 action TW0_check_dst_ip(){
-    TW0_check_dst_ip_bb.execute_stateful_alu(TW0_md.idx);
+    TW0_check_dst_ip_bb.execute_stateful_alu(TW0_md.idx);       // evict old flow ID and store incoming flow ID
 }
 
 @pragma stage 3
@@ -205,7 +204,7 @@ blackbox stateful_alu TW0_check_src_port_bb{
 }
 
 action TW0_check_src_port(){
-    TW0_check_src_port_bb.execute_stateful_alu(TW0_md.idx);
+    TW0_check_src_port_bb.execute_stateful_alu(TW0_md.idx);     // evict old flow ID and store incoming flow ID
 } 
 
 @pragma stage 3
@@ -230,7 +229,7 @@ blackbox stateful_alu TW0_check_dst_port_bb{
 }
 
 action TW0_check_dst_port(){
-    TW0_check_dst_port_bb.execute_stateful_alu(TW0_md.idx);
+    TW0_check_dst_port_bb.execute_stateful_alu(TW0_md.idx);     // evict old flow ID and store incoming flow ID
 }
 
 @pragma stage 3
@@ -243,9 +242,11 @@ table TW0_check_pass_tb{
 }
 
 action TW0_check_pass(){
+    // if the evicted packet is of the previous cycle, tts_r should be the same as tts_pre_cycle
+    // in other words, cyleID of the evicted one is smaller than the incoming packet by exactly one
     subtract(TW0_md.tts_delta, TW0_md.tts_pre_cycle, TW0_md.tts_r);
-    shift_right(TW1_md.tts, TW0_md.tts_r, ALPHA);
-    modify_field_with_shift(TW1_md.idx, TW0_md.tts_r, ALPHA, QUARTER_INDEX_MASK);
+    shift_right(TW1_md.tts, TW0_md.tts_r, ALPHA);                                      // rightshift to get tts of next window
+    modify_field_with_shift(TW1_md.idx, TW0_md.tts_r, ALPHA, QUARTER_INDEX_MASK);      // calculate the index of next window
 }
 
 /***************************************************
@@ -314,6 +315,7 @@ action TW1_check_src_ip(){
 **********************    55************************
 **********************555555************************
 ****************************************************/
+
 @pragma stage 5
 table TW1_check_dst_ip_tb{
     actions{
@@ -462,8 +464,6 @@ blackbox stateful_alu TW2_check_src_ip_bb{
 action TW2_check_src_ip(){
     TW2_check_src_ip_bb.execute_stateful_alu(TW0_md.idx);
 }
-
-
 
 /***************************************************
 *********************77777777***********************
@@ -621,8 +621,6 @@ blackbox stateful_alu TW3_check_src_ip_bb{
 action TW3_check_src_ip(){
     TW3_check_src_ip_bb.execute_stateful_alu(TW1_md.idx);
 }
-
-
 
 /***************************************************
 ***********************999999***********************
@@ -879,10 +877,11 @@ action TW4_check_pass(){
     modify_field_with_shift(TW1_md.idx, TW0_md.tts_r, ALPHA, QUARTER_INDEX_MASK);
 }
 
-/*******************CONTROL************************/
+//--------------------------------------------------------------------------
+//        Control flow of time windows without data plane query pipeline
+//--------------------------------------------------------------------------
 control time_windows_periodical_pipe{
     if(valid(ipv4) and valid(tcp)){
-        //prepare
         apply(prepare_TW0_tb);
         if(valid(vlan_tag)){
             apply(modify_vlan_tb);
@@ -890,6 +889,10 @@ control time_windows_periodical_pipe{
             apply(modify_ether_tb);
         }
         apply(cal_TW0_tts_idx_tb);
+//---------------------------------------------------------//
+//          Maximum 5 time windows in total                //
+//---------------------------------------------------------//
+// To reduce the number of time windows, direct comment the window parts
         // TW0
         apply(TW0_check_tts_tb);
         apply(TW0_check_src_ip_tb);

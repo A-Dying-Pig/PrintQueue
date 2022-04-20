@@ -1,9 +1,10 @@
-/**
- * Authors:
- *     Yiran Lei, Tsinghua University, leiyr20@mails.tsinghua.edu.cn
- * File Description:
- *     Header, Constant, Metadata Definition.
- */
+/*************************************************************************
+	> File Name: includes.p4
+	> Author: Yiran Lei
+	> Mail: leiyr20@mails.tsinghua.edu.cn
+	> Lase Update Time: 2022.4.20
+    > Description: Header and metadata definition of PrintQueue
+*************************************************************************/
 
 #ifndef _INCLUDES_H_
 #define _INCLUDES_H_
@@ -56,6 +57,7 @@ header_type tcp_t {
     }
 }
 
+// two bits to control 4 sets of registers
 header_type register_metadata_t{
     fields{
         highest: 32;    
@@ -80,12 +82,14 @@ header_type vlan_tag_t {
     }
 }
 
+// data plane query can be triggerd by the probe header
 header_type printqueue_probe_t{
     fields {
         qdepth_threshold: 32;
     }
 }
 
+// printqueue metadata
 header_type PQ_metadata_t {
     fields{
         qdepth_threshold: 32;
@@ -96,6 +100,7 @@ header_type PQ_metadata_t {
     }
 }
 
+// time window metadata
 header_type TW_metadata_t {
     fields {
         src_addr: 32;
@@ -104,15 +109,16 @@ header_type TW_metadata_t {
         dst_port: 16;
         idx : 32;
         tts : 32;
-        tts_pre_cycle : 32;
+        tts_pre_cycle : 32;     // the tts of the previous cycle
         tts_delta : 32;
-        tts_r: 32;
+        tts_r: 32;              // tts value of the register
         quarter_index_num: 16;
         b1: 1;
         b2: 1;
     }
 }
 
+//queue monitor metadata
 header_type QM_matadata_t{
     fields{
         src_addr: 32;
@@ -131,8 +137,8 @@ header_type QM_matadata_t{
 #define ETHERTYPE_ARP           0x0806
 #define ETHERTYPE_RARP          0x8035
 #define ETHERTYPE_NSH           0x894f
-#define ETHERTYPE_PRINTQUEUE    0x080c
-#define ETHERTYPE_PRINTQUEUE_PROBE    0x080d
+#define ETHERTYPE_PRINTQUEUE    0x080c          // used for transmit INT data
+#define ETHERTYPE_PRINTQUEUE_PROBE    0x080d    // a probe packet may trigger data plane query
 #define ETHERTYPE_NEVER         0xffff
 
 #define IP_PROTOCOLS_ICMP              1
@@ -165,19 +171,29 @@ header_type QM_matadata_t{
 #define DROP_PORT  129
 #define ROUTING_FLOW_NUMBER         1024   // 1K possible IPv4 prefixes
 
-
+//---------------------------------------//
+//          Adjustable Parameters        //
+//---------------------------------------//
+//NOTICE: when changing the parameters, remember to change the parameters of the control plane program
+#define ALPHA 2
 #define TW0_TB 6
-#define INDEX_NUM 16384
+#define INDEX_NUM 16384                 // extra space for periodical and data plane query
 #define HALF_INDEX_NUM 8192
-#define QUARTER_INDEX_NUM 4096
+#define QUARTER_INDEX_NUM 4096          // cell number of a time window
 #define QUARTER_INDEX_BIT 12
 #define QUARTER_INDEX_MASK 0xfff
-#define ALPHA 2
-#define INGRESS_PROCESSING_TIME 47
+//------------------------------------------------------------------------//
+//   The nanoseconds that a packet experiences in the ingress pipeline    //
+//------------------------------------------------------------------------//
+// The value is based on the machine and codes.
+// To get this value:
+// 1. check the total ingress pipeline cycles in '$SDE/pkgsrc/p4-build/tofino/printqueue/logs/mau.config.log' after compiling PrintQueue
+// 2. calculate duration with the chip frequency, e.g. 1.22 GHz 
+#define INGRESS_PROCESSING_TIME 47      
 
-#define QUARTER_QDEPTH 32768 // 2^15 = 32768
+#define QUARTER_QDEPTH 32768 // 2^15 = 32768    // stack depth
 #define HALF_QDEPTH 65536 // 2^16 = 65536
-#define TOTAL_QDEPTH 131072 // 2^17 = 131072
+#define TOTAL_QDEPTH 131072 // 2^17 = 131072    // extra space for periodical and data plane query
 #define QUARTER_QDEPTH_MASK 0x7fff
 
 #define DEFAULT_QDEPTH_THRESHOLD 0xffffffff

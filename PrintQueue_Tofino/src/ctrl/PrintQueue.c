@@ -2,10 +2,10 @@
 /*************************************************************************
 	> File Name: PrintQueue.c
 	> Author: Yiran Lei
-	> Mail: yiranlei.yiranlei@gmail.com
-	> Created Time: Tue 18 Jan 2022
-    > Description: Data plane (Tofino) control interfaces for PrintQueue
- ************************************************************************/
+	> Mail: leiyr20@mails.tsinghua.edu.cn
+	> Lase Update Time: 2022.4.20
+  > Description: Data plane (Tofino) control interfaces for PrintQueue
+*************************************************************************/
 
 
 /* Standard includes */
@@ -216,6 +216,11 @@ static void setup_coverage_sighandler() {
   sigaction(SIGQUIT, &new_action, NULL);
 }
 
+//----------------------------------------------------------------------
+// Handler when receiving USR1 signal.
+// The main program starts to periodically poll registers when 
+// loop_flag = true, stops when loop_flag = false.
+//----------------------------------------------------------------------
 static bool loop_flag = false;
 static void sigusr1_handler(int signum) {
   printf("printqueue: received signal %d, flip loop_flag\n", signum);
@@ -227,6 +232,10 @@ static void sigusr1_handler(int signum) {
   }
 }
 
+//----------------------------------------------------------------------
+// Handler when receiving USR2 signal.
+// The main program ends when running_flag = false.
+//----------------------------------------------------------------------
 static bool running_flag = true;
 static void sigusr2_handler(int signum) {
   printf("printqueue: received signal %d, flip running_flag\n", signum);
@@ -238,6 +247,12 @@ static void sigusr2_handler(int signum) {
   }
 }
 
+//----------------------------------------------------------------------
+// The following function range read registers of time windows.
+// Based on the C API provided after compilation, the following
+// code gets rid of some unneccessary parts to achieve higher reading
+// speed and less used memory.
+//-----------------------------------------------------------------------
 p4_pd_status_t
 p4_pd_time_windows_register_range_read
 (
@@ -286,11 +301,18 @@ p4_pd_time_windows_register_range_read
     }
   }
 //   printf("pipe count: %d, instance_per_pipe_count: %d, count: %d\n", pipe_count, num_vals_per_pipe, count);
-    int handle_id[] = {100663297, 100663298, 100663299, 
-                       100663302, 100663303, 100663304, 
-                       100663307, 100663308, 100663309, 
-                       100663312, 100663313, 100663314};
+ 
+    // ------------------------------------------------------------------------------------------------------------------
+    //   Please check and modify the handle_id under your environment. 
+    //   They can be found at your pd.c after compilation.
+    //   When the number of time windows changes, remember to modify the number of elements in handle_id
+    //-------------------------------------------------------------------------------------------------------------------
+    int handle_id[] = {100663297, 100663298, 100663299,       // TW0: tts, srcIP, dstIP
+                       100663302, 100663303, 100663304,       // TW1: tts, srcIP, dstIP
+                       100663307, 100663308, 100663309,       // TW2: tts, srcIP, dstIP
+                       100663312, 100663313, 100663314};      // TW3: tts, srcIP, dstIP
                       //  100663317, 100663318, 100663319};
+
     int handle_id_data_query[] = {100663300, 100663301, 100663302, 
                             100663305, 100663306, 100663307,
                             100663310, 100663311, 100663312,
@@ -298,11 +320,15 @@ p4_pd_time_windows_register_range_read
                           };
     uint total = 0;
     for (int rn = 0; rn < T * 3; rn ++){
-        /* Perform the query. */
+        /* Perform the query.*/
+        // ------------------------------------------------------------------------------------
+        // The following function accepts the handle id. Change according to your setting.
+        //------------------------------------------------------------------------------------
         status = pipe_stful_ent_query_range(sess_hdl, pipe_mgr_dev_tgt,
                                             handle_id_data_query[rn], index, count,
                                             stful_query, num_actually_read,
                                             pipe_api_flags);
+
         // if(status != PIPE_MGR_SUCCESS) goto free_query_data;
         /* Convert the query data to PD format. */
         *value_count = 0;
@@ -327,7 +353,12 @@ free_query_data:
   return status;
 }
 
-
+//----------------------------------------------------------------------
+// The following function range read registers of queue monitor.
+// Based on the C API provided after compilation, the following
+// code gets rid of some unneccessary parts to achieve higher reading
+// speed and less used memory.
+//-----------------------------------------------------------------------
 p4_pd_status_t
 p4_pd_queue_monitor_register_range_read
 (
@@ -375,10 +406,18 @@ p4_pd_queue_monitor_register_range_read
     }
   }
 //   printf("pipe count: %d, instance_per_pipe_count: %d, count: %d\n", pipe_count, num_vals_per_pipe, count);
+
+    // ------------------------------------------------------------------------------------------------------------------
+    //   Please check and modify the handle_id under your environment. They can be found at your pd.c after compilation.
+    //-------------------------------------------------------------------------------------------------------------------
     int handle_id[] = {100663303, 100663304,100663305}; // src_ip, dst_ip, seq_num
+
     uint total = 0;
     for (int rn = 0; rn < 3; rn ++){
         /* Perform the query. */
+        // ------------------------------------------------------------------------------------
+        // The following function accepts the handle id. Change according to your setting.
+        //------------------------------------------------------------------------------------
         status = pipe_stful_ent_query_range(sess_hdl, pipe_mgr_dev_tgt,
                                             handle_id[rn], index, count,
                                             stful_query, num_actually_read,
@@ -407,6 +446,7 @@ free_query_data:
   return status;
 }
 
+// used in transforming address string to uint32
 typedef struct ipv4_address{
   union
   {
@@ -434,6 +474,9 @@ int main(int argc, char *argv[]) {
 
   setup_coverage_sighandler();
 
+//---------------------------------------------------//
+//          Register USR1 and USR2 handlers          //
+//---------------------------------------------------//
   struct sigaction sa_usr1;
   sa_usr1.sa_handler=&sigusr1_handler;
   sa_usr1.sa_flags=0;
@@ -469,9 +512,11 @@ int main(int argc, char *argv[]) {
   ret = bf_switchd_lib_init(switchd_main_ctx);
 
 
-//----------------------------------------------------
-//  PrintQueue Control Plane
-//---------------------------------------------------
+//-----------------------------------------------------------//
+//                                                           //
+//                PrintQueue Control Plane                   //
+//                                                           //
+//-----------------------------------------------------------//
   printf("\n\n\n\n\n\n\n\n-----------------------------------------------------\nPrintQueue Control Plane is Activating\n-----------------------------------------------------\n");
   printf("Program ID: %ld\nUse command 'kill -s USR1 %ld', 'kill -s USR2 %ld' to send signals\n\n", getpid(), getpid(), getpid());
 
@@ -501,6 +546,8 @@ struct timeval s_us, e_us, initial_us;
 //                     Data Plane Query Support                       //
 //                                                                    //
 //--------------------------------------------------------------------//
+// Read data plane query thresholds from the csv file
+// when qdepth is larger than the threshold, trigger data plane query
 uint32_t THRESHOLD_FLOW_NUMBER = 1024;
 p4_pd_printqueue_qdepth_alerting_threshold_2_match_spec_t* matches = (p4_pd_printqueue_qdepth_alerting_threshold_2_match_spec_t*) malloc(sizeof(p4_pd_printqueue_qdepth_alerting_threshold_2_match_spec_t) * THRESHOLD_FLOW_NUMBER);
 p4_pd_printqueue_set_threshold_action_spec_t * actions = (p4_pd_printqueue_set_threshold_action_spec_t *) malloc(sizeof(p4_pd_printqueue_set_threshold_action_spec_t) * THRESHOLD_FLOW_NUMBER);
@@ -522,6 +569,7 @@ while ((read = getline(&line, &len, f)) != -1) {
       ptr = strtok(NULL, " ");
       i++;
     }
+    // CSV line format: srcIP dstIP threshold 
     // src IP
     ipv4_address_t ip_addr;
     sscanf(fields[0],"%u.%u.%u.%u", &ip_addr.addr.bytes_addr.b1, &ip_addr.addr.bytes_addr.b2, &ip_addr.addr.bytes_addr.b3, &ip_addr.addr.bytes_addr.b4);
@@ -539,6 +587,7 @@ while ((read = getline(&line, &len, f)) != -1) {
 free(line);
 fclose(f);
 printf("Adding %d entries to the qdepth_threshold table\n", j);
+// populate table entries
 for (i = 0; i < j; i++){
   status_tmp = p4_pd_printqueue_qdepth_alerting_threshold_2_table_add_with_set_threshold(sess_hdl, dev_tgt, &matches[i], &actions[i], &handlers[0]);
   if(status_tmp != 0){
@@ -549,121 +598,148 @@ for (i = 0; i < j; i++){
 free(matches);
 free(actions);
 printf("Successfully set the qdepth_threshold table\n");
-//--------------------------------------------------------------------//
-//                                                                    //
-//                      Time          Windows                         //
-//                                                                    //
-//--------------------------------------------------------------------//
-// printf("-----------------------------------------------------\nTime Windows is Activating\n-----------------------------------------------------\n");
-// uint32_t second_highest = 0, highest = 0, k = 12;
-// p4_pd_printqueue_prepare_TW0_action_spec_t action_set_second_highest_bit;
-// action_set_second_highest_bit.action_second_highest = second_highest << k;
-// status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
-// if(status_tmp!=0) {
-//   printf("Error setting the second highest bit!\n");
-//   return false;
-// }
-// second_highest = 1;
-// printf("Successfully set the second highest bit\n");
-// uint index, cell_number = 1 << k, T = 4, a = 2;
-// uint64_t retrieve_interval = ((1 << (a * T)) - 1) * (1 << (k + 6)) / ((1<<a)-1) / 1000 - 10; // us, give a little time ahead to trigger reading
-// printf("Time window retrieve interval: %ld us\n", retrieve_interval);
 
-// uint8_t buffer[245760];
-// char data_dir[100];
-// long duration = 2; // 2s
-// uint32_t delta_time;
-// memset(buffer, 0, 245760);
-// memset(data_dir, 0, 100);
-// while(running_flag){
-//     gettimeofday(&initial_us, NULL);
-//     gettimeofday(&e_us, NULL);
-//     while(loop_flag){
-//       gettimeofday(&s_us, NULL);
-//       delta_time = (s_us.tv_sec - e_us.tv_sec) * 1000000 + s_us.tv_usec - e_us.tv_usec;
-//       if(delta_time >= retrieve_interval){
-//         action_set_second_highest_bit.action_second_highest = second_highest << k;
-//         status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
-//         gettimeofday(&e_us, NULL);
-//         if(status_tmp!=0) {
-//           printf("Error setting second highest bit!\n");
-//           return false;
-//         }
-//         second_highest ^= 1;
-//         // read just recorded TW
-//         index = second_highest << k;
-//         p4_pd_time_windows_register_range_read(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, buffer, &value_count, 1, T);
-//         sprintf(data_dir, "./tw_data/%ld_%ld.bin",s_us.tv_sec,s_us.tv_usec);
-//         FILE * f = fopen(data_dir, "wb");
-//         fwrite(buffer, 1, cell_number * 12 * T, f);
-//         fclose(f);
-//         memset(buffer, 0, 245760);
-//         memset(data_dir, 0, 100);
-//       }
-//       gettimeofday(&s_us, NULL);
-//       if (s_us.tv_sec - initial_us.tv_sec > duration){
-//           printf("Retrieve Ends!\n");
-//           loop_flag = false;
-//         }
-//     }
-// }
-
+// Time windows or queue monitor is loaded. Comment one and uncomment the other
+/*--------------------------------------------------------------------*/
+/*                                                                    */
+/*                      Time          Windows                         */
+/*                                                                    */
+/*--------------------------------------------------------------------*/
+printf("-----------------------------------------------------\nTime Windows is Activating\n-----------------------------------------------------\n");
+// -------------------------------------------------------------------//
+//           The following is the configurable parameters             //
+//                Tune them according to your setting                 //
 //--------------------------------------------------------------------//
-//                                                                    //
-//                    Queue            Monitor                        //
-//                                                                    //
+// k: the cell number of a single time window: 2^k
+// T: the number of time windows
+// a: compression factor
+// duration: the number of seconds for which the periodical register reading lasts
+uint32_t k = 12, T = 4, a = 2, duration = 2;
 //--------------------------------------------------------------------//
-printf("-----------------------------------------------------\nQueue Monitor is Activating\n-----------------------------------------------------\n");
-uint32_t second_highest = 0, highest = 0, k = 15, max_qdepth = 25000;
-p4_pd_printqueue_check_stack_action_spec_t action_set_second_highest_bit;
+//--------------------------------------------------------------------//
+uint32_t second_highest = 0, highest = 0, index = 0, cell_number = 1 << k ;
+// set second highest bit
+p4_pd_printqueue_prepare_TW0_action_spec_t action_set_second_highest_bit;
 action_set_second_highest_bit.action_second_highest = second_highest << k;
-status_tmp = p4_pd_printqueue_check_stack_tb_set_default_action_check_stack(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
+status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
 if(status_tmp!=0) {
   printf("Error setting the second highest bit!\n");
   return false;
 }
 second_highest = 1;
 printf("Successfully set the second highest bit\n");
+uint64_t retrieve_interval = ((1 << (a * T)) - 1) * (1 << (k + 6)) / ((1<<a)-1) / 1000 - 10; // us, give a little time ahead to trigger reading
+printf("Time window retrieve interval: %ld us\n", retrieve_interval);
 
-uint32_t read_interval = 100000, duration = 2, time_pass, index; 
-printf("Queue monitor retrieve interval: %ld us\n", read_interval);
-uint8_t buffer[300000];
-char data_path[100];
-memset(buffer, 0, 300000);
-memset(data_path, 0, 100);
+// initialize buffer used to store register values
+uint8_t buffer[245760];
+char data_dir[100];
+uint32_t delta_time;
+memset(buffer, 0, 245760);
+memset(data_dir, 0, 100);
 while(running_flag){
-  gettimeofday(&initial_us, NULL);
-  gettimeofday(&e_us, NULL);
-  while(loop_flag){
+    gettimeofday(&initial_us, NULL);
+    gettimeofday(&e_us, NULL);
+    while(loop_flag){
       gettimeofday(&s_us, NULL);
-      time_pass = (s_us.tv_sec - e_us.tv_sec) * 1000000 + s_us.tv_usec - e_us.tv_usec;
-      if (time_pass >= read_interval){
+      delta_time = (s_us.tv_sec - e_us.tv_sec) * 1000000 + s_us.tv_usec - e_us.tv_usec;
+      if(delta_time >= retrieve_interval){
         action_set_second_highest_bit.action_second_highest = second_highest << k;
-        status_tmp = p4_pd_printqueue_check_stack_tb_set_default_action_check_stack(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
+        status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
         gettimeofday(&e_us, NULL);
         if(status_tmp!=0) {
           printf("Error setting second highest bit!\n");
           return false;
         }
         second_highest ^= 1;
-        // read just recorded QM
+        // read just recorded TW
         index = second_highest << k;
-        p4_pd_queue_monitor_register_range_read(sess_hdl, dev_tgt, index, max_qdepth, 1, &actual_read, buffer, &value_count, 1);
-
-        sprintf(data_path, "./qm_data/%ld_%ld.bin",s_us.tv_sec,s_us.tv_usec);
-        FILE * f = fopen(data_path, "wb");
-        fwrite(buffer, 1, 300000, f);
+        p4_pd_time_windows_register_range_read(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, buffer, &value_count, 1, T);
+        // store the register values
+        sprintf(data_dir, "./tw_data/%ld_%ld.bin",e_us.tv_sec,e_us.tv_usec);  // e_us is the time after the operatin of bit flip, also the start of the reading
+        FILE * f = fopen(data_dir, "wb");
+        fwrite(buffer, 1, cell_number * 12 * T, f);
         fclose(f);
-        memset(buffer, 0, 300000);
-        memset(data_path, 0, 100);
+        memset(buffer, 0, 245760);
+        memset(data_dir, 0, 100);
       }
       gettimeofday(&s_us, NULL);
       if (s_us.tv_sec - initial_us.tv_sec > duration){
-        printf("Retrieve Ends!\n");
-        loop_flag = false;
-      }
-  }
+          printf("Retrieve Ends!\n");
+          loop_flag = false;
+        }
+    }
 }
+
+/*--------------------------------------------------------------------*/
+/*                                                                    */
+/*                    Queue            Monitor                        */
+/*                                                                    */
+/*--------------------------------------------------------------------*/
+// printf("-----------------------------------------------------\nQueue Monitor is Activating\n-----------------------------------------------------\n");
+// // -------------------------------------------------------------------//
+// //           The following is the configurable parameters             //
+// //                Tune them according to your setting                 //
+// //--------------------------------------------------------------------//
+// // k: the depth of the stack (data structure) is 2^k
+// // max_qdepth: the maximum qdepth number, must be smaller than 2^k
+// // read_interval: the number of microseconds which is the reading interval
+// // duration: the number of seconds for which the periodical register reading lasts
+// uint32_t k = 15, max_qdepth = 25000, read_interval = 100000, duration = 2;
+// //--------------------------------------------------------------------//
+// //--------------------------------------------------------------------//
+// uint32_t second_highest = 0, highest = 0, time_pass, index;
+// printf("Queue monitor retrieve interval: %ld us\n", read_interval);
+// // set second highest bit
+// p4_pd_printqueue_check_stack_action_spec_t action_set_second_highest_bit;
+// action_set_second_highest_bit.action_second_highest = second_highest << k;
+// status_tmp = p4_pd_printqueue_check_stack_tb_set_default_action_check_stack(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
+// if(status_tmp!=0) {
+//   printf("Error setting the second highest bit!\n");
+//   return false;
+// }
+// second_highest = 1;
+// printf("Successfully set the second highest bit\n");
+
+// //initialize buffers used to store register values
+// uint8_t buffer[300000];
+// char data_path[100];
+// memset(buffer, 0, 300000);
+// memset(data_path, 0, 100);
+// while(running_flag){
+//   gettimeofday(&initial_us, NULL);
+//   gettimeofday(&e_us, NULL);
+//   while(loop_flag){
+//       gettimeofday(&s_us, NULL);
+//       time_pass = (s_us.tv_sec - e_us.tv_sec) * 1000000 + s_us.tv_usec - e_us.tv_usec;
+//       if (time_pass >= read_interval){
+//         action_set_second_highest_bit.action_second_highest = second_highest << k;
+//         status_tmp = p4_pd_printqueue_check_stack_tb_set_default_action_check_stack(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
+//         gettimeofday(&e_us, NULL);
+//         if(status_tmp!=0) {
+//           printf("Error setting second highest bit!\n");
+//           return false;
+//         }
+//         second_highest ^= 1;
+//         // read and reset just recorded QM
+//         index = second_highest << k;
+//         p4_pd_queue_monitor_register_range_read(sess_hdl, dev_tgt, index, max_qdepth, 1, &actual_read, buffer, &value_count, 1);
+//         p4_pd_printqueue_register_range_reset_src_ip_r(sess_hdl, dev_tgt, index, max_qdepth);  // reset registers after read: only store delta data
+//         // store the register values
+//         sprintf(data_path, "./qm_data/%ld_%ld.bin",e_us.tv_sec,e_us.tv_usec); // e_us is the time after the operatin of bit flip, also the start of the reading
+//         FILE * f = fopen(data_path, "wb");
+//         fwrite(buffer, 1, 300000, f);
+//         fclose(f);
+//         memset(buffer, 0, 300000);
+//         memset(data_path, 0, 100);
+//       }
+//       gettimeofday(&s_us, NULL);
+//       if (s_us.tv_sec - initial_us.tv_sec > duration){
+//         printf("Retrieve Ends!\n");
+//         loop_flag = false;
+//       }
+//   }
+// }
 
 
 //----------------------------------------------------//

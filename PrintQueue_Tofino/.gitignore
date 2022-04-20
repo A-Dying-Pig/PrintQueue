@@ -1,5 +1,6 @@
 build/*
-.vscode/*
+.vscode
+.idea
 bf_drivers.log
 bf_drivers.log.0
 bf_drivers.log.1
@@ -12,3 +13,8 @@ zlog-cfg-cur
 host/.idea/*
 src/control/control.pyc
 workspace.*
+PrintQueue
+tw_data/*
+qm_data/*
+*.log
+

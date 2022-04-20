@@ -1,9 +1,10 @@
-/**
- * Authors:
- *     Yiran Lei, Tsinghua University, leiyr20@mails.tsinghua.edu.cn
- * File Description:
- *     Actions and Control Logic of Egress Pipeline.
- */
+/*********************************************************************************
+	> File Name: ingress.p4
+	> Author: Yiran Lei
+	> Mail: leiyr20@mails.tsinghua.edu.cn
+	> Lase Update Time: 2022.4.20
+    > Description: Ingress pipeline of PrintQueue: forward, and data plane query
+*********************************************************************************/
  
 #include "parser.p4"
 
@@ -23,7 +24,7 @@ table ipv4_routing {
 
 action pkt_forward_S101(){
     add_to_field(ipv4.ttl, -1);
-    modify_field(ig_intr_md_for_tm.ucast_egress_port,128);
+    modify_field(ig_intr_md_for_tm.ucast_egress_port,128);  // forward to a fixed machine for simplicity
 }
 
 action pkt_forward(dst_port){
@@ -37,7 +38,8 @@ action pkt_drop(){
     modify_field(ig_intr_md_for_tm.ucast_egress_port,DROP_PORT);
 }
 
-// get threshold to trigger alerts for different flows
+// get threshold to trigger data plane query for different flows
+// in the egress pipeline, if the current qdepth is larger than the threshold, trigger data plane query
 table qdepth_alerting_threshold_4{
     reads{
         ipv4.src_addr: exact;
@@ -53,6 +55,7 @@ table qdepth_alerting_threshold_4{
     size: THRESHOLD_FLOW_NUMBER;
 }
 
+// get threshold to trigger data plane query for different flows
 table qdepth_alerting_threshold_2{
     reads{
         ipv4.src_addr: exact;
@@ -74,6 +77,7 @@ action set_threshold(flow_threshold){
     modify_field(PQ_md.qdepth_threshold, flow_threshold);
 }
 
+// read the threshold from the probe packet
 table set_threshold_from_probe_pkt_tb{
     actions{
         set_threshold_from_probe_pkt;

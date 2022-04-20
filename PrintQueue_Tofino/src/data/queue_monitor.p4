@@ -1,13 +1,14 @@
-/**
- * Authors:
- *     Yiran Lei, Tsinghua University, leiyr20@mails.tsinghua.edu.cn
- * File Description:
- *     Actions and Control Logic of Queue Monitor Pipeline.
- */
-
+/*************************************************************************
+	> File Name: queue_monitor.p4
+	> Author: Yiran Lei
+	> Mail: leiyr20@mails.tsinghua.edu.cn
+	> Lase Update Time: 2022.4.20
+    > Description:  Actions and control logic of queue monitor pipeline.
+*************************************************************************/
 
 #include "parser.p4"
 
+// stage
 /***************************************************
 **********************0 0***************************
 *********************0   0**************************
@@ -41,7 +42,7 @@ table check_stack_tb{
 }
 
 action check_stack(second_highest){
-    check_stack_bb.execute_stateful_alu(0);
+    check_stack_bb.execute_stateful_alu(0);         //check whether stack length has changed
     // update QM metadata
     modify_field(R_md.second_highest, second_highest);
     modify_field(QM_md.src_addr, ipv4.src_addr);
@@ -70,7 +71,7 @@ table increment_seq_num_tb{
 }
 
 action increment_seq_num(){
-    increment_seq_num_bb.execute_stateful_alu(0);
+    increment_seq_num_bb.execute_stateful_alu(0);   // increase seq number to prepare for stack change
 }
 
 // data plane query
@@ -101,7 +102,7 @@ table compare_pre_pkt_qdepth_tb{
 }
 
 action compare_pre_pkt_qdepth(){
-    compare_pre_pkt_qdepth_bb.execute_stateful_alu(0);
+    compare_pre_pkt_qdepth_bb.execute_stateful_alu(0);      // compare qdepth with the threshold to decide whether triggering data plane query
 }
 
 register idx_immediate_r{
@@ -126,9 +127,8 @@ table cal_idx_immediate_tb{
 }
 
 action cal_idx_immediate(){
-    cal_idx_immediate_bb.execute_stateful_alu(0);
+    cal_idx_immediate_bb.execute_stateful_alu(0);       // use ALU to copy the 19-bit eg_intr_md.enq_qdepth to a 32-bit metadata
 }
-
 
 /***************************************************
 ************************1***************************
@@ -159,7 +159,7 @@ table data_query_lock_tb{
 }
 
 action data_query_lock(){
-    data_query_lock_bb.execute_stateful_alu(0);
+    data_query_lock_bb.execute_stateful_alu(0);     // lock to avoid another data plane query when registers are not ready
 }
 
 @pragma stage 1
@@ -172,9 +172,8 @@ table update_idx_second_highest_bit_tb{
 }
 
 action update_idx_second_highest_bit(){
-    bit_or(QM_md.idx, QM_md.idx, R_md.second_highest);
+    bit_or(QM_md.idx, QM_md.idx, R_md.second_highest);  // under periodical query, flip the second highest bit every time when reading the registers
 }
-
 
 /***************************************************
 ***********************222**************************
@@ -182,6 +181,7 @@ action update_idx_second_highest_bit(){
 **********************  22**************************
 **********************222222************************
 ****************************************************/
+
 register highest_bit_r{
     width: 32;
     instance_count: 1;
@@ -204,7 +204,7 @@ table reverse_highest_bit_tb{
 }
 
 action reverse_highest_bit(){
-    reverse_highest_bit_bb.execute_stateful_alu(0);
+    reverse_highest_bit_bb.execute_stateful_alu(0);     // flip the highest bit due to data plane query or seq overflow
     // ---------------------------------------
     // ---------------------------------------
     // TODO - SEND SIGNAL TO THE CONTROL PLANE
@@ -228,7 +228,7 @@ table read_highest_bit_tb{
 }
 
 action read_highest_bit(){
-    read_highest_bit_bb.execute_stateful_alu(0);
+    read_highest_bit_bb.execute_stateful_alu(0);      // just read the highest bit
 }
 
 /***************************************************
@@ -238,6 +238,7 @@ action read_highest_bit(){
 **********************   33*************************
 **********************333***************************
 ****************************************************/
+
 @pragma stage 3
 table update_idx_highest_bit_tb{
     actions{
@@ -248,7 +249,7 @@ table update_idx_highest_bit_tb{
 }
 
 action update_idx_highest_bit(){
-    bit_or(QM_md.idx, QM_md.idx, R_md.highest);
+    bit_or(QM_md.idx, QM_md.idx, R_md.highest);      // pick the correct set of registers (one out of four) as the running stack
 }
 
 /***************************************************
@@ -258,6 +259,7 @@ action update_idx_highest_bit(){
 **********************    44************************
 **********************    44************************
 ****************************************************/
+
 register src_ip_r{
     width: 32;
     instance_count: TOTAL_QDEPTH;
@@ -278,7 +280,7 @@ table update_src_ip_tb{
 }
 
 action update_src_ip(){
-    update_src_ip_bb.execute_stateful_alu(QM_md.idx);    
+    update_src_ip_bb.execute_stateful_alu(QM_md.idx);    // record flow ID
 }
 
 /***************************************************
@@ -309,7 +311,7 @@ table update_dst_ip_tb{
 }
 
 action update_dst_ip(){
-    update_dst_ip_bb.execute_stateful_alu(QM_md.idx);
+    update_dst_ip_bb.execute_stateful_alu(QM_md.idx);   // record flow ID
 }
 
 /***************************************************
@@ -340,9 +342,12 @@ table update_seq_array_tb{
 }
 
 action update_seq_array(){
-    update_seq_array_bb.execute_stateful_alu(QM_md.idx);
+    update_seq_array_bb.execute_stateful_alu(QM_md.idx);    // record seq number
 }
 
+//--------------------------------------------------------------------------
+//             Control flow of queue monitor pipeline
+//--------------------------------------------------------------------------
 control queue_monitor_pipe{
     if(valid(ipv4) and valid(tcp)){
         apply(check_stack_tb);
@@ -352,7 +357,7 @@ control queue_monitor_pipe{
         apply(update_idx_second_highest_bit_tb);
         if(PQ_md.exceed == 1 or QM_md.seq_num == 0){
             // data query or seq_num overflow
-            apply(data_query_lock_tb);
+            apply(data_query_lock_tb);      // check whether it is already locked
             if (PQ_md.lock == 0){
                 // trigger data plane query
                 apply(reverse_highest_bit_tb);
@@ -364,7 +369,7 @@ control queue_monitor_pipe{
         }
         apply(update_idx_highest_bit_tb);
         if(PQ_md.stack_len_change == 1){
-            // switch queue length changes
+            // update stack when switch qdepth changes
             apply(update_src_ip_tb);
             apply(update_dst_ip_tb);
             apply(update_seq_array_tb);
