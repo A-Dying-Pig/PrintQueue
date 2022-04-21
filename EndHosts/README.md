@@ -32,12 +32,33 @@ The information is later served to get the ground truth of diagnosis.
 The header is identified by the `type = 0x080c` field of Ethernet header.
 It is inserted after the Ethernet, IPv4, TCP header shown as below:
 
-<img src="../doc/INT_headers.png" width="350">
+<img src="../doc/INT_headers.png" width="200">
 
 The program stores the dequeue timestamp, enqueue timestamp, queue depth at enqueue time, and packet's flow ID in the `gt_data`.
 The layout of binary files is:
 
-<img src="../doc/qm_binary_layout.png" width="650">
+<img src="../doc/INT_binary_layout.png.png" width="650">
 
 
 ## Send Packets
+PrintQueue utilizes the [University of Wisconsin Data Center Trace](https://www.microsoft.com/en-us/research/publication/network-traffic-characteristics-of-data-centers-in-the-wild/).
+We filter out TCP traffic. [Download](https://drive.google.com/file/d/1LDEJwkDRKlzeJ75TCMg080EeocYAj3hY/view?usp=sharing) the trace and unzip the file.
+
+PrintQueue leverages [tcpreplay](https://tcpreplay.appneta.com/) and [Pktgen-DPDK](https://pktgen-dpdk.readthedocs.io/en/latest/) to send packets.
+In order to achieve high throughput using tcpreplay, PrintQueue uses [Netmap](http://info.iet.unipi.it/~luigi/netmap/) driver.
+The [page](https://github.com/luigirizzo/netmap) introduces the installation of Netmap.
+
+Examples to send packets:
+* `tcpreplay`
+  ```shell script
+  sudo tcpreplay -i p2p1 -K -x 1000000000000 --netmap -l 1000 --duration=1 traces/d1/univ1_pt1_tcp_666135.pcap
+  sudo tcpreplay -i p2p2 -K -x 1000000000000 --netmap -l 1000 --duration=2 traces/d2/univ1_pt11_tcp_640519.pcap
+  ```
+* `Pktgen-DPDK`
+  ```shell script
+  sudo pktgen -l 0-4 -n 4 -- -P -m [1:2].0,[3:4].1 -s 1:traces/d3/test.pcap
+  # enter Pktgen shell
+  set 0 rate 90
+  start
+  stop
+  ```

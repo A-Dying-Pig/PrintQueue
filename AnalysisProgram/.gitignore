@@ -1,5 +1,5 @@
 .idea
 .vscode
-QM_RAW/*
-TW_RAW/*
+QM_RAW
+TW_RAW
 venv

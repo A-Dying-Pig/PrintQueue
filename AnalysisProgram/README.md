@@ -11,7 +11,9 @@ Run `pip3 -m install -r requirements.txt` to install dependencies.
 
 ## Run Test
 
-The `Comparison` function in `GroundTruth.py` compares the diagnosis accuracy of time windows with related works. 
-You can [download]() the pre-collected binaries to reproduce the results of the paper.
-Folder `TW_RAW` stores the binary files of TW registers and INT data.
-Folder `QM_RAW` stores the binary files of QM registers.
+The `Comparison` function in `GroundTruth.py` compares the diagnosis accuracy of time windows with related works.
+The program samples a number of packets encoutering various queue depth. 
+Calculate precision and recall of sampled packets under time windows and related works.
+
+Download and unzip the pre-collected binaries to reproduce the results of the paper.
+* Folder [TW_RAW](https://drive.google.com/file/d/1p0-YiI_CBbw4-bugU6NFfq25v4WF2tC-/view?usp=sharing) contains binaries comparing TW of different parameters `alpha_k_T` with related works.
