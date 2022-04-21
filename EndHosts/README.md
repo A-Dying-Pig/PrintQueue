@@ -32,12 +32,12 @@ The information is later served to get the ground truth of diagnosis.
 The header is identified by the `type = 0x080c` field of Ethernet header.
 It is inserted after the Ethernet, IPv4, TCP header shown as below:
 
-<img src="../doc/INT_headers.png" width="200">
+<img src="../doc/INT_headers.png" width="250">
 
 The program stores the dequeue timestamp, enqueue timestamp, queue depth at enqueue time, and packet's flow ID in the `gt_data`.
 The layout of binary files is:
 
-<img src="../doc/INT_binary_layout.png.png" width="650">
+<img src="../doc/INT_binary_layout.png" width="650">
 
 
 ## Send Packets
