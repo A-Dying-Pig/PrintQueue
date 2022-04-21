@@ -113,7 +113,7 @@ The data plane program matches every packet's flow ID in the table to get thresh
 
 * End hosts can send packets, with `type` fields of Ethernet headers equal `0x080d`, to set thresholds for the packets.
 The packets contain a 32-bit header, standing for the threshold, after Ethernet, IPv4, and TCP header as shown below:
-<img src="../doc/probe_packet_headers.png" width="250">
+<img src="../doc/probe_packet_headers.png" width="200">
 
 
 Probe packets have higher priority than flow table when setting thresholds.
