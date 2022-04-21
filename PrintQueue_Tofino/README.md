@@ -43,7 +43,7 @@ kill -s USR1 [PID]
 The experiments in the paper are carried on in the following testbed.
 
 
-<img src="./doc/testbed_topology.png" width="400">
+<img src="./doc/testbed_topology.png" width="350">
 
 
 When you launch PrintQueue control plane program, first activate corresponding ports in the `port manager`, so that the device can switching packets.
@@ -113,9 +113,7 @@ The data plane program matches every packet's flow ID in the table to get thresh
 
 * End hosts can send packets, with `type` fields of Ethernet headers equal `0x080d`, to set thresholds for the packets.
 The packets contain a 32-bit header, standing for the threshold, after Ethernet, IPv4, and TCP header as shown below:
-
-
-<img src="./doc/probe_packet_headers.png" width="400">
+<img src="./doc/probe_packet_headers.png" width="200">
 
 
 Probe packets have higher priority than flow table when setting thresholds.
@@ -126,11 +124,11 @@ The values are stored in binary format `.bin`.
 The layout of binary files is, for example:
 * a set of time windows with `k = 12`, `T = 4`:
 
-<img src="./doc/tw_binary_layout.png" width="800">
+<img src="./doc/tw_binary_layout.png" width="650">
 
 * queue monitor with a stack depth of 25000:
 
-<img src="./doc/qm_binary_layout.png" width="800">
+<img src="./doc/qm_binary_layout.png" width="650">
 
 Use the code in `../AnalysisProgram` to process the register values and diagnose how a certain packet is delayed by others.
 
