@@ -115,7 +115,7 @@ The data plane program matches every packet's flow ID in the table to get thresh
 The packets contain a 32-bit header, standing for the threshold, after Ethernet, IPv4, and TCP header as shown below:
 
 
-<img src="./doc/probe_packet_headers.png" width="400">
+<img src="./doc/probe_packet_headers.png" width="200">
 
 
 Probe packets have higher priority than flow table when setting thresholds.
@@ -126,11 +126,11 @@ The values are stored in binary format `.bin`.
 The layout of binary files is, for example:
 * a set of time windows with `k = 12`, `T = 4`:
 
-<img src="./doc/tw_binary_layout.png" width="800">
+<img src="./doc/tw_binary_layout.png" width="650">
 
 * queue monitor with a stack depth of 25000:
 
-<img src="./doc/qm_binary_layout.png" width="800">
+<img src="./doc/qm_binary_layout.png" width="650">
 
 Use the code in `../AnalysisProgram` to process the register values and diagnose how a certain packet is delayed by others.
 
