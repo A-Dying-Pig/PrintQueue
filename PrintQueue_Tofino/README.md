@@ -9,6 +9,12 @@ The control plane is written in C language located in `./src/ctrl/` folder.
 The data plane code is written in [P4<sub>14</sub>](https://p4.org/p4-spec/p4-14/v1.1.0/tex/p4.pdf) language located in `./src/data/` folder.
 The configuration file is `./config/printqueue.config`, which is specific to the device. You can get an example configuration file from `$SDE/pkgsrc/p4-examples/tofino`.
 
+Set up folders:
+```shell script
+make clean_tw
+make clean_qm
+```
+
 Execute:
 ```shell script
 make configure
@@ -60,7 +66,6 @@ So far, the data plane and control plane program is running with all links corre
 While forwarding packets, the switch keeps measuring queue content and stores relevant data in the registers.
 The switch local CPU periodically polls and stores the register values.
 
-Use the code in `../AnalysisProgram` to further process the register values and diagnose how a certain packet is delayed by others.
 Use the code in `../EndHosts` to send and receive packets. 
 
 ## Code Manipulation
@@ -90,13 +95,44 @@ However, the acceleration makes handle IDs of registers hard-coded in the progra
 Users must check their own IDs and update the `line 310` and `line 413` after successful compilation.
 The handler IDs can be found in `$SDE/pkgsrc/p4-build/tofino/printqueue/src/pd.c`.
 
+In the testbed, all the links go through `pipeline 1` of the switch.
+Thus the control plane program only stores register values of `pipeline 1`.
+However, you may use other pipelines in your setting, as Tofino has 4 pipelines.
+In this case, please modify the code in `line 340` and `line 433`.
+
 More detail can be found in the code comments.
 
 ### Data Plane Query
 *data plane query* is process that data plane program triggers control plane program to read and store register values.
 The trigger signal is that the queue depth as a packet enqueues is larger than the packet's preset threshold.
-In the `ingress.p4`, table `qdepth_alerting_threshold_` populates thresholds for different flows.
-To update the entries of the threshold tables, modify the `qdepth_threshold.csv`.
+There are two ways to set thresholds.
+
+* Populate flows' thresholds via a flow table `qdepth_alerting_threshold_` in the `ingress.p4`.
+The control plane program reads the content of `qdepth_threshold.csv` and populates entries.
+The data plane program matches every packet's flow ID in the table to get thresholds.
+
+* End hosts can send packets, with `type` fields of Ethernet headers equal `0x080d`, to set thresholds for the packets.
+The packets contain a 32-bit header, standing for the threshold, after Ethernet, IPv4, and TCP header as shown below:
+
+
+<img src="./doc/probe_packet_headers.png" width="400">
+
+
+Probe packets have higher priority than flow table when setting thresholds.
+
+## Binary Data
+The register values of time windows and queue monitor are stored in folder `./tw_data` and `./qm_data`.
+The values are stored in binary format `.bin`.
+The layout of binary files is, for example:
+* a set of time windows with `k = 12`, `T = 4`:
+
+<img src="./doc/tw_binary_layout.png" width="800">
+
+* queue monitor with a stack depth of 25000:
+
+<img src="./doc/qm_binary_layout.png" width="800">
+
+Use the code in `../AnalysisProgram` to process the register values and diagnose how a certain packet is delayed by others.
 
 ## Other commands
 Clean time windows' and queue monitor's binary data:
