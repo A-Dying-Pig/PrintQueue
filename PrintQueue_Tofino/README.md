@@ -1,8 +1,8 @@
-# PrintQueue's P4 code for Tofino
+# PrintQueue's Tofino Code
 
-The folder contains PrintQueue's data plane and control plane code. 
-The passage explains to compile, run, and manipulate the code. 
-The code is tested under `SDE-8.4.0`. The concepts and terms are better explained in the [paper]().
+The section contains PrintQueue's data plane and control plane code. 
+The section explains how to compile, run, and manipulate the code. 
+The code is tested under `SDE-8.4.0`.
 
 ## Compile and Run
 The control plane is written in C language located in `./src/ctrl/` folder.
