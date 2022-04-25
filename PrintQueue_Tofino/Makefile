@@ -50,3 +50,16 @@ clean_tw:
 clean_qm:
 	rm -rf qm_data
 	mkdir qm_data
+
+# load bf_kdrv.ko
+kdrv:
+	insmod $(SDE_INSTALL)/lib/modules/bf_kdrv.ko
+
+# load bf_kpkt
+kpkt:
+	insmod $(SDE_INSTALL)/lib/modules/bf_kpkt.ko
+
+# load bf_knet
+knet:
+	insmod $(SDE_INSTALL)/lib/modules/bf_knet.ko
+	ifconfig bf_knet up

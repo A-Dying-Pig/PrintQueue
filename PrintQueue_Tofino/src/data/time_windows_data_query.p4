@@ -122,6 +122,7 @@ table data_query_lock_tb{
 
 action data_query_lock(){
     data_query_lock_bb.execute_stateful_alu(0);      // lock to avoid another data plane query when registers are not ready
+    bit_or(PQ_md.mirror_signal, PQ_md.mirror_signal, 4);    //set signal
 }
 
 @pragma stage 1
@@ -166,13 +167,16 @@ table reverse_highest_bit_tb{
     size: 1;
 }
 
+field_list mirror_fl {
+  PQ_md.mirror_signal;
+}
+
 action reverse_highest_bit(){
     reverse_highest_bit_bb.execute_stateful_alu(0);     // flip the highest bit to execute data plane query
-    // ---------------------------------------
-    // ---------------------------------------
-    // TODO - SEND SIGNAL TO THE CONTROL PLANE
-    // ---------------------------------------
-    // ---------------------------------------
+    // -----------------------------------------------------------
+    // send signal to control plane to trigger register reading 
+    // -----------------------------------------------------------
+    clone_egress_pkt_to_egress(MIRROR_SESS , mirror_fl);
 }
 
 blackbox stateful_alu read_highest_bit_bb{
@@ -849,7 +853,8 @@ action TW3_check_pass(){
 //        Control flow of time windows with data plane query pipeline
 //--------------------------------------------------------------------------
 control time_windows_data_pipe{
-    if(valid(ipv4) and valid(tcp)){
+    if(valid(ipv4) and valid(tcp) and eg_intr_md_from_parser_aux.clone_src == NOT_CLONED){
+        // a none-clone packet
         apply(prepare_TW0_tb);
         if(valid(vlan_tag)){
             apply(modify_vlan_tb);
