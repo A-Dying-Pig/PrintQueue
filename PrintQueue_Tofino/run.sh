@@ -34,5 +34,10 @@ function dma_setup() {
 
 dma_setup
 
+KERNEL_PKT_STR=""
+if [ "$1" == "--kernel-pkt" ]; then
+    KERNEL_PKT_STR="--kernel-pkt"
+fi
+
 ./PrintQueue\
-	--install-dir $SDE_INSTALL --conf-file $TARGET_CONFIG_FILE --status-port 7777
+	--install-dir $SDE_INSTALL --conf-file $TARGET_CONFIG_FILE --status-port 7777 $KERNEL_PKT_STR

@@ -4,6 +4,13 @@ The section contains PrintQueue's data plane and control plane code.
 The section explains how to compile, run, and manipulate the code. 
 The code is tested under `SDE-8.4.0`.
 
+## Insert Kernel Module
+Load kernel module before launching control plane program:
+* with data plane query: `make kpkt`: load `bf_kpkt`.
+* without data plane query: `make kdrv`: load `bf_kdrv`.
+Unload the current module and turn off control plane program before switching to the other module. 
+Check modules with `lsmod` and unload with `rmmod [MOD NAME]`.
+
 ## Compile and Run
 The control plane is written in C language located in `./src/ctrl/` folder.
 The data plane code is written in [P4<sub>14</sub>](https://p4.org/p4-spec/p4-14/v1.1.0/tex/p4.pdf) language located in `./src/data/` folder.
@@ -30,7 +37,10 @@ to compile the control plane program.
 
 Finally, launch the control and data plane program together with:
 ```shell script
+# without data plane query
 make runPQ
+# with data plane query
+make runPQ kernel=true
 ```
 Control plane starts to periodically read switch registers by running:
 ```shell script
@@ -45,9 +55,9 @@ The experiments in the paper are carried on in the following testbed.
 
 <img src="../doc/testbed_topology.png" width="350">
 
+Enable ports according to your topology (see `Port Setting` part in `PrintQueue.c`).
+Or you can use Tofino command-line tools to set up, for example: 
 
-When you launch PrintQueue control plane program, first activate corresponding ports in the `port manager`, so that the device can switching packets.
-For example, for the testbed:
 ```shell script
 ucli
 pm
@@ -100,8 +110,6 @@ Thus the control plane program only stores register values of `pipeline 1`.
 However, you may use other pipelines in your setting, as Tofino has 4 pipelines.
 In this case, please modify the code in `line 340` and `line 433`.
 
-More detail can be found in the code comments.
-
 ### Data Plane Query
 *data plane query* is process that data plane program triggers control plane program to read and store register values.
 The trigger signal is that the queue depth as a packet enqueues is larger than the packet's preset threshold.
@@ -117,6 +125,17 @@ The packets contain a 32-bit header, standing for the threshold, after Ethernet,
 
 
 Probe packets have higher priority than flow table when setting thresholds.
+
+Control plane program leverages a tunnel between CPU and data plane to receive trigger signals.
+`bf_kpkt` kernel module needs to be loaded to create the tunnel.
+The default CPU port of data plane is `192`, which may vary with devices and pipelines.
+Modify the code in `line `.
+When program is successfully launched, a new network interface will be created, on which CPU listens to get data plane signals.
+Turn on the interface:
+```shell script
+ifconfig [INTERFACE NAME] up
+# example: ifconfig bf_pci0 up
+```
 
 ## Binary Data
 The register values of time windows and queue monitor are stored in folder `./tw_data` and `./qm_data`.

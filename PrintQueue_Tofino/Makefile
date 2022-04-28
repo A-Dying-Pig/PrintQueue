@@ -1,5 +1,6 @@
 BUILD=$(SDE)/pkgsrc/p4-build/
 CWD=$(shell pwd)
+kernel=false
 
 # compile PrintQueue data plane program
 compile: clean
@@ -21,7 +22,13 @@ run:
 
 # run PrintQueue control plane program
 runPQ:
-	bash run.sh
+	@if $(kernel); then\
+        echo "Enabling kernel mode. Please load bf_kpkt module.";\
+		bash run.sh --kernel-pkt;\
+	else \
+		echo "Enabling non-kernel mode. Please load bf_kdrv module.";\
+		bash run.sh;\
+    fi
 
 kill:
 	killall -w -q bf_switchd
@@ -33,7 +40,7 @@ daemon:
 	tmux new  -d -s switchd '${SDE}/run_switchd.sh -p printqueue -c config/printqueue.conf'
 
 # compile PrintQueue control plane program
-printqueue: src/ctrl/PrintQueue.c
+printqueue:
 	gcc -I $$SDE/pkgsrc/p4-build/tofinopd/printqueue/ -I$$SDE_INSTALL/include -I$$SDE/pkgsrc/bf-drivers/include  -I$$SDE/pkgsrc/bf-drivers/bf_switchd -g -O2 -std=gnu99 \
 		-L/usr/local/lib -L$$SDE_INSTALL/lib -L$$SDE/pkgsrc/bf-drivers/src -L$$SDE/pkgsrc/bf-drivers/bf_switchd\
 	    src/ctrl/PrintQueue.c $$SDE/pkgsrc/p4-build/tofinopd/printqueue/src/pd.c -o PrintQueue \
@@ -53,13 +60,8 @@ clean_qm:
 
 # load bf_kdrv.ko
 kdrv:
-	insmod $(SDE_INSTALL)/lib/modules/bf_kdrv.ko
+	insmod $(SDE_INSTALL)/lib/modules/bf_kdrv.ko intr_mode="msi"
 
 # load bf_kpkt
 kpkt:
-	insmod $(SDE_INSTALL)/lib/modules/bf_kpkt.ko
-
-# load bf_knet
-knet:
-	insmod $(SDE_INSTALL)/lib/modules/bf_knet.ko
-	ifconfig bf_knet up
+	insmod $(SDE_INSTALL)/lib/modules/bf_kpkt.ko intr_mode="msi" kpkt_mode=1

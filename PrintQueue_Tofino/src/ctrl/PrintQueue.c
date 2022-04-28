@@ -569,13 +569,6 @@ port_5_0.chnl_id = 0;
 bf_pm_port_add(dev_tgt.device_id, &port_5_0, BF_SPEED_40G, BF_FEC_TYP_NONE);
 bf_pm_pltfm_front_port_eligible_for_autoneg(dev_tgt.device_id, &port_5_0, true);
 bf_pm_port_enable(dev_tgt.device_id, &port_5_0);
-// Port 2/0
-bf_pal_front_port_handle_t port_2_0;
-port_2_0.conn_id = 2;
-port_2_0.chnl_id = 0;
-bf_pm_port_add(dev_tgt.device_id, &port_2_0, BF_SPEED_10G, BF_FEC_TYP_NONE);
-bf_pm_pltfm_front_port_eligible_for_autoneg(dev_tgt.device_id, &port_2_0, false);
-bf_pm_port_enable(dev_tgt.device_id, &port_2_0);
 
 //--------------------------------------------------------------------//
 //                                                                    //
@@ -585,16 +578,17 @@ bf_pm_port_enable(dev_tgt.device_id, &port_2_0);
 //--------------------------------------------------------------------//
 //                        Set Mirror Session                          //
 //--------------------------------------------------------------------//
-//Set up mirror session to clone packets. The cloned packets are sent to cpu as signals
+// Set up mirror session to clone packets.
+// The cloned packets are sent to cpu as signals
+// CPU Port is 192, may be different with devices and pipelines
+//-----------------------------------------------------------------
 uint32_t sid = 3, CPU_PORT = 192;
-p4_pd_tm_set_cpuport(dev_tgt.device_id, CPU_PORT);
 p4_pd_mirror_session_info_t mirror_info;
 mirror_info.type = PD_MIRROR_TYPE_NORM;
 mirror_info.dir = PD_DIR_BOTH;
 mirror_info.id = sid;
 mirror_info.egr_port = CPU_PORT;
 mirror_info.egr_port_v = true;
-mirror_info.c2c = true;
 status_tmp = p4_pd_mirror_session_create(sess_hdl, dev_tgt, &mirror_info);
 if (status_tmp != 0){
   printf("Error! Creating mirror session.\n");
