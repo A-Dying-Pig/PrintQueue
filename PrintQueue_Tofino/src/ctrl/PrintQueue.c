@@ -18,6 +18,13 @@
 #include <tofino/pdfixed/pd_mirror.h>
 #include <tofino/pdfixed/pd_tm.h>
 #include <bf_pm/bf_pm_intf.h>
+#include <net/if.h>
+#include <sys/socket.h>
+#include <linux/if_packet.h>
+#include <linux/if_ether.h>
+#include <arpa/inet.h>
+#include <sys/ioctl.h>
+#include <net/ethernet.h>
 
 /* Local includes */
 #include "bf_switchd.h"
@@ -26,6 +33,8 @@
 
 #define PIPE_MGR_SUCCESS 0
 #define HDL_BUF_SIZE 100
+#define RCV_BUF_SIZE 256
+#define CONFIG_BUF_SIZE 100
 
 static void bf_switchd_parse_hld_mgrs_list(bf_switchd_context_t *ctx,
                                            char *mgrs_list) {
@@ -520,7 +529,9 @@ int main(int argc, char *argv[]) {
 //                                                           //
 //-----------------------------------------------------------//
   printf("\n\n\n\n\n\n\n\n-----------------------------------------------------\nPrintQueue Control Plane is Activating\n-----------------------------------------------------\n");
-  printf("Program ID: %ld\nUse command 'kill -s USR1 %ld', 'kill -s USR2 %ld' to send signals\n\n", getpid(), getpid(), getpid());
+  printf("Program ID: %ld\nUse command 'kill -s USR1 %ld', 'kill -s USR2 %ld' to send signals.\n", getpid(), getpid(), getpid());
+  printf("Send USR1 signal to switch on/off query process\n");
+  printf("Send USR2 signal to kill query process\n\n");
 
  // Get session handler and device object
   uint32_t sess_hdl = 0;
@@ -542,13 +553,12 @@ int main(int argc, char *argv[]) {
 //------------ read registers --------------------
 uint actual_read, value_count, value_total = 0;
 struct timeval s_us, e_us, initial_us;
-
 //--------------------------------------------------------------------//
 //                                                                    //
 //                           Port Setting                             //
 //                                                                    //
 //--------------------------------------------------------------------//
-// Port 1/0
+//Port 1/0
 bf_pal_front_port_handle_t port_1_0;
 port_1_0.conn_id = 1;
 port_1_0.chnl_id = 0;
@@ -576,81 +586,124 @@ bf_pm_port_enable(dev_tgt.device_id, &port_5_0);
 //                                                                    //
 //--------------------------------------------------------------------//
 //--------------------------------------------------------------------//
+//                       Set Threshold Table                          //
+//--------------------------------------------------------------------//
+//Read data plane query thresholds from the csv file
+//when qdepth is larger than the threshold, trigger data plane query
+uint32_t THRESHOLD_FLOW_NUMBER = 1024;
+p4_pd_printqueue_qdepth_alerting_threshold_2_match_spec_t* matches = (p4_pd_printqueue_qdepth_alerting_threshold_2_match_spec_t*) malloc(sizeof(p4_pd_printqueue_qdepth_alerting_threshold_2_match_spec_t) * THRESHOLD_FLOW_NUMBER);
+p4_pd_printqueue_set_threshold_action_spec_t * actions = (p4_pd_printqueue_set_threshold_action_spec_t *) malloc(sizeof(p4_pd_printqueue_set_threshold_action_spec_t) * THRESHOLD_FLOW_NUMBER);
+FILE * f = fopen("./src/ctrl/qdepth_threshold.csv", "r");
+char *line = NULL, * ptr;
+char *fields[3]; 
+size_t len = 0;
+ssize_t read;
+uint32_t first = 0, i = 0, j = 0;
+while ((read = getline(&line, &len, f)) != -1) {
+    if (first == 0){ // skip first line
+      first = 1;
+      continue;
+    }
+    ptr = strtok (line," ");
+    i = 0;
+    while (ptr != NULL){
+      fields[i] = ptr;
+      ptr = strtok(NULL, " ");
+      i++;
+    }
+    // CSV line format: srcIP dstIP threshold 
+    // src IP
+    ipv4_address_t ip_addr;
+    sscanf(fields[0],"%u.%u.%u.%u", &ip_addr.addr.bytes_addr.b1, &ip_addr.addr.bytes_addr.b2, &ip_addr.addr.bytes_addr.b3, &ip_addr.addr.bytes_addr.b4);
+    matches[j].ipv4_src_addr = ip_addr.addr.uint32_addr;
+    // printf("src IP: %lu, ", matches[j].ipv4_src_addr);
+    // dst IP
+    sscanf(fields[1],"%u.%u.%u.%u", &ip_addr.addr.bytes_addr.b1, &ip_addr.addr.bytes_addr.b2, &ip_addr.addr.bytes_addr.b3, &ip_addr.addr.bytes_addr.b4);
+    matches[j].ipv4_dst_addr = ip_addr.addr.uint32_addr;
+    // printf("dst IP: %lu, ", matches[j].ipv4_dst_addr);
+    // threshold
+    sscanf(fields[2], "%lu", &actions[j].action_flow_threshold);
+    // printf("threshold: %lu\n", actions[j].action_flow_threshold);
+    j++;
+}
+free(line);
+fclose(f);
+printf("Adding %d entries to the qdepth_threshold table\n", j);
+// populate table entries
+for (i = 0; i < j; i++){
+  status_tmp = p4_pd_printqueue_qdepth_alerting_threshold_2_table_add_with_set_threshold(sess_hdl, dev_tgt, &matches[i], &actions[i], &handlers[0]);
+  if(status_tmp != 0){
+    printf("Error adding table entries - qdepth_alerting_threshold_2!\n");
+    return false;
+  }
+}
+free(matches);
+free(actions);
+printf("Successfully set the qdepth_threshold table\n");
+
+//--------------------------------------------------------------------//
 //                        Set Mirror Session                          //
 //--------------------------------------------------------------------//
 // Set up mirror session to clone packets.
 // The cloned packets are sent to cpu as signals
 // CPU Port is 192, may be different with devices and pipelines
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 uint32_t sid = 3, CPU_PORT = 192;
-p4_pd_mirror_session_info_t mirror_info;
-mirror_info.type = PD_MIRROR_TYPE_NORM;
-mirror_info.dir = PD_DIR_BOTH;
-mirror_info.id = sid;
-mirror_info.egr_port = CPU_PORT;
-mirror_info.egr_port_v = true;
-status_tmp = p4_pd_mirror_session_create(sess_hdl, dev_tgt, &mirror_info);
+p4_pd_mirror_session_info_t * mirror_info = (p4_pd_mirror_session_info_t *) malloc(sizeof(p4_pd_mirror_session_info_t));
+memset(mirror_info, 0, sizeof(p4_pd_mirror_session_info_t));
+mirror_info->type = PD_MIRROR_TYPE_NORM;
+mirror_info->dir = PD_DIR_EGRESS;
+mirror_info->id = sid;
+mirror_info->egr_port = CPU_PORT;
+mirror_info->egr_port_v = true;
+mirror_info->int_hdr = (uint32_t *)malloc(sizeof(uint32_t)*4);  // there is memory copy later, allocate space to avoid segment fault
+mirror_info->int_hdr_len = 0;
+status_tmp = p4_pd_mirror_session_create(sess_hdl, dev_tgt, mirror_info);
 if (status_tmp != 0){
   printf("Error! Creating mirror session.\n");
   return false;
 }
+free(mirror_info->int_hdr);
+free(mirror_info);
 printf("Successfully enable mirror session.\n");
 
-//--------------------------------------------------------------------//
-//                       Set Threshold Table                          //
-//--------------------------------------------------------------------//
-//Read data plane query thresholds from the csv file
-//when qdepth is larger than the threshold, trigger data plane query
-// uint32_t THRESHOLD_FLOW_NUMBER = 1024;
-// p4_pd_printqueue_qdepth_alerting_threshold_2_match_spec_t* matches = (p4_pd_printqueue_qdepth_alerting_threshold_2_match_spec_t*) malloc(sizeof(p4_pd_printqueue_qdepth_alerting_threshold_2_match_spec_t) * THRESHOLD_FLOW_NUMBER);
-// p4_pd_printqueue_set_threshold_action_spec_t * actions = (p4_pd_printqueue_set_threshold_action_spec_t *) malloc(sizeof(p4_pd_printqueue_set_threshold_action_spec_t) * THRESHOLD_FLOW_NUMBER);
-// FILE * f = fopen("./src/ctrl/qdepth_threshold.csv", "r");
-// char *line = NULL, * ptr;
-// char *fields[3]; 
-// size_t len = 0;
-// ssize_t read;
-// uint32_t first = 0, i = 0, j = 0;
-// while ((read = getline(&line, &len, f)) != -1) {
-//     if (first == 0){ // skip first line
-//       first = 1;
-//       continue;
-//     }
-//     ptr = strtok (line," ");
-//     i = 0;
-//     while (ptr != NULL){
-//       fields[i] = ptr;
-//       ptr = strtok(NULL, " ");
-//       i++;
-//     }
-//     // CSV line format: srcIP dstIP threshold 
-//     // src IP
-//     ipv4_address_t ip_addr;
-//     sscanf(fields[0],"%u.%u.%u.%u", &ip_addr.addr.bytes_addr.b1, &ip_addr.addr.bytes_addr.b2, &ip_addr.addr.bytes_addr.b3, &ip_addr.addr.bytes_addr.b4);
-//     matches[j].ipv4_src_addr = ip_addr.addr.uint32_addr;
-//     // printf("src IP: %lu, ", matches[j].ipv4_src_addr);
-//     // dst IP
-//     sscanf(fields[1],"%u.%u.%u.%u", &ip_addr.addr.bytes_addr.b1, &ip_addr.addr.bytes_addr.b2, &ip_addr.addr.bytes_addr.b3, &ip_addr.addr.bytes_addr.b4);
-//     matches[j].ipv4_dst_addr = ip_addr.addr.uint32_addr;
-//     // printf("dst IP: %lu, ", matches[j].ipv4_dst_addr);
-//     // threshold
-//     sscanf(fields[2], "%lu", &actions[j].action_flow_threshold);
-//     // printf("threshold: %lu\n", actions[j].action_flow_threshold);
-//     j++;
-// }
-// free(line);
-// fclose(f);
-// printf("Adding %d entries to the qdepth_threshold table\n", j);
-// // populate table entries
-// for (i = 0; i < j; i++){
-//   status_tmp = p4_pd_printqueue_qdepth_alerting_threshold_2_table_add_with_set_threshold(sess_hdl, dev_tgt, &matches[i], &actions[i], &handlers[0]);
-//   if(status_tmp != 0){
-//     printf("Error adding table entries - qdepth_alerting_threshold_2!\n");
-//     return false;
-//   }
-// }
-// free(matches);
-// free(actions);
-// printf("Successfully set the qdepth_threshold table\n");
+//---------------------------------------------------------------------//
+//                                                                     //
+//         Local CPU listens on interface of data plane                //
+//                                                                     //
+//---------------------------------------------------------------------//
+// Receive data plane query signals
+printf ("Configuring a raw socket...\n");
+int sockfd_rcv;
+if ((sockfd_rcv = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) == -1) {
+  printf("Fail to open the raw socket.\n");
+  return false;
+}
+struct ifreq ifr;
+memset(&ifr, 0, sizeof(struct ifreq));
+strncpy(ifr.ifr_name, "bf_pci0", IFNAMSIZ-1);
+if (ioctl(sockfd_rcv, SIOCGIFINDEX, &ifr) < 0) {
+  printf("SIOCGIFINDEX failed.\n");
+  return false;
+}
+// Promisc, so that even if Ethernet interface filters frames (MAC addr unmatch, broadcast...)
+struct packet_mreq mreq = {0};
+mreq.mr_ifindex = ifr.ifr_ifindex;
+mreq.mr_type = PACKET_MR_PROMISC;
+if (setsockopt(sockfd_rcv, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) == -1) {
+  printf("setsockopt failed.\n");
+  return false;
+}
+struct sockaddr_ll addr = {0};
+addr.sll_family = AF_PACKET;
+addr.sll_ifindex = ifr.ifr_ifindex;
+addr.sll_protocol = htons(ETH_P_ALL);
+if (bind(sockfd_rcv, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
+  printf("Bind failed.\n");
+  return false;
+}
+char rcv_buf[RCV_BUF_SIZE];
+printf ("Raw socket configuration succeeds.\n");
 
 // Time windows or queue monitor is loaded. Comment one and uncomment the other
 /*--------------------------------------------------------------------*/
@@ -658,71 +711,70 @@ printf("Successfully enable mirror session.\n");
 /*                      Time          Windows                         */
 /*                                                                    */
 /*--------------------------------------------------------------------*/
-// printf("-----------------------------------------------------\nTime Windows is Activating\n-----------------------------------------------------\n");
-// // -------------------------------------------------------------------//
-// //           The following is the configurable parameters             //
-// //                Tune them according to your setting                 //
-// //--------------------------------------------------------------------//
-// // k: the cell number of a single time window: 2^k
-// // T: the number of time windows
-// // a: compression factor
-// // duration: the number of seconds for which the periodical register reading lasts
-// uint32_t k = 12, T = 4, a = 2, duration = 2;
-// //--------------------------------------------------------------------//
-// //--------------------------------------------------------------------//
-// uint32_t second_highest = 0, highest = 0, index = 0, cell_number = 1 << k ;
-// // set second highest bit
-// p4_pd_printqueue_prepare_TW0_action_spec_t action_set_second_highest_bit;
-// action_set_second_highest_bit.action_second_highest = second_highest << k;
-// status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
-// if(status_tmp!=0) {
-//   printf("Error setting the second highest bit!\n");
-//   return false;
-// }
-// second_highest = 1;
-// printf("Successfully set the second highest bit\n");
-// uint64_t retrieve_interval = ((1 << (a * T)) - 1) * (1 << (k + 6)) / ((1<<a)-1) / 1000 - 10; // us, give a little time ahead to trigger reading
-// printf("Time window retrieve interval: %ld us\n", retrieve_interval);
-
-// // initialize buffer used to store register values
-// uint8_t buffer[245760];
-// char data_dir[100];
-// uint32_t delta_time;
-// memset(buffer, 0, 245760);
-// memset(data_dir, 0, 100);
-// while(running_flag){
-//     gettimeofday(&initial_us, NULL);
-//     gettimeofday(&e_us, NULL);
-//     while(loop_flag){
-//       gettimeofday(&s_us, NULL);
-//       delta_time = (s_us.tv_sec - e_us.tv_sec) * 1000000 + s_us.tv_usec - e_us.tv_usec;
-//       if(delta_time >= retrieve_interval){
-//         action_set_second_highest_bit.action_second_highest = second_highest << k;
-//         status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
-//         gettimeofday(&e_us, NULL);
-//         if(status_tmp!=0) {
-//           printf("Error setting second highest bit!\n");
-//           return false;
-//         }
-//         second_highest ^= 1;
-//         // read just recorded TW
-//         index = second_highest << k;
-//         p4_pd_time_windows_register_range_read(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, buffer, &value_count, 1, T);
-//         // store the register values
-//         sprintf(data_dir, "./tw_data/%ld_%ld.bin",e_us.tv_sec,e_us.tv_usec);  // e_us is the time after the operatin of bit flip, also the start of the reading
-//         FILE * f = fopen(data_dir, "wb");
-//         fwrite(buffer, 1, cell_number * 12 * T, f);
-//         fclose(f);
-//         memset(buffer, 0, 245760);
-//         memset(data_dir, 0, 100);
-//       }
-//       gettimeofday(&s_us, NULL);
-//       if (s_us.tv_sec - initial_us.tv_sec > duration){
-//           printf("Retrieve Ends!\n");
-//           loop_flag = false;
-//         }
-//     }
-// }
+printf("-----------------------------------------------------\nTime Windows is Activating\n-----------------------------------------------------\n");
+// -------------------------------------------------------------------//
+//           The following is the configurable parameters             //
+//                Tune them according to your setting                 //
+//--------------------------------------------------------------------//
+// k: the cell number of a single time window: 2^k
+// T: the number of time windows
+// a: compression factor
+// duration: the number of seconds for which the periodical register reading lasts
+uint32_t k = 12, T = 4, a = 2, duration = 2;
+//--------------------------------------------------------------------//
+//--------------------------------------------------------------------//
+uint32_t second_highest = 0, highest = 0, index = 0, cell_number = 1 << k ;
+// set second highest bit
+p4_pd_printqueue_prepare_TW0_action_spec_t action_set_second_highest_bit;
+action_set_second_highest_bit.action_second_highest = second_highest << k;
+status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
+if(status_tmp!=0) {
+  printf("Error setting the second highest bit!\n");
+  return false;
+}
+second_highest = 1;
+printf("Successfully set the second highest bit\n");
+uint64_t retrieve_interval = ((1 << (a * T)) - 1) * (1 << (k + 6)) / ((1<<a)-1) / 1000 - 10; // us, give a little time ahead to trigger reading
+printf("Time window retrieve interval: %ld us\n", retrieve_interval);
+//initialize buffer used to store register values
+uint8_t buffer[245760];
+char data_dir[100];
+uint32_t delta_time;
+memset(buffer, 0, 245760);
+memset(data_dir, 0, 100);
+while(running_flag){
+    gettimeofday(&initial_us, NULL);
+    gettimeofday(&e_us, NULL);
+    while(loop_flag){
+      gettimeofday(&s_us, NULL);
+      delta_time = (s_us.tv_sec - e_us.tv_sec) * 1000000 + s_us.tv_usec - e_us.tv_usec;
+      if(delta_time >= retrieve_interval){
+        action_set_second_highest_bit.action_second_highest = second_highest << k;
+        status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
+        gettimeofday(&e_us, NULL);
+        if(status_tmp!=0) {
+          printf("Error setting second highest bit!\n");
+          return false;
+        }
+        second_highest ^= 1;
+        // read just recorded TW
+        index = second_highest << k;
+        p4_pd_time_windows_register_range_read(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, buffer, &value_count, 1, T);
+        // store the register values
+        sprintf(data_dir, "./tw_data/%ld_%ld.bin",e_us.tv_sec,e_us.tv_usec);  // e_us is the time after the operatin of bit flip, also the start of the reading
+        FILE * f = fopen(data_dir, "wb");
+        fwrite(buffer, 1, cell_number * 12 * T, f);
+        fclose(f);
+        memset(buffer, 0, 245760);
+        memset(data_dir, 0, 100);
+      }
+      gettimeofday(&s_us, NULL);
+      if (s_us.tv_sec - initial_us.tv_sec > duration){
+          printf("Retrieve Ends!\n");
+          loop_flag = false;
+        }
+    }
+}
 
 /*--------------------------------------------------------------------*/
 /*                                                                    */
@@ -794,7 +846,6 @@ printf("Successfully enable mirror session.\n");
 //   }
 // }
 
-
 //----------------------------------------------------//
 //          End of PrintQueue Control Plane           //
 //----------------------------------------------------//
@@ -811,7 +862,7 @@ printf("Successfully enable mirror session.\n");
     }
   }
 
-  if (switchd_main_ctx) free(switchd_main_ctx);
+  if (switchd_main_ctx)free(switchd_main_ctx);
   if (handlers) free(handlers);
   return ret;
 }

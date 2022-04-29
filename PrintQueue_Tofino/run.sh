@@ -39,5 +39,6 @@ if [ "$1" == "--kernel-pkt" ]; then
     KERNEL_PKT_STR="--kernel-pkt"
 fi
 
+# gdb -ex run --args 
 ./PrintQueue\
 	--install-dir $SDE_INSTALL --conf-file $TARGET_CONFIG_FILE --status-port 7777 $KERNEL_PKT_STR

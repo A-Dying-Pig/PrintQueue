@@ -849,6 +849,26 @@ action TW3_check_pass(){
     modify_field_with_shift(TW0_md.idx, TW1_md.tts_r, ALPHA, QUARTER_INDEX_MASK);
 }
 
+// Modify signal packet
+table modify_signal_tb{
+    actions{
+        modify_signal;
+    }
+    default_action: modify_signal;
+    size: 1;
+}
+//-----------------------------------------------------
+//           Signal Header Stack
+// Ethernet / IPv4 / TCP / [mirror signal] / payload
+//----------------------------------------------------
+action modify_signal(){
+    remove_header(vlan_tag);
+    remove_header(queue_int);
+    modify_field(ethernet.ether_type, ETHERTYPE_PRINTQUEUE_SIGNAL);
+    add_header(printqueue_probe);
+    modify_field(printqueue_probe.qdepth_threshold, PQ_md.mirror_signal);        // use printqueue_probe to pass signal type
+}
+
 //--------------------------------------------------------------------------
 //        Control flow of time windows with data plane query pipeline
 //--------------------------------------------------------------------------
@@ -919,5 +939,8 @@ control time_windows_data_pipe{
             }
         }
     }
-
+    // modify header stack of signal packets
+    if (eg_intr_md_from_parser_aux.clone_src == CLONED_FROM_EGRESS){
+        apply(modify_signal_tb);
+    }
 }

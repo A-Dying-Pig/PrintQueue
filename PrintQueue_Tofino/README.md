@@ -42,7 +42,7 @@ make runPQ
 # with data plane query
 make runPQ kernel=true
 ```
-Control plane starts to periodically read switch registers by running:
+Control plane enables query process, including periodically reading switch registers and reading upon switch signals, by running:
 ```shell script
 kill -s USR1 [PID]
 # [PID] is the program ID.
@@ -74,7 +74,7 @@ port-enb 5/0
 ```
 So far, the data plane and control plane program is running with all links correctly set.
 While forwarding packets, the switch keeps measuring queue content and stores relevant data in the registers.
-The switch local CPU periodically polls and stores the register values.
+The switch local CPU polls and stores the register values.
 
 Use the code in `../EndHosts` to send and receive packets. 
 
