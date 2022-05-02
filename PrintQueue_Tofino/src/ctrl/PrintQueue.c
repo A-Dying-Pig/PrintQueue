@@ -25,6 +25,8 @@
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <net/ethernet.h>
+#include <pthread.h>
+#include <math.h>
 
 /* Local includes */
 #include "bf_switchd.h"
@@ -35,6 +37,7 @@
 #define HDL_BUF_SIZE 100
 #define RCV_BUF_SIZE 256
 #define CONFIG_BUF_SIZE 100
+#define ETHERTYPE_PRINTQUEUE_SIGNAL   0x080e
 
 static void bf_switchd_parse_hld_mgrs_list(bf_switchd_context_t *ctx,
                                            char *mgrs_list) {
@@ -229,17 +232,20 @@ static void setup_coverage_sighandler() {
 
 //----------------------------------------------------------------------
 // Handler when receiving USR1 signal.
-// The main program starts to periodically poll registers when 
-// loop_flag = true, stops when loop_flag = false.
+// The main program starts to periodically poll registers when loop_flag = true, stops when loop_flag = false.
+// The signal-receiving thread starts monitoring CPU-switch interface when signal_flag = true, stops when signal_flag = false;
 //----------------------------------------------------------------------
 static bool loop_flag = false;
+static bool signal_flag = false;  
 static void sigusr1_handler(int signum) {
-  printf("printqueue: received signal %d, flip loop_flag\n", signum);
+  printf("printqueue: received signal %d, flip loop_flag and signal_flag\n", signum);
   if(loop_flag) {
     loop_flag = false;
+    signal_flag = false;
   }
   else {
     loop_flag = true;
+    signal_flag = true;
   }
 }
 
@@ -290,7 +296,7 @@ p4_pd_time_windows_register_range_read
   int pipe_count, num_vals_per_pipe;
   status = pipe_stful_query_get_sizes(sess_hdl,
                                       dev_tgt.device_id,
-                                      100663297,
+                                      100663300,
                                       &pipe_count,
                                       &num_vals_per_pipe);
   if(status != PIPE_MGR_SUCCESS) return status;
@@ -467,6 +473,106 @@ typedef struct ipv4_address{
     uint32_t uint32_addr;
   } addr;
 } ipv4_address_t;
+
+//--------------------------------------------------------------------------//
+//                                                                          //
+//                      Signal Receiving Thread                             //
+//                                                                          //
+//--------------------------------------------------------------------------//
+typedef struct data_signal{
+  struct timeval ts;
+  uint32_t type;  // Bitmap: bit 0 = QM data plane query; bit 1 = QM seq overflow; bit 2 = TW data plane query
+  struct in_addr src_ip;
+  struct in_addr dst_ip;
+  uint16_t src_port;
+  uint16_t dst_port;
+} data_signal_t;
+static data_signal_t data_signal;
+static bool new_signal;
+static bool poll_ready;
+
+void* listen_on_interface_thread(){
+  printf("*********************************************************\nSignal-receiving Thread Initiated\n*********************************************************\n");
+  //----------------------------------------------------------------------//
+  //                      Create raw socket                               //
+  //----------------------------------------------------------------------//
+  printf ("Configuring a raw socket...\n");
+  int sockfd_rcv;
+  if ((sockfd_rcv = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) == -1) {
+    printf("Fail to open the raw socket.\n");
+    return false;
+  }
+  struct ifreq ifr;
+  memset(&ifr, 0, sizeof(struct ifreq));
+  strncpy(ifr.ifr_name, "bf_pci0", IFNAMSIZ-1);
+  if (ioctl(sockfd_rcv, SIOCGIFINDEX, &ifr) < 0) {
+    printf("SIOCGIFINDEX failed.\n");
+    return false;
+  }
+  // Promisc, so that even if Ethernet interface filters frames (MAC addr unmatch, broadcast...)
+  struct packet_mreq mreq = {0};
+  mreq.mr_ifindex = ifr.ifr_ifindex;
+  mreq.mr_type = PACKET_MR_PROMISC;
+  if (setsockopt(sockfd_rcv, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) == -1) {
+    printf("setsockopt failed.\n");
+    return false;
+  }
+  struct sockaddr_ll addr = {0};
+  addr.sll_family = AF_PACKET;
+  addr.sll_ifindex = ifr.ifr_ifindex;
+  addr.sll_protocol = htons(ETH_P_ALL);
+  if (bind(sockfd_rcv, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
+    printf("Bind failed.\n");
+    return false;
+  }
+  char rcv_buf[RCV_BUF_SIZE];
+  uint32_t n, rcv_signal;
+  uint16_t ether_type, src_port, dst_port;
+  struct in_addr src_ip, dst_ip;  //network byte order
+  printf ("Raw socket configuration succeeds.\n");
+  while(running_flag){
+    while(signal_flag){
+      n = recvfrom(sockfd_rcv, &rcv_buf, RCV_BUF_SIZE-1, 0, NULL, NULL);
+      if (n < 0){
+        printf("Signal-receiving thread error: reading packet fails!\n");
+        signal_flag = false;
+        break;
+      }
+      // parse packet
+      memcpy(&ether_type, rcv_buf + 12, 2);
+      memcpy(&src_ip.s_addr, rcv_buf + 26, 4);
+      memcpy(&dst_ip.s_addr, rcv_buf + 30, 4);
+      memcpy(&src_port, rcv_buf + 34, 2);
+      memcpy(&dst_port, rcv_buf + 36, 2);
+      memcpy(&rcv_signal, rcv_buf + 54, 4);
+      ether_type = ntohs(ether_type);
+      src_port = ntohs(src_port);
+      dst_port = ntohs(dst_port);
+      rcv_signal = ntohl(rcv_signal);
+      // printf("Ether: %x, src_ip: %s, dst_ip: %s, src_port: %d, dst_port: %d, signal: %d, length: %d\n", ether_type, inet_ntoa(src_ip), inet_ntoa(dst_ip), src_port, dst_port, rcv_signal, n);
+      if (ether_type == ETHERTYPE_PRINTQUEUE_SIGNAL){
+        if (n < 56) {
+          printf("Received an invalid signal packet, length: %d.\n", n);
+          continue;
+        }
+        // receiving a data plane signal
+        if (!new_signal && poll_ready){
+            printf("\n-----------------------------------------------------------------\nData plane query signal - src_ip: %s, dst_ip: %s, src_port: %d, dst_port: %d, type: %d.\n-----------------------------------------------------------------\n",
+              inet_ntoa(src_ip), inet_ntoa(dst_ip), src_port, dst_port, rcv_signal);
+            gettimeofday(&data_signal.ts, NULL);
+            data_signal.type = rcv_signal;
+            data_signal.src_ip = src_ip;
+            data_signal.dst_ip = dst_ip;
+            data_signal.src_port = src_port;
+            data_signal.dst_port = dst_port;
+            new_signal = true;
+        }
+      }
+    }
+  }
+  printf("Signal-receiving Thread is killed.\n");
+  return NULL;
+} 
 
 /* bf_switchd main */
 int main(int argc, char *argv[]) {
@@ -658,6 +764,7 @@ mirror_info->egr_port = CPU_PORT;
 mirror_info->egr_port_v = true;
 mirror_info->int_hdr = (uint32_t *)malloc(sizeof(uint32_t)*4);  // there is memory copy later, allocate space to avoid segment fault
 mirror_info->int_hdr_len = 0;
+mirror_info->max_pkt_len = 80; // Ether + IPv4 + TCP + Signal Header; avoid buffer overflow
 status_tmp = p4_pd_mirror_session_create(sess_hdl, dev_tgt, mirror_info);
 if (status_tmp != 0){
   printf("Error! Creating mirror session.\n");
@@ -672,38 +779,17 @@ printf("Successfully enable mirror session.\n");
 //         Local CPU listens on interface of data plane                //
 //                                                                     //
 //---------------------------------------------------------------------//
-// Receive data plane query signals
-printf ("Configuring a raw socket...\n");
-int sockfd_rcv;
-if ((sockfd_rcv = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) == -1) {
-  printf("Fail to open the raw socket.\n");
+//----------------------------------------------------------------------//
+//                Create signal-receiving thread                        //
+//----------------------------------------------------------------------//
+pthread_t signal_thread;
+poll_ready = false;
+new_signal = false;
+if( pthread_create(&signal_thread, NULL, &listen_on_interface_thread, NULL) != 0){
+  printf("Error: creation of signal-receiving thread failed!\n");
   return false;
 }
-struct ifreq ifr;
-memset(&ifr, 0, sizeof(struct ifreq));
-strncpy(ifr.ifr_name, "bf_pci0", IFNAMSIZ-1);
-if (ioctl(sockfd_rcv, SIOCGIFINDEX, &ifr) < 0) {
-  printf("SIOCGIFINDEX failed.\n");
-  return false;
-}
-// Promisc, so that even if Ethernet interface filters frames (MAC addr unmatch, broadcast...)
-struct packet_mreq mreq = {0};
-mreq.mr_ifindex = ifr.ifr_ifindex;
-mreq.mr_type = PACKET_MR_PROMISC;
-if (setsockopt(sockfd_rcv, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) == -1) {
-  printf("setsockopt failed.\n");
-  return false;
-}
-struct sockaddr_ll addr = {0};
-addr.sll_family = AF_PACKET;
-addr.sll_ifindex = ifr.ifr_ifindex;
-addr.sll_protocol = htons(ETH_P_ALL);
-if (bind(sockfd_rcv, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
-  printf("Bind failed.\n");
-  return false;
-}
-char rcv_buf[RCV_BUF_SIZE];
-printf ("Raw socket configuration succeeds.\n");
+printf("Signal-receiving thread is successfully created with ID %d.\n", signal_thread);
 
 // Time windows or queue monitor is loaded. Comment one and uncomment the other
 /*--------------------------------------------------------------------*/
@@ -723,7 +809,10 @@ printf("-----------------------------------------------------\nTime Windows is A
 uint32_t k = 12, T = 4, a = 2, duration = 2;
 //--------------------------------------------------------------------//
 //--------------------------------------------------------------------//
-uint32_t second_highest = 0, highest = 0, index = 0, cell_number = 1 << k ;
+uint32_t highest = 0, second_highest = 0, index = 0, cell_number = 1 << k;
+uint32_t prev_highest = 0, prev_second_highest = 0, estimated_retrieve_interval = 0, data_query_start = 0, data_query_num = 0, data_query_end = 0, storage_start = 0;
+int32_t available_interval = 0;
+double reading_ratio = 0.1;
 // set second highest bit
 p4_pd_printqueue_prepare_TW0_action_spec_t action_set_second_highest_bit;
 action_set_second_highest_bit.action_second_highest = second_highest << k;
@@ -738,6 +827,7 @@ uint64_t retrieve_interval = ((1 << (a * T)) - 1) * (1 << (k + 6)) / ((1<<a)-1) 
 printf("Time window retrieve interval: %ld us\n", retrieve_interval);
 //initialize buffer used to store register values
 uint8_t buffer[245760];
+uint8_t data_query_buffer[245760], data_query_tmp_buffer[245760];;
 char data_dir[100];
 uint32_t delta_time;
 memset(buffer, 0, 245760);
@@ -758,7 +848,7 @@ while(running_flag){
         }
         second_highest ^= 1;
         // read just recorded TW
-        index = second_highest << k;
+        index = (second_highest << k) + (highest << (k + 1));
         p4_pd_time_windows_register_range_read(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, buffer, &value_count, 1, T);
         // store the register values
         sprintf(data_dir, "./tw_data/%ld_%ld.bin",e_us.tv_sec,e_us.tv_usec);  // e_us is the time after the operatin of bit flip, also the start of the reading
@@ -767,12 +857,75 @@ while(running_flag){
         fclose(f);
         memset(buffer, 0, 245760);
         memset(data_dir, 0, 100);
+        gettimeofday(&s_us, NULL);
+        estimated_retrieve_interval = ( s_us.tv_sec - e_us.tv_sec ) * 1000000 + s_us.tv_usec - e_us.tv_usec;
+        printf("Periodiocal poll needs: %d us.\n", estimated_retrieve_interval);
+      }
+      //-----------------------------------------------------------------------------------//
+      //                               Data Plane Query                                    //
+      //-----------------------------------------------------------------------------------//
+      if ( !new_signal && !poll_ready){
+        if (estimated_retrieve_interval){
+          memset(data_query_buffer, 0, 245760);
+          poll_ready = true;
+        }
+      }
+      if (poll_ready && new_signal){
+        prev_highest = highest;
+        prev_second_highest = second_highest;
+        highest ^= 1;
+        data_query_start = (prev_highest << (k + 1)) + (prev_second_highest << k);
+        data_query_end = data_query_start + cell_number;
+        storage_start = 0;
+        poll_ready = false;
+      }
+      if (!poll_ready && new_signal){
+        gettimeofday(&s_us, NULL);
+        available_interval = e_us.tv_sec * 1000000 + e_us.tv_usec + retrieve_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
+        if (available_interval < 2000){
+          printf("x enough time: %d us \n", available_interval);
+          continue;
+        }      
+        data_query_num = floor(((double)available_interval / (double)estimated_retrieve_interval) * reading_ratio * (double)cell_number);
+        if (data_query_start + data_query_num >= data_query_end){
+          printf(".\n");
+          data_query_num = data_query_end - data_query_start;
+        }
+        printf("Available interval: %d us. Read %d entries.\n", available_interval, data_query_num );
+        memset(data_query_tmp_buffer, 0, 245760);
+        p4_pd_time_windows_register_range_read(sess_hdl, dev_tgt, data_query_start, data_query_num, 1, &actual_read, data_query_tmp_buffer, &value_count, 1, T);
+        printf("✓ reading\n");
+        data_query_start += data_query_num;
+        storage_start += data_query_num;
+        for (int i = 0; i < T; i++){
+          memcpy(data_query_buffer + 12 * cell_number * i + storage_start * 4, data_query_tmp_buffer + 12 * data_query_num * i, data_query_num * 4);
+          memcpy(data_query_buffer + 12 * cell_number * i + storage_start * 4 + cell_number * 4, data_query_tmp_buffer + 12 * data_query_num * i + data_query_num * 4, data_query_num * 4);
+          memcpy(data_query_buffer + 12 * cell_number * i + storage_start * 4 + cell_number * 8, data_query_tmp_buffer + 12 * data_query_num * i + data_query_num * 8, data_query_num * 4);
+        }
+        printf("✓ memory copy \n");
+        if (data_query_start == data_query_end){
+          // all registers are read
+          sprintf(data_dir, "./tw_data/%ld_%ld.bin",data_signal.ts.tv_sec,data_signal.ts.tv_usec);  // start of reading
+          printf("Store in %s\n", data_dir);
+          FILE * f = fopen(data_dir, "wb");
+          fwrite(data_query_buffer, 1, cell_number * 12 * T, f);
+          fclose(f);
+          memset(data_dir, 0, 100);
+          // unlock data plane
+          p4_pd_printqueue_register_reset_all_data_query_lock_r(sess_hdl, dev_tgt);
+          poll_ready = false;
+          new_signal = false;
+        }
+        gettimeofday(&s_us, NULL);
+        available_interval = e_us.tv_sec * 1000000 + e_us.tv_usec + retrieve_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
+        printf("✓ %d us left till next periodical poll\n", available_interval);
       }
       gettimeofday(&s_us, NULL);
       if (s_us.tv_sec - initial_us.tv_sec > duration){
-          printf("Retrieve Ends!\n");
-          loop_flag = false;
-        }
+        printf("\nRetrieve Ends!\n");
+        loop_flag = false;
+        signal_flag = false;
+      }
     }
 }
 
@@ -849,6 +1002,7 @@ while(running_flag){
 //----------------------------------------------------//
 //          End of PrintQueue Control Plane           //
 //----------------------------------------------------//
+  pthread_join(signal_thread, NULL);
   pthread_join(switchd_main_ctx->tmr_t_id, NULL);
   pthread_join(switchd_main_ctx->dma_t_id, NULL);
   pthread_join(switchd_main_ctx->int_t_id, NULL);
