@@ -100,15 +100,15 @@ action modify_vlan(){
 ****************************************************/
 
 register data_query_lock_r{
-    width: 1;
+    width: 16;
     instance_count: 1;
 }
 
 blackbox stateful_alu data_query_lock_bb{
     reg: data_query_lock_r;
-    update_lo_1_value: set_bit;
-    output_dst: PQ_md.lock;
+    update_lo_1_value: 1;
     output_value: register_lo;
+    output_dst: PQ_md.lock;
 }
 
 @pragma stage 1
@@ -122,7 +122,7 @@ table data_query_lock_tb{
 
 action data_query_lock(){
     data_query_lock_bb.execute_stateful_alu(0);      // lock to avoid another data plane query when registers are not ready
-    bit_or(PQ_md.mirror_signal, PQ_md.mirror_signal, 4);    //set signal
+    modify_field(PQ_md.mirror_signal, 4);    //set signal
 }
 
 @pragma stage 1

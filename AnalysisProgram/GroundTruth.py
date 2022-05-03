@@ -472,6 +472,4 @@ def Comparison(path, alpha, k, T, TW0_TB, TW0_z):
         csv_file.close()
 
 if __name__ == '__main__':
-    # Comparison(path='./TW_RAW/2_12_4/', alpha=2, k=12, T=4, TW0_TB=6, TW0_z=64 / 100)
-    tw = TimeWindowController(path='./TW_RAW/2_12_4/', alpha=2, k=12, T=4, TW0_TB=6, TW0_z=64 / 100)
-    tw.save_TW('./')
+    Comparison(path='./TW_RAW/2_12_4/', alpha=2, k=12, T=4, TW0_TB=6, TW0_z=64 / 100)

@@ -102,13 +102,13 @@ Modify the parameter values in `PrintQueue.c`. Comment or uncomment the time win
 For higher reading throughput, the control plane program uses *C*, instead of *Python*, API to poll and reset register values.
 Beyond that, the program get rids of some unnecessary code to further accelerate reading and save memories.
 However, the acceleration makes handle IDs of registers hard-coded in the program. The handle IDs may change under different environments.
-Users must check their own IDs and update the `line 310` and `line 413` after successful compilation.
+Users must check their own IDs and update the `line 333` and `line 430` after successful compilation.
 The handler IDs can be found in `$SDE/pkgsrc/p4-build/tofino/printqueue/src/pd.c`.
 
 In the testbed, all the links go through `pipeline 1` of the switch.
 Thus the control plane program only stores register values of `pipeline 1`.
 However, you may use other pipelines in your setting, as Tofino has 4 pipelines.
-In this case, please modify the code in `line 340` and `line 433`.
+In this case, please modify the code in `line 353` and `line 446`.
 
 ### Data Plane Query
 *data plane query* is process that data plane program triggers control plane program to read and store register values.
@@ -128,8 +128,8 @@ Probe packets have higher priority than flow table when setting thresholds.
 
 Control plane program leverages a tunnel between CPU and data plane to receive trigger signals.
 `bf_kpkt` kernel module needs to be loaded to create the tunnel.
-The default CPU port of data plane is `192`, which may vary with devices and pipelines.
-Modify the code in `line `.
+The default CPU port of pipeline 1 is `192`.
+Modify the code in `line 757` if using other pipelines or different devices.
 When program is successfully launched, a new network interface will be created, on which CPU listens to get data plane signals.
 Turn on the interface:
 ```shell script

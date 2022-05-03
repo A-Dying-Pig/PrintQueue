@@ -94,8 +94,8 @@ header_type PQ_metadata_t {
     fields{
         qdepth_threshold: 32;
         mirror_signal: 32;  // Bitmap: bit 0 = QM data plane query; bit 1 = QM seq overflow; bit 2 = TW data plane query
+        lock: 16;
         probe: 1;
-        lock: 1;
         exceed: 1;
         stack_len_change: 1;
     }
@@ -198,7 +198,7 @@ header_type QM_matadata_t{
 #define TOTAL_QDEPTH 131072 // 2^17 = 131072    // extra space for periodical and data plane query
 #define QUARTER_QDEPTH_MASK 0x7fff
 
-#define DEFAULT_QDEPTH_THRESHOLD 5000
+#define DEFAULT_QDEPTH_THRESHOLD 10000
 #define THRESHOLD_FLOW_NUMBER 1024
 #define MIRROR_SESS 3   // mirror session number for clone_e2e
 

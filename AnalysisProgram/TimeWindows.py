@@ -27,9 +27,9 @@ from scapy.all import *
 class TimeWindowController:
     def __init__(self, path, alpha=1, k=10, T=3, TW0_TB=7, TW0_z=1, save_file_path=None, load_file_path=None):
         """
-        The class is 1) created from the TW RAW data or 2) loaded from the stored TW class.
+        The class is 1) created from the TW raw data or 2) loaded from the stored TW class.
         The class can filter stale data, execute queries, and visualize heaviest flows
-        :param path: the path to the parent folder of the TW RAW data folder
+        :param path: the path to the parent folder of the TW data folder
         :param alpha: the compression factor, in accord with the alpha value of the data plane
         :param k: the index number, in accord with the k value of the data plane
         :param T: the number of time windows, in accord with the T value of the data plane
@@ -52,7 +52,7 @@ class TimeWindowController:
             # self.config stores the metadata of the TW class
             self.config = {'alpha': alpha, 'k': k, 'TW0_TB': TW0_TB, 'T': T, 'TW0_z': TW0_z,
                            'total_duration': self.total_duration}
-            # self.TW_registers stores the RAW TW data, filtered data, and oldest/latest cells of the set
+            # self.TW_registers stores the raw TW data, filtered data, and oldest/latest cells of the set
             self.TW_registers = self.poll_register(os.path.join(path, 'tw_data'))
             self.filter_TW()
             print('-----------------------------------------------------------------------------------')
@@ -111,14 +111,14 @@ class TimeWindowController:
     def poll_register(self, path):
         """
         read and load register values
-        RAW data are loaded in the ascending order of time, i.e., from the old one to the lastest
+        Raw data are loaded in the ascending order of time, i.e., from the old one to the lastest
         :return: [{'ts': A_B, 'tw': [[{'tts': integer, 'FID': hex_string}]}]
         each element of the return result is a file = a set of TWs
         A_B: file written time,
         tw: T dictionaries with each 2^k cells
         each element of tw is a single time window, whose cells are represented in an array
         """
-        # RAW binary files are named in the format A_B.bin,
+        # Raw binary files are named in the format A_B.bin,
         # where A is the time value of the seconds, B is the time value of the microseconds when the file is written
         # first sort the files according to the written time
         ts = []
@@ -189,7 +189,7 @@ class TimeWindowController:
 
     def filter_TW(self):
         """
-        filter stale register values from TW RAW data
+        filter stale register values from TW raw data
         modify self.TW_registers= [{'ts': A_B, 'tw': [[{'tts': integer, 'FID': hex_string}]],
                                     'TW_result': [cell_representation],
                                     'largest_cell': cell representation,

@@ -138,15 +138,15 @@ action cal_idx_immediate(){
 ****************************************************/
 
 register data_query_lock_r{
-    width: 1;
+    width: 16;
     instance_count: 1;
 }
 
 blackbox stateful_alu data_query_lock_bb{
     reg: data_query_lock_r;
-    update_lo_1_value: set_bit;
-    output_dst: PQ_md.lock;
+    update_lo_1_value: 1;
     output_value: register_lo;
+    output_dst: PQ_md.lock;
 }
 
 @pragma stage 1
@@ -175,6 +175,31 @@ action update_idx_second_highest_bit(){
     bit_or(QM_md.idx, QM_md.idx, R_md.second_highest);  // under periodical query, flip the second highest bit every time when reading the registers
 }
 
+@pragma stage 1
+table seq_num_overflow_set_signal_tb{
+    actions{
+        seq_num_overflow_set_signal;
+    }
+    default_action: seq_num_overflow_set_signal;
+    size: 1;
+}
+
+action seq_num_overflow_set_signal(){
+    modify_field(PQ_md.mirror_signal, 2);    //set signal
+}
+
+@pragma stage 1
+table data_query_set_signal_tb{
+    actions{
+        data_query_set_signal;
+    }
+    default_action: data_query_set_signal;
+    size: 1;
+}
+
+action data_query_set_signal(){
+    modify_field(PQ_md.mirror_signal, 1);
+}
 /***************************************************
 ***********************222**************************
 **********************    2*************************
@@ -203,13 +228,16 @@ table reverse_highest_bit_tb{
     size: 1;
 }
 
+field_list mirror_fl {
+  PQ_md.mirror_signal;
+}
+
 action reverse_highest_bit(){
     reverse_highest_bit_bb.execute_stateful_alu(0);     // flip the highest bit due to data plane query or seq overflow
-    // ---------------------------------------
-    // ---------------------------------------
-    // TODO - SEND SIGNAL TO THE CONTROL PLANE
-    // ---------------------------------------
-    // ---------------------------------------
+    // ---------------------------------------------------------
+    // send signal to control plane to trigger register reading 
+    // ---------------------------------------------------------
+    clone_egress_pkt_to_egress(MIRROR_SESS , mirror_fl);
 }
 
 blackbox stateful_alu read_highest_bit_bb{
@@ -345,17 +373,42 @@ action update_seq_array(){
     update_seq_array_bb.execute_stateful_alu(QM_md.idx);    // record seq number
 }
 
+// Modify signal packet
+table modify_signal_tb{
+    actions{
+        modify_signal;
+    }
+    default_action: modify_signal;
+    size: 1;
+}
+//-----------------------------------------------------
+//           Signal Header Stack
+// Ethernet / IPv4 / TCP / [mirror signal] / payload
+//----------------------------------------------------
+action modify_signal(){
+    remove_header(vlan_tag);
+    remove_header(queue_int);
+    modify_field(ethernet.ether_type, ETHERTYPE_PRINTQUEUE_SIGNAL);
+    add_header(printqueue_probe);
+    modify_field(printqueue_probe.qdepth_threshold, PQ_md.mirror_signal);        // use printqueue_probe to pass signal type
+}
+
 //--------------------------------------------------------------------------
 //             Control flow of queue monitor pipeline
 //--------------------------------------------------------------------------
 control queue_monitor_pipe{
-    if(valid(ipv4) and valid(tcp)){
+    if(valid(ipv4) and valid(tcp) and eg_intr_md_from_parser_aux.clone_src == NOT_CLONED){
         apply(check_stack_tb);
         apply(increment_seq_num_tb);
         apply(compare_pre_pkt_qdepth_tb);
         apply(cal_idx_immediate_tb);
         apply(update_idx_second_highest_bit_tb);
         if(PQ_md.exceed == 1 or QM_md.seq_num == 0){
+            if (QM_md.seq_num == 0){
+                apply(seq_num_overflow_set_signal_tb);
+            }else{
+                apply(data_query_set_signal_tb);
+            }
             // data query or seq_num overflow
             apply(data_query_lock_tb);      // check whether it is already locked
             if (PQ_md.lock == 0){
@@ -374,5 +427,9 @@ control queue_monitor_pipe{
             apply(update_dst_ip_tb);
             apply(update_seq_array_tb);
         }
+    }
+    // modify header stack of signal packets
+    if (eg_intr_md_from_parser_aux.clone_src == CLONED_FROM_EGRESS){
+        apply(modify_signal_tb);
     }
 }
