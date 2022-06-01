@@ -372,7 +372,6 @@ def Comparison(path, alpha, k, T, TW0_TB, TW0_z):
     :param path: the path to the parent folder of RAW and INT data
     outputs comparison result to a csv file
     """
-
     tw = TimeWindowController(path=path, alpha=alpha, k=k, T=T, TW0_TB=TW0_TB, TW0_z=TW0_z)
     gt = GroundTruth(path)
     print('-----------------------------------------------------------------------------------')
@@ -394,11 +393,11 @@ def Comparison(path, alpha, k, T, TW0_TB, TW0_z):
             if id not in sample_pkts_ids[i]:
                 sample_pkts_ids[i].append(id)
                 sample_pkts[i].append(pkts[i][id])
-    for i in range(len(sample_pkts)):
-        csv_file = open(os.path.join(path, 'qdepth_level_{0}_result.csv'.format(i)), 'w')
+    for j in range(len(sample_pkts)):
+        csv_file = open(os.path.join(path, 'qdepth_level_{0}_result.csv'.format(j)), 'w')
         resultWriter = csv.writer(csv_file, dialect='excel-tab')
         idx = 0
-        for pkt in sample_pkts[i]:
+        for pkt in sample_pkts[j]:
             pkt['gt'] = gt.retrieve(pkt['ets'], pkt['dts'])
             pkt['tw'], tws, query_interval, ret_window = tw.retrieve(pkt['ets'], pkt['dts'])
 
@@ -471,5 +470,27 @@ def Comparison(path, alpha, k, T, TW0_TB, TW0_z):
                 idx += 1
         csv_file.close()
 
+def DataPlaneQuery(path, alpha, k, T, TW0_TB, TW0_z):
+    """
+    Compare TW data plane query with related works: Count-Min Sketch, HashPipe, FlowRadar
+    :param path: the path to the parent folder of RAW and INT data
+    outputs comparison result to a csv file
+    """
+    tw = TimeWindowController(path=path, alpha=alpha, k=k, T=T, TW0_TB=TW0_TB, TW0_z=TW0_z)
+    gt = GroundTruth(path)
+    print('---------------------------------------------------------------------------------------')
+    print('---------------    Compare Data Plane Query with Related Works   ----------------------')
+    print('---------------------------------------------------------------------------------------')
+    for pkt in tw.signals:
+        pkt['gt'] = gt.retrieve(pkt['enqueue_ts'], pkt['dequeue_ts'])
+        pkt['tw_dpq'], tws, query_interval, ret_window = tw.retrieve(pkt['enqueue_ts'], pkt['dequeue_ts'])
+        if pkt['tw_dpq']:
+            PQ_p, PQ_r = precision_and_recall_packet_number(pkt['gt'], pkt['tw_dpq'])
+            if PQ_p == 0 and PQ_r == 0:
+                continue
+            print('Time Windows Data Plane Query, Number Precision: {0}, Number Recall: {1}'.format(PQ_p, PQ_r))
+
+
 if __name__ == '__main__':
-    Comparison(path='./TW_RAW/2_12_4/', alpha=2, k=12, T=4, TW0_TB=6, TW0_z=64 / 100)
+    # Comparison(path='./d/pt1_pt12/', alpha=2, k=12, T=4, TW0_TB=6, TW0_z=64 / 100)
+    DataPlaneQuery(path='./d/20000/6', alpha=2, k=12, T=4, TW0_TB=6, TW0_z=64 / 100)

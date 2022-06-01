@@ -53,7 +53,7 @@ class TimeWindowController:
             self.config = {'alpha': alpha, 'k': k, 'TW0_TB': TW0_TB, 'T': T, 'TW0_z': TW0_z,
                            'total_duration': self.total_duration}
             # self.TW_registers stores the raw TW data, filtered data, and oldest/latest cells of the set
-            self.TW_registers = self.poll_register(os.path.join(path, 'tw_data'))
+            self.TW_registers, self.tw_raw_files = self.poll_register(os.path.join(path, 'tw_data'))
             self.filter_TW()
             print('-----------------------------------------------------------------------------------')
             print('-----------------       Analysis Program for Time Windows    ----------------------')
@@ -63,6 +63,67 @@ class TimeWindowController:
                                                                                                   self.T,
                                                                                                   self.total_duration,
                                                                                                   self.cofficient))
+            # load signals
+            self.signals = self.poll_signals(os.path.join(path, 'signal_data'))
+            print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+            print('+++++++++++++++++++++       Load Data Plane Signals    ++++++++++++++++++++++++++++')
+            print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+            print('Signal Number: {0}'.format(len(self.signals)))
+
+    def poll_signals(self, path):
+        """
+        read signal packets from raw data
+        :return: [{'type': int, 'enqueue_ts': int, 'dequeue_ts': int}]
+        """
+        # Raw binary files are named in the format A_B.bin,
+        # where A is the time value of the seconds, B is the time value of the microseconds when the file is written
+        # first sort the files according to the written time
+        ret = []
+        for (root, dirs, fs) in os.walk(path):
+            for (i, f) in enumerate(fs):
+                print("Loading SIGNAL file: {0}".format(f))
+                tw_idx = 0
+                file_name = f.split('.')[0].split('_')
+                for (i, tws) in enumerate(self.TW_registers):
+                    if tws['ts'] == file_name:
+                        tw_idx = i
+                        break
+                CLOSE_THRESHOLD = 5
+                with open(os.path.join(root, f), 'rb') as fptr:
+                    chunk = fptr.read(12)
+                    if chunk:
+                        # storage format: [type | enqueue_ts | dequeue_ts ][type | enqueue_ts | dequeue_ts ]
+                        type = int.from_bytes(chunk[0:4], 'little')
+                        enqueue_ts = int.from_bytes(chunk[4:8], 'little')
+                        dequeue_ts = int.from_bytes(chunk[8:12], 'little')
+                        # find wrap id
+                        found_near_one = False
+                        for cell in self.TW_registers[tw_idx]['TW_result']:
+                            tb = self.TW0_TB + self.alpha * cell['twid']
+                            if ((dequeue_ts >> tb) - cell['tts'] < CLOSE_THRESHOLD) and ((dequeue_ts >> tb) - cell['tts'] > -CLOSE_THRESHOLD):
+                                dequeue_wrap = cell['wrap']
+                                if enqueue_ts < dequeue_ts:
+                                    enqueue_wrap = dequeue_wrap
+                                else:
+                                    enqueue_wrap = dequeue_wrap - 1
+                                ret.append({'type': type, 'enqueue_ts': enqueue_ts + enqueue_wrap * (2**32), 'dequeue_ts': dequeue_ts + dequeue_wrap * (2**32)})
+                                found_near_one = True
+                                break
+                        if not found_near_one and tw_idx > 0:
+                            for cell in self.TW_registers[tw_idx - 1]['TW_result']:
+                                tb = self.TW0_TB + self.alpha * cell['twid']
+                                if ((dequeue_ts >> tb) - cell['tts'] < CLOSE_THRESHOLD) and (
+                                        (dequeue_ts >> tb) - cell['tts'] > -CLOSE_THRESHOLD):
+                                    dequeue_wrap = cell['wrap']
+                                    if enqueue_ts < dequeue_ts:
+                                        enqueue_wrap = dequeue_wrap
+                                    else:
+                                        enqueue_wrap = dequeue_wrap - 1
+                                    ret.append({'type': type, 'enqueue_ts': enqueue_ts + enqueue_wrap * (2 ** 32),
+                                                'dequeue_ts': dequeue_ts + dequeue_wrap * (2 ** 32)})
+                                    found_near_one = True
+                                    break
+        return ret
 
     def load(self, file_path):
         """
@@ -112,7 +173,7 @@ class TimeWindowController:
         """
         read and load register values
         Raw data are loaded in the ascending order of time, i.e., from the old one to the lastest
-        :return: [{'ts': A_B, 'tw': [[{'tts': integer, 'FID': hex_string}]}]
+        :return: [{'ts': A_B, 'tw': [[{'tts': integer, 'FID': hex_string}]}], [sorted file name]
         each element of the return result is a file = a set of TWs
         A_B: file written time,
         tw: T dictionaries with each 2^k cells
@@ -132,6 +193,7 @@ class TimeWindowController:
         ts = [[int(t[0]), int(t[1])] for t in ts]
         ts = sorted(ts, key=lambda x: (x[0], x[1]))
         ts = [[str(t[0]), str(t[1])] for t in ts]
+        file_names = ['_'.join(t) + '.bin' for t in ts]
         files = [os.path.join(root, '_'.join(t) + '.bin') for t in ts]
         # read register value
         ret = []
@@ -169,7 +231,7 @@ class TimeWindowController:
                     chunk = fptr.read(4)
             if zero_num != self.index_number_per_window * self.T:  # remove the TWs when all the registers are 0
                 ret.append({'tw': current_tw, 'ts': ts[i]})
-        return ret
+        return ret, file_names
 
     def save_TW(self, save_file_path):
         """
@@ -208,7 +270,7 @@ class TimeWindowController:
         """
         wrapping = 0
         pre_largest_tts = 0
-        for tw in self.TW_registers:
+        for (tw_idx, tw) in enumerate(self.TW_registers):
             # Wrapping is to tackle situation where dequeue timestamp overflows.
             # In the unit of nanoseconds, 32 bits overflows approximately every 4 seconds
             # if a tts suddenly becomes large/small (near 2^32 or 0), there must be an overflow
