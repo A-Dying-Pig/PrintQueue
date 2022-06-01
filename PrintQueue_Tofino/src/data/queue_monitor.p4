@@ -389,8 +389,8 @@ action modify_signal(){
     remove_header(vlan_tag);
     remove_header(queue_int);
     modify_field(ethernet.ether_type, ETHERTYPE_PRINTQUEUE_SIGNAL);
-    add_header(printqueue_probe);
-    modify_field(printqueue_probe.qdepth_threshold, PQ_md.mirror_signal);        // use printqueue_probe to pass signal type
+    add_header(printqueue_signal);
+    modify_field(printqueue_signal.signal_type, PQ_md.mirror_signal);
 }
 
 //--------------------------------------------------------------------------

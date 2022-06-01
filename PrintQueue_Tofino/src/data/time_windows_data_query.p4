@@ -64,6 +64,9 @@ action prepare_TW0(second_highest){
     modify_field(queue_int.dequeue_ts, eg_intr_md_from_parser_aux.egress_global_tstamp);
     add(queue_int.enqueue_ts, ig_intr_md_from_parser_aux.ingress_global_tstamp, INGRESS_PROCESSING_TIME);
     modify_field(queue_int.enq_qdepth, eg_intr_md.enq_qdepth);
+    // record pkt enqueue dequeue ts for mirrored packets
+    add(PQ_md.pkt_enqueue_ts, ig_intr_md_from_parser_aux.ingress_global_tstamp, INGRESS_PROCESSING_TIME);
+    modify_field(PQ_md.pkt_dequeue_ts, eg_intr_md_from_parser_aux.egress_global_tstamp);
 }
 
 @pragma stage 0
@@ -135,8 +138,8 @@ table cal_TW0_tts_idx_tb{
 }
 
 action cal_TW0_tts_idx(){
-    shift_right(TW0_md.tts, queue_int.dequeue_ts, TW0_TB);      // calculate tts of the first window
-    modify_field_with_shift(TW0_md.idx, queue_int.dequeue_ts, TW0_TB, QUARTER_INDEX_MASK);  // move the lowest k bits of tts to index
+    shift_right(TW0_md.tts, PQ_md.pkt_dequeue_ts, TW0_TB);      // calculate tts of the first window
+    modify_field_with_shift(TW0_md.idx, PQ_md.pkt_dequeue_ts, TW0_TB, QUARTER_INDEX_MASK);  // move the lowest k bits of tts to index
 }
 
 /***************************************************
@@ -169,6 +172,8 @@ table reverse_highest_bit_tb{
 
 field_list mirror_fl {
   PQ_md.mirror_signal;
+  PQ_md.pkt_enqueue_ts;
+  PQ_md.pkt_dequeue_ts;
 }
 
 action reverse_highest_bit(){
@@ -865,8 +870,10 @@ action modify_signal(){
     remove_header(vlan_tag);
     remove_header(queue_int);
     modify_field(ethernet.ether_type, ETHERTYPE_PRINTQUEUE_SIGNAL);
-    add_header(printqueue_probe);
-    modify_field(printqueue_probe.qdepth_threshold, PQ_md.mirror_signal);        // use printqueue_probe to pass signal type
+    add_header(printqueue_signal);
+    modify_field(printqueue_signal.signal_type, PQ_md.mirror_signal);
+    modify_field(printqueue_signal.pkt_enqueue_ts, PQ_md.pkt_enqueue_ts);
+    modify_field(printqueue_signal.pkt_dequeue_ts, PQ_md.pkt_dequeue_ts);
 }
 
 //--------------------------------------------------------------------------

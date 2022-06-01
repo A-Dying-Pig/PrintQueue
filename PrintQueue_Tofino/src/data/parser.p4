@@ -27,6 +27,7 @@ parser parse_ethernet {
         ETHERTYPE_IPV4 : parse_ipv4;
         ETHERTYPE_PRINTQUEUE: parse_ipv4_int;                 // the type contain INT header after ethernet, ipv4, tcp header
         ETHERTYPE_PRINTQUEUE_PROBE: parse_printqueue_probe;   // the type contain probe header after ethernet, ipv4, tcp header
+        ETHERTYPE_PRINTQUEUE_SIGNAL: parse_printqueue_signal; // the type contain signal header after ethernet, ipv4, tcp header
         default: parse_error protocol_not_supported;
     }
 }
@@ -38,6 +39,7 @@ parser parse_vlan_tag {
         ETHERTYPE_IPV4 : parse_ipv4;
         ETHERTYPE_PRINTQUEUE: parse_ipv4_int;
         ETHERTYPE_PRINTQUEUE_PROBE: parse_printqueue_probe;
+        ETHERTYPE_PRINTQUEUE_SIGNAL: parse_printqueue_signal;
         default: parse_error protocol_not_supported;
     }
 }
@@ -84,6 +86,15 @@ parser parse_printqueue_probe {
     set_metadata(PQ_md.probe, 1);
     return ingress;
 }
+
+header printqueue_signal_t printqueue_signal;
+parser parse_printqueue_signal {
+    extract(ipv4);
+    extract(tcp);
+    extract(printqueue_signal);
+    return ingress;
+}
+
 
 metadata TW_metadata_t TW0_md;      // TW0_md and TW1_md are used alternately for next time window
 metadata TW_metadata_t TW1_md;      

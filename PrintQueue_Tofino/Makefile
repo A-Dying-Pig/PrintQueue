@@ -58,6 +58,11 @@ clean_qm:
 	rm -rf qm_data
 	mkdir qm_data
 
+# clean time window signals
+clean_sgl:
+	rm -rf signal_data
+	mkdir signal_data
+
 # load bf_kdrv.ko
 kdrv:
 	insmod $(SDE_INSTALL)/lib/modules/bf_kdrv.ko intr_mode="msi"

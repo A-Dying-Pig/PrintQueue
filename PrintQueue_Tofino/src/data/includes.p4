@@ -89,10 +89,20 @@ header_type printqueue_probe_t{
     }
 }
 
+header_type printqueue_signal_t{
+    fields{
+        signal_type: 32;
+        pkt_enqueue_ts: 32;
+        pkt_dequeue_ts: 32;
+    }
+}
+
 // printqueue metadata
 header_type PQ_metadata_t {
     fields{
         qdepth_threshold: 32;
+        pkt_enqueue_ts: 32;
+        pkt_dequeue_ts: 32;
         mirror_signal: 32;  // Bitmap: bit 0 = QM data plane query; bit 1 = QM seq overflow; bit 2 = TW data plane query
         lock: 16;
         probe: 1;
@@ -198,7 +208,7 @@ header_type QM_matadata_t{
 #define TOTAL_QDEPTH 131072 // 2^17 = 131072    // extra space for periodical and data plane query
 #define QUARTER_QDEPTH_MASK 0x7fff
 
-#define DEFAULT_QDEPTH_THRESHOLD 10000
+#define DEFAULT_QDEPTH_THRESHOLD 20000
 #define THRESHOLD_FLOW_NUMBER 1024
 #define MIRROR_SESS 3   // mirror session number for clone_e2e
 

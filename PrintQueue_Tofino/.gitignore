@@ -16,5 +16,6 @@ workspace.*
 PrintQueue
 tw_data/*
 qm_data/*
+signal_data/*
 *.log
 

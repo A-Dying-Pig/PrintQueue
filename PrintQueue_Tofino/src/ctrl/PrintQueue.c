@@ -525,38 +525,42 @@ void* listen_on_interface_thread(){
     printf("Bind failed.\n");
     return false;
   }
+  char sig_data_dir[100];
   char rcv_buf[RCV_BUF_SIZE];
-  uint32_t n, rcv_signal;
+  uint32_t n, rcv_signal, enqueue_ts, dequeue_ts;
   uint16_t ether_type, src_port, dst_port;
   struct in_addr src_ip, dst_ip;  //network byte order
   printf ("Raw socket configuration succeeds.\n");
   while(running_flag){
     while(signal_flag){
       n = recvfrom(sockfd_rcv, &rcv_buf, RCV_BUF_SIZE-1, 0, NULL, NULL);
-      if (n < 0){
+      if (n < 14){
         printf("Signal-receiving thread error: reading packet fails!\n");
         signal_flag = false;
         break;
       }
       // parse packet
       memcpy(&ether_type, rcv_buf + 12, 2);
-      memcpy(&src_ip.s_addr, rcv_buf + 26, 4);
-      memcpy(&dst_ip.s_addr, rcv_buf + 30, 4);
-      memcpy(&src_port, rcv_buf + 34, 2);
-      memcpy(&dst_port, rcv_buf + 36, 2);
-      memcpy(&rcv_signal, rcv_buf + 54, 4);
       ether_type = ntohs(ether_type);
-      src_port = ntohs(src_port);
-      dst_port = ntohs(dst_port);
-      rcv_signal = ntohl(rcv_signal);
-      // printf("Ether: %x, src_ip: %s, dst_ip: %s, src_port: %d, dst_port: %d, signal: %d, length: %d\n", ether_type, inet_ntoa(src_ip), inet_ntoa(dst_ip), src_port, dst_port, rcv_signal, n);
       if (ether_type == ETHERTYPE_PRINTQUEUE_SIGNAL){
-        if (n < 56) {
+        if (n < 66) {
           printf("Received an invalid signal packet, length: %d.\n", n);
           continue;
         }
-        printf("\n-----------------------------------------------------------------\nData plane query signal - src_ip: %s, dst_ip: %s, src_port: %d, dst_port: %d, type: %d.\n-----------------------------------------------------------------\n",
-              inet_ntoa(src_ip), inet_ntoa(dst_ip), src_port, dst_port, rcv_signal);
+        memcpy(&src_ip.s_addr, rcv_buf + 26, 4);
+        memcpy(&dst_ip.s_addr, rcv_buf + 30, 4);
+        memcpy(&src_port, rcv_buf + 34, 2);
+        memcpy(&dst_port, rcv_buf + 36, 2);
+        memcpy(&rcv_signal, rcv_buf + 54, 4);
+        memcpy(&enqueue_ts, rcv_buf + 58, 4);
+        memcpy(&dequeue_ts, rcv_buf + 62, 4);
+        src_port = ntohs(src_port);
+        dst_port = ntohs(dst_port);
+        rcv_signal = ntohl(rcv_signal);
+        enqueue_ts = ntohl(enqueue_ts);
+        dequeue_ts = ntohl(dequeue_ts);
+        printf("\n-----------------------------------------------------------------\nData plane query signal - src_ip: %s, dst_ip: %s, src_port: %d, dst_port: %d, type: %d, enqueue_ts: %lu, dequeue_ts: %lu.\n-----------------------------------------------------------------\n",
+              inet_ntoa(src_ip), inet_ntoa(dst_ip), src_port, dst_port, rcv_signal, enqueue_ts, dequeue_ts);
         // receiving a data plane signal
         if (!new_signal && poll_ready){
             gettimeofday(&data_signal.ts, NULL);
@@ -566,6 +570,15 @@ void* listen_on_interface_thread(){
             data_signal.src_port = src_port;
             data_signal.dst_port = dst_port;
             new_signal = true;
+            // store signal pkt information in the file : [type | enqueue_ts | dequeue_ts]
+            memset(sig_data_dir, 0, 100);
+            sprintf(sig_data_dir, "./signal_data/%ld_%ld.bin", data_signal.ts.tv_sec, data_signal.ts.tv_usec); 
+            printf("write signal to file: %s.\n", sig_data_dir);
+            FILE * f = fopen(sig_data_dir, "wb");
+            fwrite(&rcv_signal, 4, 1, f);
+            fwrite(&enqueue_ts, 4, 1, f);
+            fwrite(&dequeue_ts, 4, 1, f);
+            fclose(f);
         }
       }
     }
@@ -764,7 +777,7 @@ mirror_info->egr_port = CPU_PORT;
 mirror_info->egr_port_v = true;
 mirror_info->int_hdr = (uint32_t *)malloc(sizeof(uint32_t)*4);  // there is memory copy later, allocate space to avoid segment fault
 mirror_info->int_hdr_len = 0;
-mirror_info->max_pkt_len = 80; // Ether + IPv4 + TCP + Signal Header; avoid buffer overflow
+mirror_info->max_pkt_len = 100; // Ether + IPv4 + TCP + Signal Header; avoid buffer overflow
 status_tmp = p4_pd_mirror_session_create(sess_hdl, dev_tgt, mirror_info);
 if (status_tmp != 0){
   printf("Error! Creating mirror session.\n");
@@ -785,6 +798,7 @@ printf("Successfully enable mirror session.\n");
 pthread_t signal_thread;
 poll_ready = false;
 new_signal = false;
+p4_pd_printqueue_register_reset_all_highest_bit_r(sess_hdl, dev_tgt);
 p4_pd_printqueue_register_reset_all_data_query_lock_r(sess_hdl, dev_tgt);
 if( pthread_create(&signal_thread, NULL, &listen_on_interface_thread, NULL) != 0){
   printf("Error: creation of signal-receiving thread failed!\n");
@@ -822,7 +836,11 @@ if(status_tmp!=0) {
   printf("Error setting the second highest bit!\n");
   return false;
 }
-second_highest = 1;
+second_highest = 1; 
+//--------------------------------------------------------------
+// The value of the second highest bit is the NEXT period's
+// But the value of the highest bit is the CURRENT period's
+//--------------------------------------------------------------
 printf("Successfully set the second highest bit\n");
 uint64_t retrieve_interval = ((1 << (a * T)) - 1) * (1 << (k + 6)) / ((1<<a)-1) / 1000 - 10; // us, give a little time ahead to trigger reading
 printf("Time window retrieve interval: %ld us\n", retrieve_interval);
@@ -874,7 +892,7 @@ while(running_flag){
       if (poll_ready && new_signal){
         printf("flip highest bit\n");
         prev_highest = highest;
-        prev_second_highest = second_highest;
+        prev_second_highest = second_highest ^ 1;
         highest ^= 1;
         data_query_start = (prev_highest << (k + 1)) + (prev_second_highest << k);
         data_query_end = data_query_start + cell_number;
@@ -1029,7 +1047,7 @@ while(running_flag){
 //       if (poll_ready && new_signal){
 //         printf("flip highest bit\n");
 //         prev_highest = highest;
-//         prev_second_highest = second_highest;
+//         prev_second_highest = second_highest ^ 1;
 //         highest ^= 1;
 //         data_query_start = (prev_highest << (k + 1)) + (prev_second_highest << k);
 //         data_query_end = data_query_start + max_qdepth;
