@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 from TimeWindows import *
 import random
 import csv
+import time
+import math
 
 class GroundTruth:
     def __init__(self, path):
@@ -411,7 +413,10 @@ def Comparison(path, alpha, k, T, TW0_TB, TW0_z):
                 gt_packets = []
                 traces = []
                 for i in range(0,len(tws)):
-                    p = (query_interval[i][1] - query_interval[i][0]) / (tws[i]['lts'] - tws[i]['sts'])
+                    if tws[i]['lts'] == tws[i]['sts']:
+                        p = 1
+                    else:
+                        p = (query_interval[i][1] - query_interval[i][0]) / (tws[i]['lts'] - tws[i]['sts'])
                     proportion.append(p)
                     gt_pkt = gt.retrieve(tws[i]['sts'], tws[i]['lts'])
                     gt_packets.append(gt_pkt)
@@ -490,7 +495,38 @@ def DataPlaneQuery(path, alpha, k, T, TW0_TB, TW0_z):
                 continue
             print('Time Windows Data Plane Query, Number Precision: {0}, Number Recall: {1}'.format(PQ_p, PQ_r))
 
+def timer(path, alpha, k, T, TW0_TB, TW0_z):
+    '''
+    Count the execution time of query
+    '''
+    tw = TimeWindowController(path=path, alpha=alpha, k=k, T=T, TW0_TB=TW0_TB, TW0_z=TW0_z)
+    gt = GroundTruth(path)
+    packet_sample_number = 20
+    stairs = [1000, 2000, 5000, 10000, 15000, 20000]
+    pkts = gt.packet_experiencing_high_delay2(stairs)
+    sample_pkts = []
+    sample_pkts_ids = []
+    for i in range(0, len(pkts)):
+        sample_pkts.append([])
+        sample_pkts_ids.append([])
+        pkts_number = len(pkts[i])
+        while len(sample_pkts_ids[i]) < packet_sample_number:
+            id = random.randint(0, pkts_number - 1)
+            if id not in sample_pkts_ids[i]:
+                sample_pkts_ids[i].append(id)
+                sample_pkts[i].append(pkts[i][id])
+    start = time.time() * 1e6 #us
+    for j in range(len(sample_pkts)):
+        for pkt in sample_pkts[j]:
+            pkt['tw'], tws, query_interval, ret_window = tw.retrieve(pkt['ets'], pkt['dts'])
+    end = time.time() * 1e6 #us
+    query_num = packet_sample_number * len(stairs)
+    per_query_time = (end - start) / query_num
+    QPS = math.floor(1e6 / per_query_time)
+    print("Execute {0} queris, each query takes {1} us, QPS: {2}".format(query_num, per_query_time, QPS))
+
 
 if __name__ == '__main__':
-    # Comparison(path='./d/pt1_pt12/', alpha=2, k=12, T=4, TW0_TB=6, TW0_z=64 / 100)
-    DataPlaneQuery(path='./d/20000/6', alpha=2, k=12, T=4, TW0_TB=6, TW0_z=64 / 100)
+    # Comparison(path='./d/syn3/1000', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250)
+    # DataPlaneQuery(path='./d/syn3/1000', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250)
+    timer(path='./d/syn3/1000', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250)
