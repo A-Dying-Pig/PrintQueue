@@ -821,7 +821,7 @@ printf("\n\n-----------------------------------------------------\nTime Windows 
 // T: the number of time windows
 // a: compression factor
 // duration: the number of seconds for which the periodical register reading lasts
-uint32_t k = 12, T = 4, a = 2, duration = 2;
+uint32_t k = 12, T = 4, a = 1, duration = 2, TB0 = 10;
 //--------------------------------------------------------------------//
 //--------------------------------------------------------------------//
 uint32_t highest = 0, second_highest = 0, index = 0, cell_number = 1 << k;
@@ -842,7 +842,7 @@ second_highest = 1;
 // But the value of the highest bit is the CURRENT period's
 //--------------------------------------------------------------
 printf("Successfully set the second highest bit\n");
-uint64_t retrieve_interval = ((1 << (a * T)) - 1) * (1 << (k + 6)) / ((1<<a)-1) / 1000 - 10; // us, give a little time ahead to trigger reading
+uint64_t retrieve_interval = ((1 << (a * T)) - 1) * (1 << (k + TB0)) / ((1<<a)-1) / 1000 - 10; // us, give a little time ahead to trigger reading
 printf("Time window retrieve interval: %ld us\n", retrieve_interval);
 //initialize buffer used to store register values
 uint8_t buffer[245760];

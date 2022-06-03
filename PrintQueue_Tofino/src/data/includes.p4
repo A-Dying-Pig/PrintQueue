@@ -187,8 +187,8 @@ header_type QM_matadata_t{
 //          Adjustable Parameters        //
 //---------------------------------------//
 //NOTICE: when changing the parameters, remember to change the parameters of the control plane program
-#define ALPHA 2
-#define TW0_TB 6
+#define ALPHA 1
+#define TW0_TB 10
 #define INDEX_NUM 16384                 // extra space for periodical and data plane query
 #define HALF_INDEX_NUM 8192
 #define QUARTER_INDEX_NUM 4096          // cell number of a time window
