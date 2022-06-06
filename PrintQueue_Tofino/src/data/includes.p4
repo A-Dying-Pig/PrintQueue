@@ -60,6 +60,7 @@ header_type tcp_t {
 // two bits to control 4 sets of registers
 header_type register_metadata_t{
     fields{
+        isolation_prefix: 32;
         highest: 32;    
         second_highest: 32; 
     }
@@ -91,7 +92,8 @@ header_type printqueue_probe_t{
 
 header_type printqueue_signal_t{
     fields{
-        signal_type: 32;
+        signal_type: 16;
+        isolation_id: 16;
         pkt_enqueue_ts: 32;
         pkt_dequeue_ts: 32;
     }
@@ -105,9 +107,12 @@ header_type PQ_metadata_t {
         pkt_dequeue_ts: 32;
         mirror_signal: 32;  // Bitmap: bit 0 = QM data plane query; bit 1 = QM seq overflow; bit 2 = TW data plane query
         lock: 16;
+        isolation_id: 16;
+        disable_PQ: 16;
         probe: 1;
         exceed: 1;
         stack_len_change: 1;
+        forward: 1;
     }
 }
 
@@ -123,7 +128,7 @@ header_type TW_metadata_t {
         tts_pre_cycle : 32;     // the tts of the previous cycle
         tts_delta : 32;
         tts_r: 32;              // tts value of the register
-        quarter_index_num: 16;
+        single_port_index_num: 16;
         b1: 1;
         b2: 1;
     }
@@ -191,9 +196,10 @@ header_type QM_matadata_t{
 #define TW0_TB 10
 #define INDEX_NUM 16384                 // extra space for periodical and data plane query
 #define HALF_INDEX_NUM 8192
-#define QUARTER_INDEX_NUM 4096          // cell number of a time window
-#define QUARTER_INDEX_BIT 12
-#define QUARTER_INDEX_MASK 0xfff
+// for a single port, cell number of a time window
+#define SINGLE_PORT_INDEX_NUM 2048
+#define SINGLE_PORT_INDEX_BIT 11
+#define SIGNLE_PORT_INDEX_MASK 0x7ff
 //------------------------------------------------------------------------//
 //   The nanoseconds that a packet experiences in the ingress pipeline    //
 //------------------------------------------------------------------------//
@@ -208,8 +214,9 @@ header_type QM_matadata_t{
 #define TOTAL_QDEPTH 131072 // 2^17 = 131072    // extra space for periodical and data plane query
 #define QUARTER_QDEPTH_MASK 0x7fff
 
-#define DEFAULT_QDEPTH_THRESHOLD 20000
+#define DEFAULT_QDEPTH_THRESHOLD 10000
 #define THRESHOLD_FLOW_NUMBER 1024
 #define MIRROR_SESS 3   // mirror session number for clone_e2e
+#define MAX_PORT_NUM 16
 
 #endif

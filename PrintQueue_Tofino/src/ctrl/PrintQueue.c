@@ -38,6 +38,7 @@
 #define RCV_BUF_SIZE 256
 #define CONFIG_BUF_SIZE 100
 #define ETHERTYPE_PRINTQUEUE_SIGNAL   0x080e
+#define MAX_PORT_NUM 16
 
 static void bf_switchd_parse_hld_mgrs_list(bf_switchd_context_t *ctx,
                                            char *mgrs_list) {
@@ -296,7 +297,7 @@ p4_pd_time_windows_register_range_read
   int pipe_count, num_vals_per_pipe;
   status = pipe_stful_query_get_sizes(sess_hdl,
                                       dev_tgt.device_id,
-                                      100663300,
+                                      100663301,
                                       &pipe_count,
                                       &num_vals_per_pipe);
   if(status != PIPE_MGR_SUCCESS) return status;
@@ -324,16 +325,10 @@ p4_pd_time_windows_register_range_read
     //   They can be found at your $SDE/pkgsrc/p4-build/tofino/printqueue/src/pd.c after compilation.
     //   When the number of time windows changes, remember to modify the number of elements in handle_id
     //-------------------------------------------------------------------------------------------------------------------
-    // int handle_id[] = {100663297, 100663298, 100663299,       // TW0: tts, srcIP, dstIP
-    //                    100663302, 100663303, 100663304,       // TW1: tts, srcIP, dstIP
-    //                    100663307, 100663308, 100663309,       // TW2: tts, srcIP, dstIP
-    //                    100663312, 100663313, 100663314};      // TW3: tts, srcIP, dstIP
-    //                   //  100663317, 100663318, 100663319};
-
-    int handle_id_data_query[] = {100663300, 100663301, 100663302, 
-                            100663305, 100663306, 100663307,
-                            100663310, 100663311, 100663312,
-                            100663315, 100663316, 100663317
+    int handle_id_data_query[] = {100663301, 100663302, 100663303, // TW0: tts, srcIP, dstIP
+                            100663306, 100663307, 100663308,       // TW1: tts, srcIP, dstIP
+                            100663311, 100663312, 100663313,       // TW2: tts, srcIP, dstIP
+                            100663316, 100663317, 100663318        // TW3: tts, srcIP, dstIP
                           };
     uint total = 0;
     for (int rn = 0; rn < T * 3; rn ++){
@@ -474,22 +469,57 @@ typedef struct ipv4_address{
   } addr;
 } ipv4_address_t;
 
+// -------------------------------------------------------------------//
+//           The following is the configurable parameters             //
+//                Tune them according to your setting                 //
+//--------------------------------------------------------------------//
+// for a single port
+// k: the cell number of a single time window: 2^k
+// T: the number of time windows
+// a: compression factor
+// duration: the number of seconds for which the periodical register reading lasts
+static uint32_t k = 11, T = 4, a = 1, duration = 2, TB0 = 10;
+// total registers 2^14
+static uint32_t highest_shift_bit = 13, second_highest_shift_bit = 12;
+static uint32_t highest[MAX_PORT_NUM], second_highest[MAX_PORT_NUM], cell_number = 0;  // highest i-th item <-> i-th port entry
+
 //--------------------------------------------------------------------------//
 //                                                                          //
 //                      Signal Receiving Thread                             //
 //                                                                          //
 //--------------------------------------------------------------------------//
+//------------------------------------------------------//
+//                  Port Isolation                      //
+//------------------------------------------------------//
+typedef struct port_entry{
+  uint16_t port;
+  uint16_t isolation_id;
+  uint32_t isolation_prefix;
+} port_entry_t;
+static port_entry_t port_table[MAX_PORT_NUM];
+static uint16_t port_entry_num = 0;
+
 typedef struct data_signal{
   struct timeval ts;
   uint32_t type;  // Bitmap: bit 0 = QM data plane query; bit 1 = QM seq overflow; bit 2 = TW data plane query
+  uint16_t table_idx;
+  uint16_t iso_id;
+  uint16_t data_port;
   struct in_addr src_ip;
   struct in_addr dst_ip;
   uint16_t src_port;
   uint16_t dst_port;
+  uint32_t enqueue_ts; 
+  uint32_t dequeue_ts;
+  uint32_t isolation_prefix;
+  uint32_t previous_highest;
+  uint32_t previous_second_highest;
 } data_signal_t;
-static data_signal_t data_signal;
+static data_signal_t data_signal[MAX_PORT_NUM + 2]; // 0 - 16
+static uint16_t data_signal_head = 0, data_signal_tail = 0;
 static bool new_signal;
 static bool poll_ready;
+static bool finish_last;
 
 void* listen_on_interface_thread(){
   printf("*********************************************************\nSignal-receiving Thread Initiated\n*********************************************************\n");
@@ -525,9 +555,9 @@ void* listen_on_interface_thread(){
     printf("Bind failed.\n");
     return false;
   }
-  char sig_data_dir[100];
   char rcv_buf[RCV_BUF_SIZE];
-  uint32_t n, rcv_signal, enqueue_ts, dequeue_ts;
+  uint32_t n, enqueue_ts, dequeue_ts, data_port;
+  uint16_t rcv_signal, iso_id;
   uint16_t ether_type, src_port, dst_port;
   struct in_addr src_ip, dst_ip;  //network byte order
   printf ("Raw socket configuration succeeds.\n");
@@ -547,39 +577,55 @@ void* listen_on_interface_thread(){
           printf("Received an invalid signal packet, length: %d.\n", n);
           continue;
         }
+        if ((data_signal_tail + 1) % (MAX_PORT_NUM + 2) == data_signal_head){
+          printf("Warning: data signal queue overflows!\n");
+          continue;
+        }
         memcpy(&src_ip.s_addr, rcv_buf + 26, 4);
         memcpy(&dst_ip.s_addr, rcv_buf + 30, 4);
         memcpy(&src_port, rcv_buf + 34, 2);
         memcpy(&dst_port, rcv_buf + 36, 2);
-        memcpy(&rcv_signal, rcv_buf + 54, 4);
+        memcpy(&rcv_signal, rcv_buf + 54, 2);
+        memcpy(&iso_id, rcv_buf + 56, 2);
         memcpy(&enqueue_ts, rcv_buf + 58, 4);
         memcpy(&dequeue_ts, rcv_buf + 62, 4);
         src_port = ntohs(src_port);
         dst_port = ntohs(dst_port);
-        rcv_signal = ntohl(rcv_signal);
+        rcv_signal = ntohs(rcv_signal);
+        iso_id = ntohs(iso_id);
         enqueue_ts = ntohl(enqueue_ts);
         dequeue_ts = ntohl(dequeue_ts);
-        printf("\n-----------------------------------------------------------------\nData plane query signal - src_ip: %s, dst_ip: %s, src_port: %d, dst_port: %d, type: %d, enqueue_ts: %lu, dequeue_ts: %lu.\n-----------------------------------------------------------------\n",
-              inet_ntoa(src_ip), inet_ntoa(dst_ip), src_port, dst_port, rcv_signal, enqueue_ts, dequeue_ts);
-        // receiving a data plane signal
-        if (!new_signal && poll_ready){
-            gettimeofday(&data_signal.ts, NULL);
-            data_signal.type = rcv_signal;
-            data_signal.src_ip = src_ip;
-            data_signal.dst_ip = dst_ip;
-            data_signal.src_port = src_port;
-            data_signal.dst_port = dst_port;
-            new_signal = true;
-            // store signal pkt information in the file : [type | enqueue_ts | dequeue_ts]
-            memset(sig_data_dir, 0, 100);
-            sprintf(sig_data_dir, "./signal_data/%ld_%ld.bin", data_signal.ts.tv_sec, data_signal.ts.tv_usec); 
-            printf("write signal to file: %s.\n", sig_data_dir);
-            FILE * f = fopen(sig_data_dir, "wb");
-            fwrite(&rcv_signal, 4, 1, f);
-            fwrite(&enqueue_ts, 4, 1, f);
-            fwrite(&dequeue_ts, 4, 1, f);
-            fclose(f);
+        data_port = 0;
+        for (int i = 0; i < port_entry_num; i++){
+          if (port_table[i].isolation_id == iso_id){
+            data_signal[data_signal_tail].table_idx = i;
+            data_port = port_table[i].port;
+            // printf("table index: %d, iso id: %d, iso_pref: %d, data_port:%d\n", i, iso_id, port_table[i].isolation_prefix ,data_port);
+            break;
+          }
         }
+        printf("\n-----------------------------------------------------------------\nPort %d - data plane query signal - src_ip: %s, dst_ip: %s, src_port: %d, dst_port: %d, type: %d, iso_id: %d, enqueue_ts: %lu, dequeue_ts: %lu.\n-----------------------------------------------------------------\n",
+              data_port,inet_ntoa(src_ip), inet_ntoa(dst_ip), src_port, dst_port, rcv_signal, iso_id, enqueue_ts, dequeue_ts);
+
+        // receiving a data plane signal - add to the queue
+        gettimeofday(&data_signal[data_signal_tail].ts, NULL);
+        data_signal[data_signal_tail].type = rcv_signal;
+        data_signal[data_signal_tail].src_ip = src_ip;
+        data_signal[data_signal_tail].dst_ip = dst_ip;
+        data_signal[data_signal_tail].src_port = src_port;
+        data_signal[data_signal_tail].dst_port = dst_port;
+        data_signal[data_signal_tail].data_port = data_port;
+        data_signal[data_signal_tail].iso_id = iso_id;
+        data_signal[data_signal_tail].enqueue_ts = enqueue_ts;
+        data_signal[data_signal_tail].dequeue_ts = dequeue_ts;
+        data_signal[data_signal_tail].isolation_prefix = iso_id << k;
+        //flip highest bit ASAP
+        printf("flip highest bit\n");
+        data_signal[data_signal_tail].previous_highest = highest[data_signal[data_signal_tail].table_idx];
+        highest[data_signal[data_signal_tail].table_idx] ^= 1;
+        data_signal[data_signal_tail].previous_second_highest = second_highest[data_signal[data_signal_tail].table_idx] ^ 1;
+        data_signal_tail = (data_signal_tail + 1) % (MAX_PORT_NUM + 2);
+        new_signal = true;
       }
     }
   }
@@ -667,11 +713,17 @@ int main(int argc, char *argv[]) {
   dev_tgt.dev_pipe_id = 0xffff;
 
   uint32_t* handlers = (uint32_t*)malloc(sizeof(uint32_t) * HDL_BUF_SIZE);
-  memset(handlers, 0, sizeof(uint32_t) * HDL_BUF_SIZE);  
+  memset(handlers, 0, sizeof(uint32_t) * HDL_BUF_SIZE); 
+
+  for (int i = 0; i < MAX_PORT_NUM; i++){
+    highest[i] = 0;
+    second_highest[i] = 0;
+  }
+  cell_number = 1 << k;
 
 //------------ read registers --------------------
 uint actual_read, value_count, value_total = 0;
-struct timeval s_us, e_us, initial_us;
+struct timeval s_us, e_us[MAX_PORT_NUM], initial_us;
 //--------------------------------------------------------------------//
 //                                                                    //
 //                           Port Setting                             //
@@ -698,6 +750,13 @@ port_5_0.chnl_id = 0;
 bf_pm_port_add(dev_tgt.device_id, &port_5_0, BF_SPEED_40G, BF_FEC_TYP_NONE);
 bf_pm_pltfm_front_port_eligible_for_autoneg(dev_tgt.device_id, &port_5_0, true);
 bf_pm_port_enable(dev_tgt.device_id, &port_5_0);
+// Port 2/2
+bf_pal_front_port_handle_t port_2_2;
+port_2_2.conn_id = 2;
+port_2_2.chnl_id = 2;
+bf_pm_port_add(dev_tgt.device_id, &port_2_2, BF_SPEED_10G, BF_FEC_TYP_NONE);
+bf_pm_pltfm_front_port_eligible_for_autoneg(dev_tgt.device_id, &port_2_2, false);
+bf_pm_port_enable(dev_tgt.device_id, &port_2_2);
 
 //--------------------------------------------------------------------//
 //                                                                    //
@@ -798,6 +857,7 @@ printf("Successfully enable mirror session.\n");
 pthread_t signal_thread;
 poll_ready = false;
 new_signal = false;
+finish_last = true;
 p4_pd_printqueue_register_reset_all_highest_bit_r(sess_hdl, dev_tgt);
 p4_pd_printqueue_register_reset_all_data_query_lock_r(sess_hdl, dev_tgt);
 if( pthread_create(&signal_thread, NULL, &listen_on_interface_thread, NULL) != 0){
@@ -806,6 +866,54 @@ if( pthread_create(&signal_thread, NULL, &listen_on_interface_thread, NULL) != 0
 }
 printf("Signal-receiving thread is successfully created with ID %u.\n", signal_thread);
 
+//--------------------------------------------------------------------//
+//                  Set Port Isolation Table                          //
+//--------------------------------------------------------------------//
+p4_pd_printqueue_get_isolation_id_tb_match_spec_t * port_matches = (p4_pd_printqueue_get_isolation_id_tb_match_spec_t *) malloc(sizeof(p4_pd_printqueue_get_isolation_id_tb_match_spec_t) * MAX_PORT_NUM);
+p4_pd_printqueue_get_isolation_id_action_spec_t * port_actions = (p4_pd_printqueue_get_isolation_id_action_spec_t *) malloc(sizeof(p4_pd_printqueue_get_isolation_id_action_spec_t) * MAX_PORT_NUM);
+f = fopen("./src/ctrl/port_isolation.csv", "r");
+line = NULL, ptr = NULL;
+len = 0;
+read = 0;
+first = 0;
+i = 0;
+j = 0;
+while ((read = getline(&line, &len, f)) != -1) {
+    if (first == 0){ // skip first line
+      first = 1;
+      continue;
+    }
+    ptr = strtok (line," ");
+    i = 0;
+    while (ptr != NULL){
+      fields[i] = ptr;
+      ptr = strtok(NULL, " ");
+      i++;
+    }
+    // CSV line format: Port IsolationID
+    sscanf(fields[0], "%u", &port_matches[j].ig_intr_md_for_tm_ucast_egress_port);
+    sscanf(fields[1], "%u", &port_actions[j].action_iso_id);
+    port_actions[j].action_iso_prefix = port_actions[j].action_iso_id << k;
+    port_table[j].port = port_matches[j].ig_intr_md_for_tm_ucast_egress_port;
+    port_table[j].isolation_id = port_actions[j].action_iso_id;
+    port_table[j].isolation_prefix = port_actions[j].action_iso_prefix;
+    printf("idx:%d, port: %d, iso_id: %d, iso_pre: %d\n", j, port_table[j].port, port_table[j].isolation_id, port_table[j].isolation_prefix);
+    status_tmp = p4_pd_printqueue_get_isolation_id_tb_table_add_with_get_isolation_id(sess_hdl, dev_tgt, &port_matches[j], &port_actions[j], &handlers[0]);
+    if(status_tmp != 0){
+      printf("Error adding table entries - port isolation!\n");
+      return false;
+    }
+    j++;
+}
+port_entry_num = j;
+free(line);
+fclose(f);
+free(port_matches);
+free(port_actions);
+printf("Adding %d entries to the port isolation table\n", port_entry_num);
+printf("Successfully isolate ports\n");
+//--------------------------------------------------------------------------//
+
 // Time windows or queue monitor is loaded. Comment one and uncomment the other
 // /*--------------------------------------------------------------------*/
 // /*                                                                    */
@@ -813,146 +921,176 @@ printf("Signal-receiving thread is successfully created with ID %u.\n", signal_t
 // /*                                                                    */
 // /*--------------------------------------------------------------------*/
 printf("\n\n-----------------------------------------------------\nTime Windows is Activating\n-----------------------------------------------------\n\n");
-// -------------------------------------------------------------------//
-//           The following is the configurable parameters             //
-//                Tune them according to your setting                 //
-//--------------------------------------------------------------------//
-// k: the cell number of a single time window: 2^k
-// T: the number of time windows
-// a: compression factor
-// duration: the number of seconds for which the periodical register reading lasts
-uint32_t k = 12, T = 4, a = 1, duration = 2, TB0 = 10;
-//--------------------------------------------------------------------//
-//--------------------------------------------------------------------//
-uint32_t highest = 0, second_highest = 0, index = 0, cell_number = 1 << k;
-uint32_t prev_highest = 0, prev_second_highest = 0, estimated_retrieve_interval = 0, data_query_start = 0, data_query_num = 0, data_query_end = 0, storage_start = 0;
+uint32_t prev_highest = 0, prev_second_highest = 0, estimated_retrieve_interval = 0, data_query_start = 0, data_query_num = 0, data_query_end = 0, storage_start = 0, index = 0;
 int32_t available_interval = 0;
 double reading_ratio = 0.05;
 // set second highest bit
-p4_pd_printqueue_prepare_TW0_action_spec_t action_set_second_highest_bit;
-action_set_second_highest_bit.action_second_highest = second_highest << k;
-status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
-if(status_tmp!=0) {
-  printf("Error setting the second highest bit!\n");
-  return false;
+p4_pd_printqueue_prepare_TW0_tb_match_spec_t second_highest_matches[MAX_PORT_NUM];
+p4_pd_printqueue_prepare_TW0_action_spec_t second_highest_actions[MAX_PORT_NUM];
+for (i = 0; i < port_entry_num; i++){
+  second_highest_matches[i].PQ_md_isolation_id = port_table[i].isolation_id;
+  second_highest_actions[i].action_second_highest = second_highest[i];
+  status_tmp = p4_pd_printqueue_prepare_TW0_tb_table_add_with_prepare_TW0(sess_hdl, dev_tgt, &second_highest_matches[i], &second_highest_actions[i], &handlers[0]);
+  if(status_tmp != 0){
+    printf("Error adding table entries - prepare TW0!\n");
+    return false;
+  }
 }
-second_highest = 1; 
+for (i = 0; i < port_entry_num; i++){
+  second_highest[i] = 1; 
+}
 //--------------------------------------------------------------
 // The value of the second highest bit is the NEXT period's
 // But the value of the highest bit is the CURRENT period's
 //--------------------------------------------------------------
 printf("Successfully set the second highest bit\n");
-uint64_t retrieve_interval = ((1 << (a * T)) - 1) * (1 << (k + TB0)) / ((1<<a)-1) / 1000 - 10; // us, give a little time ahead to trigger reading
+uint64_t retrieve_interval = ((1 << (a * T)) - 1) * (1 << (k + TB0)) / ((1<<a)-1) / 1000 - 100; // us, give a little time ahead to trigger reading
 printf("Time window retrieve interval: %ld us\n", retrieve_interval);
 //initialize buffer used to store register values
 uint8_t buffer[245760];
 uint8_t data_query_buffer[245760], data_query_tmp_buffer[245760];
 char data_dir[100];
+char sig_data_dir[100];
 uint32_t delta_time;
 memset(buffer, 0, 245760);
 memset(data_dir, 0, 100);
+uint32_t per_round_count = 0;
 while(running_flag){
     gettimeofday(&initial_us, NULL);
-    gettimeofday(&e_us, NULL);
+    for (i = 0; i < port_entry_num; i ++){
+      gettimeofday(&e_us[i], NULL);
+    }
     while(loop_flag){
-      gettimeofday(&s_us, NULL);
-      delta_time = (s_us.tv_sec - e_us.tv_sec) * 1000000 + s_us.tv_usec - e_us.tv_usec;
-      if(delta_time >= retrieve_interval){
-        action_set_second_highest_bit.action_second_highest = second_highest << k;
-        status_tmp = p4_pd_printqueue_prepare_TW0_tb_set_default_action_prepare_TW0(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
-        gettimeofday(&e_us, NULL);
-        if(status_tmp!=0) {
-          printf("Error setting second highest bit!\n");
-          return false;
-        }
-        second_highest ^= 1;
-        // read just recorded TW
-        index = (second_highest << k) + (highest << (k + 1));
-        p4_pd_time_windows_register_range_read(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, buffer, &value_count, 1, T);
-        // store the register values
-        sprintf(data_dir, "./tw_data/%ld_%ld.bin",e_us.tv_sec,e_us.tv_usec);  // e_us is the time after the operation of bit flip, also the start of the reading
-        FILE * f = fopen(data_dir, "wb");
-        fwrite(buffer, 1, cell_number * 12 * T, f);
-        fclose(f);
-        memset(buffer, 0, 245760);
-        memset(data_dir, 0, 100);
+      for (i = 0; i < port_entry_num; i++){
         gettimeofday(&s_us, NULL);
-        estimated_retrieve_interval = ( s_us.tv_sec - e_us.tv_sec ) * 1000000 + s_us.tv_usec - e_us.tv_usec;
-        printf("\nPeriodiocal poll needs: %d us.\n", estimated_retrieve_interval);
+        delta_time = (s_us.tv_sec - e_us[i].tv_sec) * 1000000 + s_us.tv_usec - e_us[i].tv_usec;
+        if(delta_time >= retrieve_interval){
+          if (i == 0){
+            per_round_count = 0;
+          }
+          second_highest_actions[i].action_second_highest = second_highest[i] << second_highest_shift_bit;
+          status_tmp = p4_pd_printqueue_prepare_TW0_tb_table_modify_with_prepare_TW0_by_match_spec(sess_hdl,dev_tgt, &second_highest_matches[i], &second_highest_actions[i]);
+          gettimeofday(&e_us[i], NULL);
+          if(status_tmp!=0) {
+            printf("Error port %d setting second highest bit!\n", port_table[i].port);
+            return false;
+          }
+          second_highest[i] ^= 1;
+          // read just recorded TW
+          printf("Periodical reading - port: %d, h: %d, sh: %d, iso_id: %d, iso_prefix: %d", port_table[i].port, highest[i], second_highest[i], port_table[i].isolation_id, port_table[i].isolation_prefix);
+          index = port_table[i].isolation_prefix + (second_highest[i] << second_highest_shift_bit) + (highest[i] << highest_shift_bit);
+          p4_pd_time_windows_register_range_read(sess_hdl, dev_tgt, index, cell_number, 1, &actual_read, buffer, &value_count, 1, T);
+          // store the register values
+          sprintf(data_dir, "./tw_data/%d/tw_data/%ld_%ld.bin",i, e_us[i].tv_sec, e_us[i].tv_usec);  // e_us is the time after the operation of bit flip, also the start of the reading
+          FILE * f = fopen(data_dir, "wb");
+          fwrite(buffer, 1, cell_number * 12 * T, f);
+          fclose(f);
+          memset(buffer, 0, 245760);
+          memset(data_dir, 0, 100);
+          gettimeofday(&s_us, NULL);
+          estimated_retrieve_interval = ( s_us.tv_sec - e_us[i].tv_sec ) * 1000000 + s_us.tv_usec - e_us[i].tv_usec;
+          available_interval = e_us[0].tv_sec * 1000000 + e_us[0].tv_usec + retrieve_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
+          printf("\nPort %d, periodiocal poll finishes, it needs: %d us, %d us til next round.\n", port_table[i].port ,estimated_retrieve_interval,available_interval);
+          per_round_count += 1;
+        }
+      }
+      gettimeofday(&s_us, NULL);
+      if (s_us.tv_sec - initial_us.tv_sec > duration){
+          printf("\nTime window retrieve Ends!\n");
+          loop_flag = false;
+          signal_flag = false;
+          break;
+        }
+      available_interval = e_us[0].tv_sec * 1000000 + e_us[0].tv_usec + retrieve_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
+      if (available_interval < 2000){
+        // printf("*");
+        continue;
       }
       //-----------------------------------------------------------------------------------//
       //                               Data Plane Query                                    //
       //-----------------------------------------------------------------------------------//
-      if ( !new_signal && !poll_ready){
-        if (estimated_retrieve_interval){
-          memset(data_query_buffer, 0, 245760);
-          poll_ready = true;
-        }
-      }
-      if (poll_ready && new_signal){
-        printf("flip highest bit\n");
-        prev_highest = highest;
-        prev_second_highest = second_highest ^ 1;
-        highest ^= 1;
-        data_query_start = (prev_highest << (k + 1)) + (prev_second_highest << k);
-        data_query_end = data_query_start + cell_number;
-        storage_start = 0;
-        poll_ready = false;
-      }
-      if (!poll_ready && new_signal){
-        gettimeofday(&s_us, NULL);
-        available_interval = e_us.tv_sec * 1000000 + e_us.tv_usec + retrieve_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
-        if (available_interval < 7000){
-          // printf("x");
-          continue;
-        }      
-        data_query_num = floor(((double)available_interval / (double)estimated_retrieve_interval) * reading_ratio * (double)cell_number);
-        if (data_query_start + data_query_num >= data_query_end){
-          printf(".\n");
-          data_query_num = data_query_end - data_query_start;
-        }
-        if(data_query_num != 0){
-          printf("Available interval: %d us. Read %d entries.\n", available_interval, data_query_num );
-          memset(data_query_tmp_buffer, 0, 245760);
-          p4_pd_time_windows_register_range_read(sess_hdl, dev_tgt, data_query_start, data_query_num, 1, &actual_read, data_query_tmp_buffer, &value_count, 1, T);
-          data_query_start += data_query_num;
-          printf("✓ reading\n");
-          for (int i = 0; i < T; i++){
-            memcpy(data_query_buffer + 12 * cell_number * i + storage_start * 4, data_query_tmp_buffer + 12 * data_query_num * i, data_query_num * 4);
-            memcpy(data_query_buffer + 12 * cell_number * i + storage_start * 4 + cell_number * 4, data_query_tmp_buffer + 12 * data_query_num * i + data_query_num * 4, data_query_num * 4);
-            memcpy(data_query_buffer + 12 * cell_number * i + storage_start * 4 + cell_number * 8, data_query_tmp_buffer + 12 * data_query_num * i + data_query_num * 8, data_query_num * 4);
+      if (per_round_count == port_entry_num){
+        if (!poll_ready && finish_last){
+          if (estimated_retrieve_interval && new_signal){
+            memset(data_query_buffer, 0, 245760);
+            poll_ready = true;
+            finish_last = false;
           }
-          storage_start += data_query_num;
-          printf("✓ memory copy \n");
         }
-        if (data_query_start == data_query_end){
-          gettimeofday(&s_us, NULL);
-          available_interval = e_us.tv_sec * 1000000 + e_us.tv_usec + retrieve_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
-          if (available_interval < 2500){
-            printf(" W ");
-            continue;
-          }
-          // all registers are read
-          sprintf(data_dir, "./tw_data/%ld_%ld.bin",data_signal.ts.tv_sec,data_signal.ts.tv_usec);  // start of reading
-          printf("Store in %s\n", data_dir);
-          FILE * f = fopen(data_dir, "wb");
-          fwrite(data_query_buffer, 1, cell_number * 12 * T, f);
+        if (poll_ready && !finish_last){
+          // store signal pkt information in the file : [type | enqueue_ts | dequeue_ts]
+          memset(sig_data_dir, 0, 100);
+          sprintf(sig_data_dir, "./tw_data/%d/signal_data/%ld_%ld.bin", data_signal[data_signal_head].table_idx, data_signal[data_signal_head].ts.tv_sec, data_signal[data_signal_head].ts.tv_usec); 
+          printf("Data plane - port %d, h: %d, sh: %d, iso id: %d, iso prefix: %d, table idx: %d, write signal to file: %s.\n", data_signal[data_signal_head].data_port, data_signal[data_signal_head].previous_highest, data_signal[data_signal_head].previous_second_highest, data_signal[data_signal_head].iso_id, data_signal[data_signal_head].isolation_prefix, data_signal[data_signal_head].table_idx, sig_data_dir);
+          FILE * f = fopen(sig_data_dir, "wb");
+          fwrite(&data_signal[data_signal_head].type, 4, 1, f);
+          fwrite(&data_signal[data_signal_head].enqueue_ts, 4, 1, f);
+          fwrite(&data_signal[data_signal_head].dequeue_ts, 4, 1, f);
           fclose(f);
-          memset(data_dir, 0, 100);
-          // unlock data plane
-          p4_pd_printqueue_register_reset_all_data_query_lock_r(sess_hdl, dev_tgt);
+          data_query_start = data_signal[data_signal_head].isolation_prefix + (data_signal[data_signal_head].previous_highest << highest_shift_bit) + (data_signal[data_signal_head].previous_second_highest << second_highest_shift_bit);
+          data_query_end = data_query_start + cell_number;
+          storage_start = 0;
           poll_ready = false;
-          new_signal = false;
+        }
+        if (!poll_ready && !finish_last){
+          gettimeofday(&s_us, NULL);
+          available_interval = e_us[0].tv_sec * 1000000 + e_us[0].tv_usec + retrieve_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
+          if (available_interval < 5000){
+            // printf("x:%d",available_interval);
+            continue;
+          }      
+          data_query_num = floor(((double)available_interval / (double)estimated_retrieve_interval) * reading_ratio * (double)cell_number);
+          if (data_query_start + data_query_num >= data_query_end){
+            printf(".\n");
+            data_query_num = data_query_end - data_query_start;
+          }
+          if(data_query_num != 0){
+            printf("Available interval: %d us. Read %d entries.\n", available_interval, data_query_num );
+            memset(data_query_tmp_buffer, 0, 245760);
+            p4_pd_time_windows_register_range_read(sess_hdl, dev_tgt, data_query_start, data_query_num, 1, &actual_read, data_query_tmp_buffer, &value_count, 1, T);
+            data_query_start += data_query_num;
+            printf("✓ reading\n");
+            for (int i = 0; i < T; i++){
+              memcpy(data_query_buffer + 12 * cell_number * i + storage_start * 4, data_query_tmp_buffer + 12 * data_query_num * i, data_query_num * 4);
+              memcpy(data_query_buffer + 12 * cell_number * i + storage_start * 4 + cell_number * 4, data_query_tmp_buffer + 12 * data_query_num * i + data_query_num * 4, data_query_num * 4);
+              memcpy(data_query_buffer + 12 * cell_number * i + storage_start * 4 + cell_number * 8, data_query_tmp_buffer + 12 * data_query_num * i + data_query_num * 8, data_query_num * 4);
+            }
+            storage_start += data_query_num;
+            printf("✓ memory copy \n");
+          }
+          if (data_query_start == data_query_end){
+            gettimeofday(&s_us, NULL);
+            available_interval = e_us[0].tv_sec * 1000000 + e_us[0].tv_usec + retrieve_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
+            if (available_interval < 2500){
+              printf(" W ");
+              continue;
+            }
+            // all registers are read
+            sprintf(data_dir, "./tw_data/%d/tw_data/%ld_%ld.bin", data_signal[data_signal_head].table_idx ,data_signal[data_signal_head].ts.tv_sec, data_signal[data_signal_head].ts.tv_usec);  // start of reading
+            printf("Port %d, tw store in %s\n", data_signal[data_signal_head].data_port, data_dir);
+            FILE * f = fopen(data_dir, "wb");
+            fwrite(data_query_buffer, 1, cell_number * 12 * T, f);
+            fclose(f);
+            memset(data_dir, 0, 100);
+            // unlock data plane
+            data_signal_head = (data_signal_head + 1) % (MAX_PORT_NUM + 2);
+            if (data_signal_head == data_signal_tail){
+              printf("Data signal queue is empty\n");
+              new_signal = false;
+            }
+            finish_last = true;
+            p4_pd_printqueue_register_range_reset_data_query_lock_r(sess_hdl, dev_tgt, data_signal[data_signal_head].iso_id, 1);
+          }
+          gettimeofday(&s_us, NULL);
+          available_interval = e_us[0].tv_sec * 1000000 + e_us[0].tv_usec + retrieve_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
+          printf("✓ %d us left till next periodical poll\n", available_interval);
         }
         gettimeofday(&s_us, NULL);
-        available_interval = e_us.tv_sec * 1000000 + e_us.tv_usec + retrieve_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
-        printf("✓ %d us left till next periodical poll\n", available_interval);
-      }
-      gettimeofday(&s_us, NULL);
-      if (s_us.tv_sec - initial_us.tv_sec > duration){
-        printf("\nTime window retrieve Ends!\n");
-        loop_flag = false;
-        signal_flag = false;
+        if (s_us.tv_sec - initial_us.tv_sec > duration){
+          printf("\nTime window retrieve Ends!\n");
+          loop_flag = false;
+          signal_flag = false;
+        }
       }
     }
 }
@@ -962,7 +1100,7 @@ while(running_flag){
 /*                    Queue            Monitor                        */
 /*                                                                    */
 /*--------------------------------------------------------------------*/
-// printf("\n\n-----------------------------------------------------\nQueue Monitor is Activating\n-----------------------------------------------------\n\n");
+// printf("\n\n-----------------------------------------------------\nQueue Monitor is Activating\n-----------------------------------------------------\n\n"  );
 // // -------------------------------------------------------------------//
 // //           The following is the configurable parameters             //
 // //                Tune them according to your setting                 //

@@ -52,6 +52,38 @@ printqueue:
 clean_tw:
 	rm -rf tw_data
 	mkdir tw_data
+	mkdir -p tw_data/0/tw_data
+	mkdir -p tw_data/0/signal_data
+	mkdir -p tw_data/1/tw_data
+	mkdir -p tw_data/1/signal_data
+	mkdir -p tw_data/2/tw_data
+	mkdir -p tw_data/2/signal_data
+	mkdir -p tw_data/3/tw_data
+	mkdir -p tw_data/3/signal_data
+	mkdir -p tw_data/4/tw_data
+	mkdir -p tw_data/4/signal_data
+	mkdir -p tw_data/5/tw_data
+	mkdir -p tw_data/5/signal_data
+	mkdir -p tw_data/6/tw_data
+	mkdir -p tw_data/6/signal_data
+	mkdir -p tw_data/7/tw_data
+	mkdir -p tw_data/7/signal_data
+	mkdir -p tw_data/8/tw_data
+	mkdir -p tw_data/8/signal_data
+	mkdir -p tw_data/9/tw_data
+	mkdir -p tw_data/9/signal_data
+	mkdir -p tw_data/10/tw_data
+	mkdir -p tw_data/10/signal_data
+	mkdir -p tw_data/11/tw_data
+	mkdir -p tw_data/11/signal_data
+	mkdir -p tw_data/12/tw_data
+	mkdir -p tw_data/12/signal_data
+	mkdir -p tw_data/13/tw_data
+	mkdir -p tw_data/13/signal_data
+	mkdir -p tw_data/14/tw_data
+	mkdir -p tw_data/14/signal_data
+	mkdir -p tw_data/15/tw_data
+	mkdir -p tw_data/15/signal_data
 
 # clean queue monitor register data
 clean_qm:
