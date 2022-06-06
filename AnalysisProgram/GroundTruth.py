@@ -111,7 +111,7 @@ class GroundTruth:
             'timestamp): {4} nanoseconds\nAverage queue length: {2}\nAverage interval: {3}'
             .format(self.pkt_num, self.dequeue_total, self.average_queue_len, self.average_interval, self.enqueue_total))
         # draw
-        # self.draw_queue_length()
+        self.draw_queue_length()
         # self.draw_total_distribution(self.first_ets, self.last_ets)
 
     def packet_experiencing_high_delay(self, threshold=500):
@@ -368,7 +368,7 @@ class GroundTruth:
         plt.close()
 
 
-def Comparison(path, alpha, k, T, TW0_TB, TW0_z):
+def Comparison(path, alpha, k, T, TW0_TB, TW0_z, sample_threshold=[1000, 2000, 5000, 10000, 15000, 20000]):
     """
     Compare TW with related works: Count-Min Sketch, HashPipe, FlowRadar
     :param path: the path to the parent folder of RAW and INT data
@@ -382,8 +382,8 @@ def Comparison(path, alpha, k, T, TW0_TB, TW0_z):
     # exp1
     hash_list = HashFunction()
     print("Sampling packets")
-    packet_sample_number = 20
-    pkts = gt.packet_experiencing_high_delay2([1000, 2000, 5000, 10000, 15000, 20000])
+    packet_sample_number = 50
+    pkts = gt.packet_experiencing_high_delay2(sample_threshold)
     sample_pkts = []
     sample_pkts_ids = []
     for i in range(0, len(pkts)):
@@ -527,6 +527,6 @@ def timer(path, alpha, k, T, TW0_TB, TW0_z):
 
 
 if __name__ == '__main__':
-    # Comparison(path='./d/syn3/1000', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250)
-    # DataPlaneQuery(path='./d/syn3/1000', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250)
-    timer(path='./d/syn3/1000', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250)
+    Comparison(path='./d/ports/1/0', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250, sample_threshold=[10000])
+    DataPlaneQuery(path='./d/ports/1/0', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250)
+    # timer(path='./d/syn3/1000', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250)
