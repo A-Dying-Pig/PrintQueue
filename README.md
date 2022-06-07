@@ -19,7 +19,7 @@ The repository consists of three parts:
 * 4x Servers with a DPDK-compatible NIC and multi-core CPU. We use `Intel XL710 for 40GbE QSFP+` and `Intel 82599ES 10-Gigabit SFI/SFP+`.
 
 The machines are connected as follows:
-<img src="../doc/testbed_topology.png" width="350">
+<img src="./doc/testbed_topology.png" width="350">
 
 ### Software
 The current version of PrintQueue is tested on:
