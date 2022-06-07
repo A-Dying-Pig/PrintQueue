@@ -1,0 +1,573 @@
+yiran@DESKTOP-3RO50OM:/mnt/c/Users/leiyr/Desktop/PrintQueue/AnalysisProgram$ python3 GroundTruth.py
+Loading TW file: ./d/ports/1/0/tw_data/1654523333_791297.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523333_854174.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523333_917069.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523333_979963.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_42857.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_105750.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_149704.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_168632.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_231504.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_294400.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_305700.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_357278.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_401705.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_420161.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_483035.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_513725.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_545918.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_608796.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_633691.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_672657.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_735541.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_777703.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_799807.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_862680.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_925580.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_933711.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_988458.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_51351.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_89694.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_114229.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_177098.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_239996.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_302874.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_365774.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_428669.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_491564.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_554458.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_617353.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_680247.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_743141.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_806035.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_868928.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_931822.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_994717.bin
+smallest ts: {'FID': '5db1f89294783c7a', 'tts': 1548076, 'twid': 1, 'wrap': 0}, largest ts: {'tts': 3105910, 'FID': '412fd2215bb00b9c', 'wrap': 0, 'twid': 0}, count: [3138, 1292, 0, 0]
+smallest ts: {'FID': '5db1f89294783c7a', 'tts': 776478, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 3125859, 'FID': 'd0caab45c9fecc15', 'wrap': 0, 'twid': 0}, count: [3409, 3601, 1816, 0]
+smallest ts: {'FID': '511edec3d0cd7078', 'tts': 390732, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3187260, 'FID': 'e82b15a1f27ff2ac', 'wrap': 0, 'twid': 0}, count: [3409, 3607, 3881, 4092]
+smallest ts: {'FID': 'e82b15a1f27ff2ac', 'tts': 398440, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3246215, 'FID': '2482321f333b0965', 'wrap': 0, 'twid': 0}, count: [2, 0, 0, 3]
+smallest ts: {'FID': '5db1f89294783c7a', 'tts': 1624675, 'twid': 1, 'wrap': 0}, largest ts: {'tts': 3259124, 'FID': '5db1f89294783c7a', 'wrap': 0, 'twid': 0}, count: [3158, 1310, 0, 0]
+smallest ts: {'FID': '9da1518f7b86a3dd', 'tts': 407390, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3310089, 'FID': 'd99903d3bc75446e', 'wrap': 0, 'twid': 0}, count: [3409, 3604, 3882, 2788]
+smallest ts: {'FID': 'a435494381b56e87', 'tts': 413761, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3351376, 'FID': 'c009a0d31f03bd61', 'wrap': 0, 'twid': 0}, count: [3409, 3613, 3891, 1578]
+smallest ts: {'FID': '59835ca6b157c951', 'tts': 3366951, 'twid': 0, 'wrap': 0}, largest ts: {'tts': 3370376, 'FID': '4d1ad9e393ab868d', 'wrap': 0, 'twid': 0}, count: [9, 0, 0, 0]
+smallest ts: {'FID': '5cffdf4b0e50b49f', 'tts': 425287, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3432901, 'FID': '283ff89023a586ee', 'wrap': 0, 'twid': 0}, count: [3409, 3606, 3641, 120]
+smallest ts: {'FID': '5db1f89294783c7a', 'tts': 429112, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3462245, 'FID': 'f01a73e4107d8408', 'wrap': 0, 'twid': 0}, count: [3409, 3607, 3873, 85]
+smallest ts: {'FID': '67072e36f2606849', 'tts': 432781, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3494312, 'FID': '283ff89023a586ee', 'wrap': 0, 'twid': 0}, count: [3409, 3627, 3877, 425]
+smallest ts: {'FID': '2482321f333b0965', 'tts': 3552611, 'twid': 0, 'wrap': 0}, largest ts: {'tts': 3555623, 'FID': '4d1ad9e393ab868d', 'wrap': 0, 'twid': 0}, count: [7, 0, 0, 0]
+smallest ts: {'FID': '5db1f89294783c7a', 'tts': 888936, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 3577477, 'FID': '44010a39f977bd51', 'wrap': 0, 'twid': 0}, count: [3409, 3610, 1776, 0]
+smallest ts: {'FID': 'a435494381b56e87', 'tts': 447184, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3618084, 'FID': '498384288cbf247d', 'wrap': 0, 'twid': 0}, count: [3409, 3610, 3878, 1493]
+smallest ts: {'FID': '07bf0af53c4562ef', 'tts': 452260, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3678863, 'FID': 'eee7028a706daeef', 'wrap': 0, 'twid': 0}, count: [6, 0, 9, 1796]
+smallest ts: {'FID': '2482321f333b0965', 'tts': 926451, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 3718715, 'FID': '412fd2215bb00b9c', 'wrap': 0, 'twid': 0}, count: [3161, 1291, 1, 0]
+smallest ts: {'FID': '9da1518f7b86a3dd', 'tts': 929679, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 3742257, 'FID': 'a5766e35df2252f1', 'wrap': 0, 'twid': 0}, count: [3409, 3611, 2663, 0]
+smallest ts: {'FID': '5db1f89294783c7a', 'tts': 467782, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3803657, 'FID': '653d086af8f8052b', 'wrap': 0, 'twid': 0}, count: [3409, 3604, 3879, 4092]
+smallest ts: {'FID': '7da4f90ffe7fc891', 'tts': 3861891, 'twid': 0, 'wrap': 0}, largest ts: {'tts': 3865083, 'FID': '5db1f89294783c7a', 'wrap': 0, 'twid': 0}, count: [802, 0, 0, 0]
+smallest ts: {'FID': '5db1f89294783c7a', 'tts': 1932542, 'twid': 1, 'wrap': 0}, largest ts: {'tts': 3871914, 'FID': 'c08ac2be47162dd2', 'wrap': 0, 'twid': 0}, count: [3156, 864, 0, 0]
+smallest ts: {'FID': '804b591be7b274f8', 'tts': 483989, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3926490, 'FID': '412fd2215bb00b9c', 'wrap': 0, 'twid': 0}, count: [3409, 3608, 3890, 3239]
+smallest ts: {'FID': '67072e36f2606849', 'tts': 490811, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3987861, 'FID': 'eee7028a706daeef', 'wrap': 0, 'twid': 0}, count: [8, 0, 0, 1542]
+smallest ts: {'FID': '5cffdf4b0e50b49f', 'tts': 2007545, 'twid': 1, 'wrap': 0}, largest ts: {'tts': 4025109, 'FID': '412fd2215bb00b9c', 'wrap': 0, 'twid': 0}, count: [3168, 1304, 0, 0]
+smallest ts: {'FID': 'c08ac2be47162dd2', 'tts': 1006277, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4049316, 'FID': '67072e36f2606849', 'wrap': 0, 'twid': 0}, count: [3409, 3622, 2830, 0]
+smallest ts: {'FID': 'e82b15a1f27ff2ac', 'tts': 1012329, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4074008, 'FID': '76d654b54e62bdbe', 'wrap': 0, 'twid': 0}, count: [3409, 3600, 2939, 0]
+The largest tts across sets is not increasing, because limited traffic flows through switch and registers are not updated.
+smallest ts: {'FID': 'c08ac2be47162dd2', 'tts': 1006277, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4049316, 'FID': '67072e36f2606849', 'wrap': 0, 'twid': 0}, count: [3409, 3622, 2830, 0]
+smallest ts: {'FID': 'e82b15a1f27ff2ac', 'tts': 1012329, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4074008, 'FID': '76d654b54e62bdbe', 'wrap': 0, 'twid': 0}, count: [3409, 3600, 2939, 0]
+The largest tts across sets is not increasing, because limited traffic flows through switch and registers are not updated.
+smallest ts: {'FID': 'c08ac2be47162dd2', 'tts': 1006277, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4049316, 'FID': '67072e36f2606849', 'wrap': 0, 'twid': 0}, count: [3409, 3622, 2830, 0]
+smallest ts: {'FID': 'e82b15a1f27ff2ac', 'tts': 1012329, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4074008, 'FID': '76d654b54e62bdbe', 'wrap': 0, 'twid': 0}, count: [3409, 3600, 2939, 0]
+The largest tts across sets is not increasing, because limited traffic flows through switch and registers are not updated.
+smallest ts: {'FID': 'c08ac2be47162dd2', 'tts': 1006277, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4049316, 'FID': '67072e36f2606849', 'wrap': 0, 'twid': 0}, count: [3409, 3622, 2830, 0]
+smallest ts: {'FID': 'e82b15a1f27ff2ac', 'tts': 1012329, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4074008, 'FID': '76d654b54e62bdbe', 'wrap': 0, 'twid': 0}, count: [3409, 3600, 2939, 0]
+The largest tts across sets is not increasing, because limited traffic flows through switch and registers are not updated.
+smallest ts: {'FID': 'c08ac2be47162dd2', 'tts': 1006277, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4049316, 'FID': '67072e36f2606849', 'wrap': 0, 'twid': 0}, count: [3409, 3622, 2830, 0]
+smallest ts: {'FID': 'e82b15a1f27ff2ac', 'tts': 1012329, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4074008, 'FID': '76d654b54e62bdbe', 'wrap': 0, 'twid': 0}, count: [3409, 3600, 2939, 0]
+The largest tts across sets is not increasing, because limited traffic flows through switch and registers are not updated.
+smallest ts: {'FID': 'c08ac2be47162dd2', 'tts': 1006277, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4049316, 'FID': '67072e36f2606849', 'wrap': 0, 'twid': 0}, count: [3409, 3622, 2830, 0]
+smallest ts: {'FID': 'e82b15a1f27ff2ac', 'tts': 1012329, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4074008, 'FID': '76d654b54e62bdbe', 'wrap': 0, 'twid': 0}, count: [3409, 3600, 2939, 0]
+The largest tts across sets is not increasing, because limited traffic flows through switch and registers are not updated.
+smallest ts: {'FID': 'c08ac2be47162dd2', 'tts': 1006277, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4049316, 'FID': '67072e36f2606849', 'wrap': 0, 'twid': 0}, count: [3409, 3622, 2830, 0]
+smallest ts: {'FID': 'e82b15a1f27ff2ac', 'tts': 1012329, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4074008, 'FID': '76d654b54e62bdbe', 'wrap': 0, 'twid': 0}, count: [3409, 3600, 2939, 0]
+The largest tts across sets is not increasing, because limited traffic flows through switch and registers are not updated.
+smallest ts: {'FID': 'c08ac2be47162dd2', 'tts': 1006277, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4049316, 'FID': '67072e36f2606849', 'wrap': 0, 'twid': 0}, count: [3409, 3622, 2830, 0]
+-----------------------------------------------------------------------------------
+-----------------       Analysis Program for Time Windows    ----------------------
+------------------------       Loaded from RAW data    ----------------------------
+-----------------------------------------------------------------------------------
+Alpha:1, k:12, T:4
+Set period: 62914560 nanoseconds
+Cofficients: [1, 0.544322093056, 0.29239304134876004, 0.15156142697411615]
+Loading SIGNAL file: 1654523334_149704.bin
+Loading SIGNAL file: 1654523334_305700.bin
+Loading SIGNAL file: 1654523334_401705.bin
+Loading SIGNAL file: 1654523334_513725.bin
+Loading SIGNAL file: 1654523334_633691.bin
+Loading SIGNAL file: 1654523334_777703.bin
+Loading SIGNAL file: 1654523334_933711.bin
+Loading SIGNAL file: 1654523335_89694.bin
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++       Load Data Plane Signals    ++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Signal Number: 8
+loading file: ./d/ports/1/0/gt_data/31545246987218667.bin
+loading file: ./d/ports/1/0/gt_data/31545247406157732.bin
+loading file: ./d/ports/1/0/gt_data/31545247826936460.bin
+loading file: ./d/ports/1/0/gt_data/31545248247691893.bin
+loading file: ./d/ports/1/0/gt_data/31545248668946286.bin
+loading file: ./d/ports/1/0/gt_data/31545263012453367.bin
+-----------------------------------------------------------------------------------
+-----------------       Analysis Program for Ground Truth    ----------------------
+------------------------       Loaded from INT data    ----------------------------
+-----------------------------------------------------------------------------------
+Packet number: 567294
+Total duration (dequeue timestamp): 1001299383 nanoseconds
+Total duration (enqueue timestamp): 999810384 nanoseconds
+Average queue length: 22418.869928114877
+Average interval: 1765.0480139892436
+Plotting queue length...
+-----------------------------------------------------------------------------------
+---------------    Compare Time Windows with Related Works   ----------------------
+-----------------------------------------------------------------------------------
+Sampling packets
+Time Windows, Number Precision: 0.929902395740905, Number Recall: 0.8654004954582989
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9508196721311475, Number Recall: 0.9099917423616846
+Count-Min Sketch: 4096 x 5, Number Precision: 0.951473136915078, Number Recall: 0.9066886870355079
+HashPipe: 512 x 2, Number Precision: 0.951473136915078, Number Recall: 0.9066886870355079
+HashPipe: 4096 x 5, Number Precision: 0.951473136915078, Number Recall: 0.9066886870355079
+FlowRadar: 1024 x 3, Number Precision: 0.9219143576826196, Number Recall: 0.9066886870355079
+FlowRadar: 4096 x 5, Number Precision: 0.8883495145631068, Number Recall: 0.9066886870355079
+Time Windows, Number Precision: 0.9042179261862917, Number Recall: 0.8511166253101737
+Count-Min Sketch: 1024 x 3, Number Precision: 0.946133796698523, Number Recall: 0.9007444168734491
+Count-Min Sketch: 4096 x 5, Number Precision: 0.949433304272014, Number Recall: 0.9007444168734491
+HashPipe: 512 x 2, Number Precision: 0.9453125, Number Recall: 0.9007444168734491
+HashPipe: 4096 x 5, Number Precision: 0.9453125, Number Recall: 0.9007444168734491
+FlowRadar: 1024 x 3, Number Precision: 0.9166666666666666, Number Recall: 0.9007444168734491
+FlowRadar: 4096 x 5, Number Precision: 0.8817813765182186, Number Recall: 0.9007444168734491
+Time Windows, Number Precision: 0.9277504105090312, Number Recall: 0.889763779527559
+Count-Min Sketch: 1024 x 3, Number Precision: 1.0, Number Recall: 0.5874015748031496
+Count-Min Sketch: 4096 x 5, Number Precision: 1.0, Number Recall: 0.5874015748031496
+HashPipe: 512 x 2, Number Precision: 0.7186897880539499, Number Recall: 0.5874015748031496
+HashPipe: 4096 x 5, Number Precision: 0.7186897880539499, Number Recall: 0.5874015748031496
+FlowRadar: 1024 x 3, Number Precision: 0.7118320610687023, Number Recall: 0.5874015748031496
+FlowRadar: 4096 x 5, Number Precision: 0.6134868421052632, Number Recall: 0.5874015748031496
+Time Windows, Number Precision: 0.8046672428694901, Number Recall: 0.7777777777777778
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9423076923076923, Number Recall: 0.9005847953216374
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9421052631578948, Number Recall: 0.8972431077694235
+HashPipe: 512 x 2, Number Precision: 0.9421052631578948, Number Recall: 0.8972431077694235
+HashPipe: 4096 x 5, Number Precision: 0.9421052631578948, Number Recall: 0.8972431077694235
+FlowRadar: 1024 x 3, Number Precision: 0.9124893797790994, Number Recall: 0.8972431077694235
+FlowRadar: 4096 x 5, Number Precision: 0.8796068796068796, Number Recall: 0.8972431077694235
+Time Windows, Number Precision: 0.8735733099209834, Number Recall: 0.820957095709571
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9352331606217616, Number Recall: 0.8935643564356436
+Count-Min Sketch: 4096 x 5, Number Precision: 0.938474870017331, Number Recall: 0.8935643564356436
+HashPipe: 512 x 2, Number Precision: 0.938474870017331, Number Recall: 0.8935643564356436
+HashPipe: 4096 x 5, Number Precision: 0.938474870017331, Number Recall: 0.8935643564356436
+FlowRadar: 1024 x 3, Number Precision: 0.9100840336134454, Number Recall: 0.8935643564356436
+FlowRadar: 4096 x 5, Number Precision: 0.8755052546483427, Number Recall: 0.8935643564356436
+Time Windows, Number Precision: 0.9835497835497835, Number Recall: 0.9396195202646815
+Count-Min Sketch: 1024 x 3, Number Precision: 0.7925669835782195, Number Recall: 0.7584780810587263
+Count-Min Sketch: 4096 x 5, Number Precision: 0.7942708333333334, Number Recall: 0.7568238213399504
+HashPipe: 512 x 2, Number Precision: 0.7942708333333334, Number Recall: 0.7568238213399504
+HashPipe: 4096 x 5, Number Precision: 0.7942708333333334, Number Recall: 0.7568238213399504
+FlowRadar: 1024 x 3, Number Precision: 0.7849185946872322, Number Recall: 0.7576509511993383
+FlowRadar: 4096 x 5, Number Precision: 0.7210401891252955, Number Recall: 0.7568238213399504
+Time Windows, Number Precision: 0.8029134532990574, Number Recall: 0.7769485903814262
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9432355723746452, Number Recall: 0.8266998341625207
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9430740037950665, Number Recall: 0.824212271973466
+HashPipe: 512 x 2, Number Precision: 0.8673647469458988, Number Recall: 0.824212271973466
+HashPipe: 4096 x 5, Number Precision: 0.8673647469458988, Number Recall: 0.824212271973466
+FlowRadar: 1024 x 3, Number Precision: 0.8453695836873407, Number Recall: 0.8250414593698175
+FlowRadar: 4096 x 5, Number Precision: 0.8, Number Recall: 0.8258706467661692
+Time Windows, Number Precision: 0.9468468468468468, Number Recall: 0.8780284043441938
+Count-Min Sketch: 1024 x 3, Number Precision: 0.94750656167979, Number Recall: 0.9047619047619048
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9490781387181738, Number Recall: 0.9030910609857978
+HashPipe: 512 x 2, Number Precision: 0.9490781387181738, Number Recall: 0.9030910609857978
+HashPipe: 4096 x 5, Number Precision: 0.9490781387181738, Number Recall: 0.9030910609857978
+FlowRadar: 1024 x 3, Number Precision: 0.92, Number Recall: 0.9030910609857978
+FlowRadar: 4096 x 5, Number Precision: 0.8853398853398854, Number Recall: 0.9030910609857978
+Time Windows, Number Precision: 0.9429864253393665, Number Recall: 0.8654485049833887
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9413823272090989, Number Recall: 0.893687707641196
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9446883230904302, Number Recall: 0.893687707641196
+HashPipe: 512 x 2, Number Precision: 0.9397379912663756, Number Recall: 0.893687707641196
+HashPipe: 4096 x 5, Number Precision: 0.9397379912663756, Number Recall: 0.893687707641196
+FlowRadar: 1024 x 3, Number Precision: 0.9110922946655376, Number Recall: 0.893687707641196
+FlowRadar: 4096 x 5, Number Precision: 0.8783673469387755, Number Recall: 0.893687707641196
+Time Windows, Number Precision: 0.9082969432314411, Number Recall: 0.8609271523178808
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9503916449086162, Number Recall: 0.9039735099337748
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9537117903930131, Number Recall: 0.9039735099337748
+HashPipe: 512 x 2, Number Precision: 0.9495652173913044, Number Recall: 0.9039735099337748
+HashPipe: 4096 x 5, Number Precision: 0.9495652173913044, Number Recall: 0.9039735099337748
+FlowRadar: 1024 x 3, Number Precision: 0.9207419898819561, Number Recall: 0.9039735099337748
+FlowRadar: 4096 x 5, Number Precision: 0.8864557988645579, Number Recall: 0.9048013245033113
+Time Windows, Number Precision: 0.826048951048951, Number Recall: 0.7934508816120907
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9375, Number Recall: 0.8942065491183879
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9372236958443855, Number Recall: 0.8900083963056256
+HashPipe: 512 x 2, Number Precision: 0.9372236958443855, Number Recall: 0.8900083963056256
+HashPipe: 4096 x 5, Number Precision: 0.9372236958443855, Number Recall: 0.8900083963056256
+FlowRadar: 1024 x 3, Number Precision: 0.9076133447390933, Number Recall: 0.890848026868178
+FlowRadar: 4096 x 5, Number Precision: 0.8745874587458746, Number Recall: 0.8900083963056256
+Time Windows, Number Precision: 0.9408014571948998, Number Recall: 0.8695286195286195
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9453262786596119, Number Recall: 0.9023569023569024
+Count-Min Sketch: 4096 x 5, Number Precision: 0.947787610619469, Number Recall: 0.9015151515151515
+HashPipe: 512 x 2, Number Precision: 0.9427816901408451, Number Recall: 0.9015151515151515
+HashPipe: 4096 x 5, Number Precision: 0.9427816901408451, Number Recall: 0.9015151515151515
+FlowRadar: 1024 x 3, Number Precision: 0.9138959931798807, Number Recall: 0.9023569023569024
+FlowRadar: 4096 x 5, Number Precision: 0.8807565789473685, Number Recall: 0.9015151515151515
+Time Windows, Number Precision: 0.9351111111111111, Number Recall: 0.8737541528239202
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9435273675065161, Number Recall: 0.9019933554817275
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9432809773123909, Number Recall: 0.8978405315614618
+HashPipe: 512 x 2, Number Precision: 0.9408181026979983, Number Recall: 0.8978405315614618
+HashPipe: 4096 x 5, Number Precision: 0.9408181026979983, Number Recall: 0.8978405315614618
+FlowRadar: 1024 x 3, Number Precision: 0.9114671163575042, Number Recall: 0.8978405315614618
+FlowRadar: 4096 x 5, Number Precision: 0.8788617886178862, Number Recall: 0.8978405315614618
+Time Windows, Number Precision: 0.7681779298545766, Number Recall: 0.7421487603305785
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9395509499136442, Number Recall: 0.8991735537190083
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9393414211438474, Number Recall: 0.8958677685950414
+HashPipe: 512 x 2, Number Precision: 0.9393414211438474, Number Recall: 0.8958677685950414
+HashPipe: 4096 x 5, Number Precision: 0.9393414211438474, Number Recall: 0.8958677685950414
+FlowRadar: 1024 x 3, Number Precision: 0.910159529806885, Number Recall: 0.8958677685950414
+FlowRadar: 4096 x 5, Number Precision: 0.8770226537216829, Number Recall: 0.8958677685950414
+Time Windows, Number Precision: 0.9554367201426025, Number Recall: 0.8859504132231405
+Count-Min Sketch: 1024 x 3, Number Precision: 0.94, Number Recall: 0.8933884297520661
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9441048034934498, Number Recall: 0.8933884297520661
+HashPipe: 512 x 2, Number Precision: 0.9375542064180399, Number Recall: 0.8933884297520661
+HashPipe: 4096 x 5, Number Precision: 0.9375542064180399, Number Recall: 0.8933884297520661
+FlowRadar: 1024 x 3, Number Precision: 0.9091673675357443, Number Recall: 0.8933884297520661
+FlowRadar: 4096 x 5, Number Precision: 0.8760129659643436, Number Recall: 0.8933884297520661
+Time Windows, Number Precision: 0.9603174603174603, Number Recall: 0.9
+Count-Min Sketch: 1024 x 3, Number Precision: 0.8251082251082251, Number Recall: 0.7876033057851239
+Count-Min Sketch: 4096 x 5, Number Precision: 0.8262380538662033, Number Recall: 0.7859504132231405
+HashPipe: 512 x 2, Number Precision: 0.8240901213171578, Number Recall: 0.7859504132231405
+HashPipe: 4096 x 5, Number Precision: 0.8240901213171578, Number Recall: 0.7859504132231405
+FlowRadar: 1024 x 3, Number Precision: 0.8135158254918734, Number Recall: 0.7859504132231405
+FlowRadar: 4096 x 5, Number Precision: 0.7476415094339622, Number Recall: 0.7859504132231405
+Time Windows, Number Precision: 0.9494232475598935, Number Recall: 0.8842975206611571
+Count-Min Sketch: 1024 x 3, Number Precision: 0.8140703517587939, Number Recall: 0.6694214876033058
+Count-Min Sketch: 4096 x 5, Number Precision: 0.8138832997987927, Number Recall: 0.6685950413223141
+HashPipe: 512 x 2, Number Precision: 0.7954768928220256, Number Recall: 0.6685950413223141
+HashPipe: 4096 x 5, Number Precision: 0.7954768928220256, Number Recall: 0.6685950413223141
+FlowRadar: 1024 x 3, Number Precision: 0.7871720116618076, Number Recall: 0.6694214876033058
+FlowRadar: 4096 x 5, Number Precision: 0.6829679595278246, Number Recall: 0.6694214876033058
+Time Windows, Number Precision: 0.802608695652174, Number Recall: 0.77109440267335
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9258289703315882, Number Recall: 0.8863826232247285
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9290718038528897, Number Recall: 0.8863826232247285
+HashPipe: 512 x 2, Number Precision: 0.9274475524475524, Number Recall: 0.8863826232247285
+HashPipe: 4096 x 5, Number Precision: 0.9274475524475524, Number Recall: 0.8863826232247285
+FlowRadar: 1024 x 3, Number Precision: 0.8983911939034717, Number Recall: 0.8863826232247285
+FlowRadar: 4096 x 5, Number Precision: 0.8647106764466178, Number Recall: 0.8863826232247285
+Time Windows, Number Precision: 0.897278314310799, Number Recall: 0.8481327800829875
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9263431542461005, Number Recall: 0.8871369294605809
+Count-Min Sketch: 4096 x 5, Number Precision: 0.931064572425829, Number Recall: 0.8854771784232365
+HashPipe: 512 x 2, Number Precision: 0.9286335944299391, Number Recall: 0.8854771784232365
+HashPipe: 4096 x 5, Number Precision: 0.9286335944299391, Number Recall: 0.8854771784232365
+FlowRadar: 1024 x 3, Number Precision: 0.8996627318718381, Number Recall: 0.8854771784232365
+FlowRadar: 4096 x 5, Number Precision: 0.8674796747967479, Number Recall: 0.8854771784232365
+Time Windows, Number Precision: 0.8209083119108826, Number Recall: 0.7910817506193228
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9694811800610377, Number Recall: 0.786952931461602
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9693877551020408, Number Recall: 0.7844756399669695
+HashPipe: 512 x 2, Number Precision: 0.8253692441355344, Number Recall: 0.7844756399669695
+HashPipe: 4096 x 5, Number Precision: 0.8253692441355344, Number Recall: 0.7844756399669695
+FlowRadar: 1024 x 3, Number Precision: 0.8050847457627118, Number Recall: 0.7844756399669695
+FlowRadar: 4096 x 5, Number Precision: 0.7595846645367412, Number Recall: 0.7853014037985137
+Time Windows, Number Precision: 0.7991452991452992, Number Recall: 0.7714521452145214
+Count-Min Sketch: 1024 x 3, Number Precision: 0.950477845351868, Number Recall: 0.9026402640264026
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9528795811518325, Number Recall: 0.900990099009901
+HashPipe: 512 x 2, Number Precision: 0.9462738301559792, Number Recall: 0.900990099009901
+HashPipe: 4096 x 5, Number Precision: 0.9462738301559792, Number Recall: 0.900990099009901
+FlowRadar: 1024 x 3, Number Precision: 0.9168765743073047, Number Recall: 0.900990099009901
+FlowRadar: 4096 x 5, Number Precision: 0.8851132686084142, Number Recall: 0.9026402640264026
+Time Windows, Number Precision: 0.9522522522522523, Number Recall: 0.8735537190082645
+Count-Min Sketch: 1024 x 3, Number Precision: 0.8895652173913043, Number Recall: 0.8454545454545455
+Count-Min Sketch: 4096 x 5, Number Precision: 0.8893728222996515, Number Recall: 0.843801652892562
+HashPipe: 512 x 2, Number Precision: 0.8847487001733102, Number Recall: 0.843801652892562
+HashPipe: 4096 x 5, Number Precision: 0.8847487001733102, Number Recall: 0.843801652892562
+FlowRadar: 1024 x 3, Number Precision: 0.8616033755274262, Number Recall: 0.843801652892562
+FlowRadar: 4096 x 5, Number Precision: 0.8148443735035914, Number Recall: 0.843801652892562
+Time Windows, Number Precision: 0.8076256499133448, Number Recall: 0.7786131996658312
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9501748251748252, Number Recall: 0.9081035923141186
+Count-Min Sketch: 4096 x 5, Number Precision: 0.95, Number Recall: 0.9047619047619048
+HashPipe: 512 x 2, Number Precision: 0.95, Number Recall: 0.9047619047619048
+HashPipe: 4096 x 5, Number Precision: 0.95, Number Recall: 0.9047619047619048
+FlowRadar: 1024 x 3, Number Precision: 0.9201359388275276, Number Recall: 0.9047619047619048
+FlowRadar: 4096 x 5, Number Precision: 0.8869778869778869, Number Recall: 0.9047619047619048
+Time Windows, Number Precision: 0.8096468561584841, Number Recall: 0.7775020678246485
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9973579920739762, Number Recall: 0.6244830438378826
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9973509933774835, Number Recall: 0.6228287841191067
+HashPipe: 512 x 2, Number Precision: 0.9907894736842106, Number Recall: 0.6228287841191067
+HashPipe: 4096 x 5, Number Precision: 0.9907894736842106, Number Recall: 0.6228287841191067
+FlowRadar: 1024 x 3, Number Precision: 0.9592875318066157, Number Recall: 0.6236559139784946
+FlowRadar: 4096 x 5, Number Precision: 0.9274292742927429, Number Recall: 0.6236559139784946
+For query 3582661017 to 3584152383, no right set of time windows is found!
+Time Windows, Number Precision: 1.0, Number Recall: 0.9991735537190083
+Count-Min Sketch: 1024 x 3, Number Precision: 0.7768166089965398, Number Recall: 0.7421487603305785
+Count-Min Sketch: 4096 x 5, Number Precision: 0.7784535186794093, Number Recall: 0.740495867768595
+HashPipe: 512 x 2, Number Precision: 0.777103209019948, Number Recall: 0.740495867768595
+HashPipe: 4096 x 5, Number Precision: 0.777103209019948, Number Recall: 0.740495867768595
+FlowRadar: 1024 x 3, Number Precision: 0.769098712446352, Number Recall: 0.740495867768595
+FlowRadar: 4096 x 5, Number Precision: 0.7024275646045419, Number Recall: 0.7413223140495868
+Time Windows, Number Precision: 0.8268398268398268, Number Recall: 0.8011744966442953
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9463028169014085, Number Recall: 0.9018456375838926
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9460654288240495, Number Recall: 0.8976510067114094
+HashPipe: 512 x 2, Number Precision: 0.9443954104148279, Number Recall: 0.8976510067114094
+HashPipe: 4096 x 5, Number Precision: 0.9443954104148279, Number Recall: 0.8976510067114094
+FlowRadar: 1024 x 3, Number Precision: 0.9137489325362937, Number Recall: 0.8976510067114094
+FlowRadar: 4096 x 5, Number Precision: 0.8813838550247117, Number Recall: 0.8976510067114094
+Time Windows, Number Precision: 0.8657094594594594, Number Recall: 0.8471074380165289
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9165775401069519, Number Recall: 0.7082644628099174
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9163987138263665, Number Recall: 0.7066115702479339
+HashPipe: 512 x 2, Number Precision: 0.8229066410009624, Number Recall: 0.7066115702479339
+HashPipe: 4096 x 5, Number Precision: 0.8229066410009624, Number Recall: 0.7066115702479339
+FlowRadar: 1024 x 3, Number Precision: 0.8073654390934845, Number Recall: 0.7066115702479339
+FlowRadar: 4096 x 5, Number Precision: 0.7865685372585096, Number Recall: 0.7066115702479339
+Time Windows, Number Precision: 0.8886010362694301, Number Recall: 0.8504132231404958
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9481417458945549, Number Recall: 0.9066115702479339
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9479166666666666, Number Recall: 0.9024793388429752
+HashPipe: 512 x 2, Number Precision: 0.9479166666666666, Number Recall: 0.9024793388429752
+HashPipe: 4096 x 5, Number Precision: 0.9479166666666666, Number Recall: 0.9024793388429752
+FlowRadar: 1024 x 3, Number Precision: 0.9192598822539949, Number Recall: 0.903305785123967
+FlowRadar: 4096 x 5, Number Precision: 0.8849270664505673, Number Recall: 0.9024793388429752
+Time Windows, Number Precision: 0.803082191780822, Number Recall: 0.775206611570248
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9595660749506904, Number Recall: 0.8041322314049587
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9594460929772503, Number Recall: 0.8016528925619835
+HashPipe: 512 x 2, Number Precision: 0.8412836079791848, Number Recall: 0.8016528925619835
+HashPipe: 4096 x 5, Number Precision: 0.8412836079791848, Number Recall: 0.8016528925619835
+FlowRadar: 1024 x 3, Number Precision: 0.815811606391926, Number Recall: 0.8016528925619835
+FlowRadar: 4096 x 5, Number Precision: 0.7872168284789643, Number Recall: 0.8041322314049587
+Time Windows, Number Precision: 0.9019264448336253, Number Recall: 0.8498349834983498
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9351211072664359, Number Recall: 0.891914191419142
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9391833188531712, Number Recall: 0.891914191419142
+HashPipe: 512 x 2, Number Precision: 0.9367417677642981, Number Recall: 0.891914191419142
+HashPipe: 4096 x 5, Number Precision: 0.9367417677642981, Number Recall: 0.891914191419142
+FlowRadar: 1024 x 3, Number Precision: 0.9076406381192276, Number Recall: 0.891914191419142
+FlowRadar: 4096 x 5, Number Precision: 0.8745954692556634, Number Recall: 0.891914191419142
+Time Windows, Number Precision: 0.8124467178175618, Number Recall: 0.786952931461602
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9499136442141624, Number Recall: 0.9083402146985962
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9548218940052129, Number Recall: 0.9075144508670521
+HashPipe: 512 x 2, Number Precision: 0.9531656548135299, Number Recall: 0.9075144508670521
+HashPipe: 4096 x 5, Number Precision: 0.9531656548135299, Number Recall: 0.9075144508670521
+FlowRadar: 1024 x 3, Number Precision: 0.9227539882451721, Number Recall: 0.9075144508670521
+FlowRadar: 4096 x 5, Number Precision: 0.8884397736459175, Number Recall: 0.9075144508670521
+Time Windows, Number Precision: 0.773972602739726, Number Recall: 0.7458745874587459
+Count-Min Sketch: 1024 x 3, Number Precision: 0.971540726202159, Number Recall: 0.8168316831683168
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9714285714285714, Number Recall: 0.8135313531353136
+HashPipe: 512 x 2, Number Precision: 0.854419410745234, Number Recall: 0.8135313531353136
+HashPipe: 4096 x 5, Number Precision: 0.854419410745234, Number Recall: 0.8135313531353136
+FlowRadar: 1024 x 3, Number Precision: 0.8294117647058824, Number Recall: 0.8143564356435643
+FlowRadar: 4096 x 5, Number Precision: 0.7978981406628941, Number Recall: 0.8143564356435643
+Time Windows, Number Precision: 0.8790820829655781, Number Recall: 0.8265560165975103
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9020979020979021, Number Recall: 0.8564315352697095
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9044697633654689, Number Recall: 0.8564315352697095
+HashPipe: 512 x 2, Number Precision: 0.9020979020979021, Number Recall: 0.8564315352697095
+HashPipe: 4096 x 5, Number Precision: 0.9020979020979021, Number Recall: 0.8564315352697095
+FlowRadar: 1024 x 3, Number Precision: 0.8782978723404256, Number Recall: 0.8564315352697095
+FlowRadar: 4096 x 5, Number Precision: 0.8309178743961353, Number Recall: 0.8564315352697095
+Time Windows, Number Precision: 0.916243654822335, Number Recall: 0.9002493765586035
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9510426110607434, Number Recall: 0.8719866999168745
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9509090909090909, Number Recall: 0.8694929343308395
+HashPipe: 512 x 2, Number Precision: 0.9500454132606722, Number Recall: 0.8694929343308395
+HashPipe: 4096 x 5, Number Precision: 0.9500454132606722, Number Recall: 0.8694929343308395
+FlowRadar: 1024 x 3, Number Precision: 0.9406474820143885, Number Recall: 0.8694929343308395
+FlowRadar: 4096 x 5, Number Precision: 0.8834459459459459, Number Recall: 0.8694929343308395
+Time Windows, Number Precision: 0.8615249780893953, Number Recall: 0.8117258464079273
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9410234171725932, Number Recall: 0.8959537572254336
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9408181026979983, Number Recall: 0.8926507018992568
+HashPipe: 512 x 2, Number Precision: 0.9375542064180399, Number Recall: 0.8926507018992568
+HashPipe: 4096 x 5, Number Precision: 0.9375542064180399, Number Recall: 0.8926507018992568
+FlowRadar: 1024 x 3, Number Precision: 0.9076406381192276, Number Recall: 0.8926507018992568
+FlowRadar: 4096 x 5, Number Precision: 0.8746968472109944, Number Recall: 0.893476465730801
+Time Windows, Number Precision: 0.861646234676007, Number Recall: 0.8220551378446115
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9042179261862917, Number Recall: 0.8596491228070176
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9039647577092511, Number Recall: 0.8571428571428571
+HashPipe: 512 x 2, Number Precision: 0.8992112182296231, Number Recall: 0.8571428571428571
+HashPipe: 4096 x 5, Number Precision: 0.8992112182296231, Number Recall: 0.8571428571428571
+FlowRadar: 1024 x 3, Number Precision: 0.8769230769230769, Number Recall: 0.8571428571428571
+FlowRadar: 4096 x 5, Number Precision: 0.8275584206285254, Number Recall: 0.8579782790309106
+Time Windows, Number Precision: 0.9448336252189142, Number Recall: 0.8909991742361685
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9298093587521664, Number Recall: 0.8860445912469034
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9295039164490861, Number Recall: 0.8819157720891825
+HashPipe: 512 x 2, Number Precision: 0.925476603119584, Number Recall: 0.8819157720891825
+HashPipe: 4096 x 5, Number Precision: 0.925476603119584, Number Recall: 0.8819157720891825
+FlowRadar: 1024 x 3, Number Precision: 0.8967254408060453, Number Recall: 0.8819157720891825
+FlowRadar: 4096 x 5, Number Precision: 0.8648867313915858, Number Recall: 0.8827415359207267
+Time Windows, Number Precision: 0.9923142613151152, Number Recall: 0.9603305785123967
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9471861471861471, Number Recall: 0.9041322314049587
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9478260869565217, Number Recall: 0.9008264462809917
+HashPipe: 512 x 2, Number Precision: 0.9453599306157849, Number Recall: 0.9008264462809917
+HashPipe: 4096 x 5, Number Precision: 0.9453599306157849, Number Recall: 0.9008264462809917
+FlowRadar: 1024 x 3, Number Precision: 0.9175777964676198, Number Recall: 0.9016528925619834
+FlowRadar: 4096 x 5, Number Precision: 0.8833063209076175, Number Recall: 0.9008264462809917
+Time Windows, Number Precision: 0.913503971756399, Number Recall: 0.8582089552238806
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9001736111111112, Number Recall: 0.8598673300165838
+Count-Min Sketch: 4096 x 5, Number Precision: 0.8999129677980853, Number Recall: 0.857379767827529
+HashPipe: 512 x 2, Number Precision: 0.8983492615117289, Number Recall: 0.857379767827529
+HashPipe: 4096 x 5, Number Precision: 0.8983492615117289, Number Recall: 0.857379767827529
+FlowRadar: 1024 x 3, Number Precision: 0.8762711864406779, Number Recall: 0.857379767827529
+FlowRadar: 4096 x 5, Number Precision: 0.8265387689848122, Number Recall: 0.857379767827529
+Time Windows, Number Precision: 0.9582963620230701, Number Recall: 0.8925619834710744
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9426585577758471, Number Recall: 0.8966942148760331
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9451219512195121, Number Recall: 0.8966942148760331
+HashPipe: 512 x 2, Number Precision: 0.9410234171725932, Number Recall: 0.8966942148760331
+HashPipe: 4096 x 5, Number Precision: 0.9410234171725932, Number Recall: 0.8966942148760331
+FlowRadar: 1024 x 3, Number Precision: 0.9125315391084945, Number Recall: 0.8966942148760331
+FlowRadar: 4096 x 5, Number Precision: 0.877831715210356, Number Recall: 0.8966942148760331
+Time Windows, Number Precision: 0.8700959023539668, Number Recall: 0.824793388429752
+Count-Min Sketch: 1024 x 3, Number Precision: 0.8890814558058926, Number Recall: 0.8479338842975207
+Count-Min Sketch: 4096 x 5, Number Precision: 0.8887923544743701, Number Recall: 0.8454545454545455
+HashPipe: 512 x 2, Number Precision: 0.8887923544743701, Number Recall: 0.8454545454545455
+HashPipe: 4096 x 5, Number Precision: 0.8887923544743701, Number Recall: 0.8454545454545455
+FlowRadar: 1024 x 3, Number Precision: 0.8669491525423729, Number Recall: 0.8454545454545455
+FlowRadar: 4096 x 5, Number Precision: 0.8178913738019169, Number Recall: 0.8462809917355372
+Time Windows, Number Precision: 1.0, Number Recall: 0.004966887417218543
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9933949801849405, Number Recall: 0.6225165562913907
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9933774834437086, Number Recall: 0.6208609271523179
+HashPipe: 512 x 2, Number Precision: 0.9868421052631579, Number Recall: 0.6208609271523179
+HashPipe: 4096 x 5, Number Precision: 0.9868421052631579, Number Recall: 0.6208609271523179
+FlowRadar: 1024 x 3, Number Precision: 0.9541984732824428, Number Recall: 0.6208609271523179
+FlowRadar: 4096 x 5, Number Precision: 0.922509225092251, Number Recall: 0.6208609271523179
+Time Windows, Number Precision: 0.9041218637992832, Number Recall: 0.8387364921030757
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9136622390891841, Number Recall: 0.800498753117207
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9134980988593155, Number Recall: 0.798836242726517
+HashPipe: 512 x 2, Number Precision: 0.8407699037620298, Number Recall: 0.798836242726517
+HashPipe: 4096 x 5, Number Precision: 0.8407699037620298, Number Recall: 0.798836242726517
+FlowRadar: 1024 x 3, Number Precision: 0.8307426597582038, Number Recall: 0.799667497921862
+FlowRadar: 4096 x 5, Number Precision: 0.7626984126984127, Number Recall: 0.798836242726517
+Time Windows, Number Precision: 0.9395555555555556, Number Recall: 0.8808333333333334
+Count-Min Sketch: 1024 x 3, Number Precision: 0.9416376306620209, Number Recall: 0.9008333333333334
+Count-Min Sketch: 4096 x 5, Number Precision: 0.9414335664335665, Number Recall: 0.8975
+HashPipe: 512 x 2, Number Precision: 0.9397905759162304, Number Recall: 0.8975
+HashPipe: 4096 x 5, Number Precision: 0.9397905759162304, Number Recall: 0.8975
+FlowRadar: 1024 x 3, Number Precision: 0.9103972950126796, Number Recall: 0.8975
+FlowRadar: 4096 x 5, Number Precision: 0.8785656071719642, Number Recall: 0.8983333333333333
+Loading TW file: ./d/ports/1/0/tw_data/1654523333_791297.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523333_854174.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523333_917069.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523333_979963.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_42857.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_105750.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_149704.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_168632.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_231504.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_294400.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_305700.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_357278.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_401705.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_420161.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_483035.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_513725.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_545918.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_608796.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_633691.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_672657.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_735541.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_777703.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_799807.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_862680.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_925580.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_933711.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523334_988458.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_51351.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_89694.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_114229.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_177098.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_239996.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_302874.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_365774.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_428669.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_491564.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_554458.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_617353.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_680247.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_743141.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_806035.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_868928.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_931822.bin
+Loading TW file: ./d/ports/1/0/tw_data/1654523335_994717.bin
+smallest ts: {'FID': '5db1f89294783c7a', 'tts': 1548076, 'twid': 1, 'wrap': 0}, largest ts: {'tts': 3105910, 'FID': '412fd2215bb00b9c', 'wrap': 0, 'twid': 0}, count: [3138, 1292, 0, 0]
+smallest ts: {'FID': '5db1f89294783c7a', 'tts': 776478, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 3125859, 'FID': 'd0caab45c9fecc15', 'wrap': 0, 'twid': 0}, count: [3409, 3601, 1816, 0]
+smallest ts: {'FID': '511edec3d0cd7078', 'tts': 390732, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3187260, 'FID': 'e82b15a1f27ff2ac', 'wrap': 0, 'twid': 0}, count: [3409, 3607, 3881, 4092]
+smallest ts: {'FID': 'e82b15a1f27ff2ac', 'tts': 398440, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3246215, 'FID': '2482321f333b0965', 'wrap': 0, 'twid': 0}, count: [2, 0, 0, 3]
+smallest ts: {'FID': '5db1f89294783c7a', 'tts': 1624675, 'twid': 1, 'wrap': 0}, largest ts: {'tts': 3259124, 'FID': '5db1f89294783c7a', 'wrap': 0, 'twid': 0}, count: [3158, 1310, 0, 0]
+smallest ts: {'FID': '9da1518f7b86a3dd', 'tts': 407390, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3310089, 'FID': 'd99903d3bc75446e', 'wrap': 0, 'twid': 0}, count: [3409, 3604, 3882, 2788]
+smallest ts: {'FID': 'a435494381b56e87', 'tts': 413761, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3351376, 'FID': 'c009a0d31f03bd61', 'wrap': 0, 'twid': 0}, count: [3409, 3613, 3891, 1578]
+smallest ts: {'FID': '59835ca6b157c951', 'tts': 3366951, 'twid': 0, 'wrap': 0}, largest ts: {'tts': 3370376, 'FID': '4d1ad9e393ab868d', 'wrap': 0, 'twid': 0}, count: [9, 0, 0, 0]
+smallest ts: {'FID': '5cffdf4b0e50b49f', 'tts': 425287, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3432901, 'FID': '283ff89023a586ee', 'wrap': 0, 'twid': 0}, count: [3409, 3606, 3641, 120]
+smallest ts: {'FID': '5db1f89294783c7a', 'tts': 429112, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3462245, 'FID': 'f01a73e4107d8408', 'wrap': 0, 'twid': 0}, count: [3409, 3607, 3873, 85]
+smallest ts: {'FID': '67072e36f2606849', 'tts': 432781, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3494312, 'FID': '283ff89023a586ee', 'wrap': 0, 'twid': 0}, count: [3409, 3627, 3877, 425]
+smallest ts: {'FID': '2482321f333b0965', 'tts': 3552611, 'twid': 0, 'wrap': 0}, largest ts: {'tts': 3555623, 'FID': '4d1ad9e393ab868d', 'wrap': 0, 'twid': 0}, count: [7, 0, 0, 0]
+smallest ts: {'FID': '5db1f89294783c7a', 'tts': 888936, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 3577477, 'FID': '44010a39f977bd51', 'wrap': 0, 'twid': 0}, count: [3409, 3610, 1776, 0]
+smallest ts: {'FID': 'a435494381b56e87', 'tts': 447184, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3618084, 'FID': '498384288cbf247d', 'wrap': 0, 'twid': 0}, count: [3409, 3610, 3878, 1493]
+smallest ts: {'FID': '07bf0af53c4562ef', 'tts': 452260, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3678863, 'FID': 'eee7028a706daeef', 'wrap': 0, 'twid': 0}, count: [6, 0, 9, 1796]
+smallest ts: {'FID': '2482321f333b0965', 'tts': 926451, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 3718715, 'FID': '412fd2215bb00b9c', 'wrap': 0, 'twid': 0}, count: [3161, 1291, 1, 0]
+smallest ts: {'FID': '9da1518f7b86a3dd', 'tts': 929679, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 3742257, 'FID': 'a5766e35df2252f1', 'wrap': 0, 'twid': 0}, count: [3409, 3611, 2663, 0]
+smallest ts: {'FID': '5db1f89294783c7a', 'tts': 467782, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3803657, 'FID': '653d086af8f8052b', 'wrap': 0, 'twid': 0}, count: [3409, 3604, 3879, 4092]
+smallest ts: {'FID': '7da4f90ffe7fc891', 'tts': 3861891, 'twid': 0, 'wrap': 0}, largest ts: {'tts': 3865083, 'FID': '5db1f89294783c7a', 'wrap': 0, 'twid': 0}, count: [802, 0, 0, 0]
+smallest ts: {'FID': '5db1f89294783c7a', 'tts': 1932542, 'twid': 1, 'wrap': 0}, largest ts: {'tts': 3871914, 'FID': 'c08ac2be47162dd2', 'wrap': 0, 'twid': 0}, count: [3156, 864, 0, 0]
+smallest ts: {'FID': '804b591be7b274f8', 'tts': 483989, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3926490, 'FID': '412fd2215bb00b9c', 'wrap': 0, 'twid': 0}, count: [3409, 3608, 3890, 3239]
+smallest ts: {'FID': '67072e36f2606849', 'tts': 490811, 'twid': 3, 'wrap': 0}, largest ts: {'tts': 3987861, 'FID': 'eee7028a706daeef', 'wrap': 0, 'twid': 0}, count: [8, 0, 0, 1542]
+smallest ts: {'FID': '5cffdf4b0e50b49f', 'tts': 2007545, 'twid': 1, 'wrap': 0}, largest ts: {'tts': 4025109, 'FID': '412fd2215bb00b9c', 'wrap': 0, 'twid': 0}, count: [3168, 1304, 0, 0]
+smallest ts: {'FID': 'c08ac2be47162dd2', 'tts': 1006277, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4049316, 'FID': '67072e36f2606849', 'wrap': 0, 'twid': 0}, count: [3409, 3622, 2830, 0]
+smallest ts: {'FID': 'e82b15a1f27ff2ac', 'tts': 1012329, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4074008, 'FID': '76d654b54e62bdbe', 'wrap': 0, 'twid': 0}, count: [3409, 3600, 2939, 0]
+The largest tts across sets is not increasing, because limited traffic flows through switch and registers are not updated.
+smallest ts: {'FID': 'c08ac2be47162dd2', 'tts': 1006277, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4049316, 'FID': '67072e36f2606849', 'wrap': 0, 'twid': 0}, count: [3409, 3622, 2830, 0]
+smallest ts: {'FID': 'e82b15a1f27ff2ac', 'tts': 1012329, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4074008, 'FID': '76d654b54e62bdbe', 'wrap': 0, 'twid': 0}, count: [3409, 3600, 2939, 0]
+The largest tts across sets is not increasing, because limited traffic flows through switch and registers are not updated.
+smallest ts: {'FID': 'c08ac2be47162dd2', 'tts': 1006277, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4049316, 'FID': '67072e36f2606849', 'wrap': 0, 'twid': 0}, count: [3409, 3622, 2830, 0]
+smallest ts: {'FID': 'e82b15a1f27ff2ac', 'tts': 1012329, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4074008, 'FID': '76d654b54e62bdbe', 'wrap': 0, 'twid': 0}, count: [3409, 3600, 2939, 0]
+The largest tts across sets is not increasing, because limited traffic flows through switch and registers are not updated.
+smallest ts: {'FID': 'c08ac2be47162dd2', 'tts': 1006277, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4049316, 'FID': '67072e36f2606849', 'wrap': 0, 'twid': 0}, count: [3409, 3622, 2830, 0]
+smallest ts: {'FID': 'e82b15a1f27ff2ac', 'tts': 1012329, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4074008, 'FID': '76d654b54e62bdbe', 'wrap': 0, 'twid': 0}, count: [3409, 3600, 2939, 0]
+The largest tts across sets is not increasing, because limited traffic flows through switch and registers are not updated.
+smallest ts: {'FID': 'c08ac2be47162dd2', 'tts': 1006277, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4049316, 'FID': '67072e36f2606849', 'wrap': 0, 'twid': 0}, count: [3409, 3622, 2830, 0]
+smallest ts: {'FID': 'e82b15a1f27ff2ac', 'tts': 1012329, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4074008, 'FID': '76d654b54e62bdbe', 'wrap': 0, 'twid': 0}, count: [3409, 3600, 2939, 0]
+The largest tts across sets is not increasing, because limited traffic flows through switch and registers are not updated.
+smallest ts: {'FID': 'c08ac2be47162dd2', 'tts': 1006277, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4049316, 'FID': '67072e36f2606849', 'wrap': 0, 'twid': 0}, count: [3409, 3622, 2830, 0]
+smallest ts: {'FID': 'e82b15a1f27ff2ac', 'tts': 1012329, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4074008, 'FID': '76d654b54e62bdbe', 'wrap': 0, 'twid': 0}, count: [3409, 3600, 2939, 0]
+The largest tts across sets is not increasing, because limited traffic flows through switch and registers are not updated.
+smallest ts: {'FID': 'c08ac2be47162dd2', 'tts': 1006277, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4049316, 'FID': '67072e36f2606849', 'wrap': 0, 'twid': 0}, count: [3409, 3622, 2830, 0]
+smallest ts: {'FID': 'e82b15a1f27ff2ac', 'tts': 1012329, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4074008, 'FID': '76d654b54e62bdbe', 'wrap': 0, 'twid': 0}, count: [3409, 3600, 2939, 0]
+The largest tts across sets is not increasing, because limited traffic flows through switch and registers are not updated.
+smallest ts: {'FID': 'c08ac2be47162dd2', 'tts': 1006277, 'twid': 2, 'wrap': 0}, largest ts: {'tts': 4049316, 'FID': '67072e36f2606849', 'wrap': 0, 'twid': 0}, count: [3409, 3622, 2830, 0]
+-----------------------------------------------------------------------------------
+-----------------       Analysis Program for Time Windows    ----------------------
+------------------------       Loaded from RAW data    ----------------------------
+-----------------------------------------------------------------------------------
+Alpha:1, k:12, T:4
+Set period: 62914560 nanoseconds
+Cofficients: [1, 0.544322093056, 0.29239304134876004, 0.15156142697411615]
+Loading SIGNAL file: 1654523334_149704.bin
+Loading SIGNAL file: 1654523334_305700.bin
+Loading SIGNAL file: 1654523334_401705.bin
+Loading SIGNAL file: 1654523334_513725.bin
+Loading SIGNAL file: 1654523334_633691.bin
+Loading SIGNAL file: 1654523334_777703.bin
+Loading SIGNAL file: 1654523334_933711.bin
+Loading SIGNAL file: 1654523335_89694.bin
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++       Load Data Plane Signals    ++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Signal Number: 8
+loading file: ./d/ports/1/0/gt_data/31545246987218667.bin
+loading file: ./d/ports/1/0/gt_data/31545247406157732.bin
+loading file: ./d/ports/1/0/gt_data/31545247826936460.bin
+loading file: ./d/ports/1/0/gt_data/31545248247691893.bin
+loading file: ./d/ports/1/0/gt_data/31545248668946286.bin
+loading file: ./d/ports/1/0/gt_data/31545263012453367.bin
+-----------------------------------------------------------------------------------
+-----------------       Analysis Program for Ground Truth    ----------------------
+------------------------       Loaded from INT data    ----------------------------
+-----------------------------------------------------------------------------------
+Packet number: 567294
+Total duration (dequeue timestamp): 1001299383 nanoseconds
+Total duration (enqueue timestamp): 999810384 nanoseconds
+Average queue length: 22418.869928114877
+Average interval: 1765.0480139892436
+Plotting queue length...
+---------------------------------------------------------------------------------------
+---------------    Compare Data Plane Query with Related Works   ----------------------
+---------------------------------------------------------------------------------------
+Time Windows Data Plane Query, Number Precision: 1.0, Number Recall: 0.998003992015968
+Time Windows Data Plane Query, Number Precision: 1.0, Number Recall: 0.998003992015968
+Time Windows Data Plane Query, Number Precision: 0.9991735537190083, Number Recall: 0.9983484723369116
+Time Windows Data Plane Query, Number Precision: 0.9991735537190083, Number Recall: 0.9983484723369116
+Time Windows Data Plane Query, Number Precision: 1.0, Number Recall: 0.9983319432860718
+Time Windows Data Plane Query, Number Precision: 1.0, Number Recall: 0.998003992015968
+Time Windows Data Plane Query, Number Precision: 1.0, Number Recall: 0.998003992015968
+Time Windows Data Plane Query, Number Precision: 0.9940357852882704, Number Recall: 0.998003992015968

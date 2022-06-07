@@ -1,0 +1,656 @@
+root@localhost:~/PrintQueue/PrintQueue_Tofino# make runPQ
+Enabling non-kernel mode. Please load bf_kdrv module.
+Setting up DMA Memory Pool
+Install Dir: /opt/bf-sde-8.4.0//install (0x20d6400)
+bf_sysfs_fname /sys/class/bf/bf0/device/dev_add
+kernel mode packet driver present, forcing kernel_pkt option!
+Install dir: /opt/bf-sde-8.4.0//install (0x20d6400)
+bf_switchd: system services initialized
+bf_switchd: loading conf_file config/printqueue.config...
+bf_switchd: processing device configuration...
+Configuration for dev_id 0
+  Family        : Tofino
+  pci_sysfs_str : /sys/devices/pci0000:00/0000:00:03.0/0000:05:00.0
+  pci_domain    : 0
+  pci_bus       : 5
+  pci_fn        : 0
+  pci_dev       : 0
+  pci_int_mode  : 1
+  sbus_master_fw: /opt/bf-sde-8.4.0//install/
+  pcie_fw       : /opt/bf-sde-8.4.0//install/
+  serdes_fw     : /opt/bf-sde-8.4.0//install/
+  sds_fw_path   : /opt/bf-sde-8.4.0//install/
+  microp_fw_path:
+bf_switchd: processing P4 configuration...
+P4 profile for dev_id 0
+  p4_name: printqueue
+    use pi: false
+    libpd: /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpd.so
+    libpdthrift: /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpdthrift.so
+    context: /opt/bf-sde-8.4.0//install/share/tofinopd/printqueue/context.json
+    config: /opt/bf-sde-8.4.0//install/share/tofinopd/printqueue/tofino.bin
+  Agent[0]: /opt/bf-sde-8.4.0//install/lib/libpltfm_mgr.so
+  diag:
+  mavericks diag:
+  non_default_port_ppgs: 0
+bf_switchd: library /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpd.so loaded
+bf_switchd: library /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpdthrift.so loaded
+bf_switchd: library /opt/bf-sde-8.4.0//install/lib/libpltfm_mgr.so loaded
+bf_switchd: agent[0] initialized
+Tcl server started..
+Tcl server: listen socket created
+Tcl server: bind done on port 8008, listening...
+Tcl server: waiting for incoming connections...
+Health monitor started
+Operational mode set to ASIC
+Initialized the device types using platforms infra API
+ASIC detected at PCI /sys/class/bf/bf0/device
+ASIC pci device id is 16
+Skipped pkt-mgr init
+Starting PD-API RPC server on port 9090
+bf_switchd: drivers initialized
+|
+bf_switchd: dev_id 0 initialized
+
+bf_switchd: initialized 1 devices
+bf_switchd: libpd initialized for p4 pipeline printqueue on dev 0
+Adding Thrift service for P4 program printqueue to server
+bf_switchd: libpdthrift initialized for p4 pipeline printqueue on dev 0
+Adding Thrift service for bf-platforms to server
+bf_switchd: thrift initialized for agent : 0
+bf_switchd: spawning cli server thread
+bf_switchd: spawning driver shell
+bf_switchd: server started - listening on port 9999
+
+
+
+
+
+
+
+
+-----------------------------------------------------
+PrintQueue Control Plane is Activating
+-----------------------------------------------------
+Program ID: 32654
+Use command 'kill -s USR1 32654', 'kill -s USR2 32654' to send signals.
+Send USR1 signal to switch on/off query process
+Send USR2 signal to kill query process
+
+
+        ********************************************
+        *      WARNING: Authorised Access Only     *
+        ********************************************
+
+bfshell> Adding 6 entries to the qdepth_threshold table
+Successfully set the qdepth_threshold table
+Successfully enable mirror session.
+Signal-receiving thread is successfully created with ID 296384256.
+*********************************************************
+Signal-receiving Thread Initiated
+*********************************************************
+Configuring a raw socket...
+idx:0, port: 128, iso_id: 0, iso_pre: 0
+Adding 1 entries to the port isolation table
+Successfully isolate ports
+
+
+-----------------------------------------------------
+Time Windows is Activating
+-----------------------------------------------------
+
+Successfully set the second highest bit
+Time window retrieve interval: 62814 us
+Raw socket configuration succeeds.
+printqueue: received signal 10, flip loop_flag and signal_flag
+Periodical reading - port: 128, h: 0, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14252 us, 48562 us til next round.
+Periodical reading - port: 128, h: 0, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14021 us, 48793 us til next round.
+Periodical reading - port: 128, h: 0, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14099 us, 48715 us til next round.
+Periodical reading - port: 128, h: 0, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14090 us, 48724 us til next round.
+Periodical reading - port: 128, h: 0, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14057 us, 48757 us til next round.
+Periodical reading - port: 128, h: 0, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14081 us, 48733 us til next round.
+Periodical reading - port: 128, h: 0, sh: 0, iso_id: 0, iso_prefix: 0
+-----------------------------------------------------------------
+Port 128 - data plane query signal - src_ip: 190.26.207.100, dst_ip: 190.26.207.100, src_port: 40526, dst_port: 40200, type: 4, iso_id: 0, enqueue_ts: 957773787, dequeue_ts: 958388044.
+-----------------------------------------------------------------
+flip highest bit
+
+Port 128, periodiocal poll finishes, it needs: 14103 us, 48711 us til next round.
+Data plane - port 128, h: 0, sh: 1, iso id: 0, iso prefix: 0, table idx: 0, write signal to file: ./tw_data/0/signal_data/1654597819_497704.bin.
+Available interval: 48506 us. Read 704 entries.
+✓ reading
+✓ memory copy
+✓ 40203 us left till next periodical poll
+Available interval: 40195 us. Read 583 entries.
+✓ reading
+✓ memory copy
+✓ 32256 us left till next periodical poll
+Available interval: 32249 us. Read 468 entries.
+✓ reading
+✓ memory copy
+✓ 24432 us left till next periodical poll
+Available interval: 24425 us. Read 354 entries.
+✓ reading
+✓ memory copy
+✓ 16829 us left till next periodical poll
+Available interval: 16823 us. Read 244 entries.
+✓ reading
+✓ memory copy
+✓ 9446 us left till next periodical poll
+Available interval: 9440 us. Read 137 entries.
+✓ reading
+✓ memory copy
+✓ 2245 us left till next periodical poll
+Periodical reading - port: 128, h: 1, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14022 us, 48792 us til next round.
+Available interval: 48769 us. Read 712 entries.
+✓ reading
+✓ memory copy
+✓ 40583 us left till next periodical poll
+Available interval: 40576 us. Read 592 entries.
+✓ reading
+✓ memory copy
+✓ 32635 us left till next periodical poll
+.
+Available interval: 32629 us. Read 302 entries.
+✓ reading
+✓ memory copy
+Port 128, tw store in ./tw_data/0/tw_data/1654597819_497704.bin
+Data signal queue is empty
+✓ 24752 us left till next periodical poll
+
+-----------------------------------------------------------------
+Port 128 - data plane query signal - src_ip: 103.7.46.54, dst_ip: 103.7.46.54, src_port: 41926, dst_port: 15460, type: 4, iso_id: 0, enqueue_ts: 1048571189, dequeue_ts: 1050061485.
+-----------------------------------------------------------------
+flip highest bit
+Data plane - port 128, h: 1, sh: 0, iso id: 0, iso prefix: 0, table idx: 0, write signal to file: ./tw_data/0/signal_data/1654597819_589696.bin.
+Available interval: 23809 us. Read 347 entries.
+✓ reading
+✓ memory copy
+✓ 16192 us left till next periodical poll
+Available interval: 16185 us. Read 236 entries.
+✓ reading
+✓ memory copy
+✓ 8812 us left till next periodical poll
+Available interval: 8805 us. Read 128 entries.
+✓ reading
+✓ memory copy
+✓ 1607 us left till next periodical poll
+Periodical reading - port: 128, h: 0, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 13974 us, 48840 us til next round.
+Available interval: 48818 us. Read 715 entries.
+✓ reading
+✓ memory copy
+✓ 40657 us left till next periodical poll
+Available interval: 40651 us. Read 595 entries.
+✓ reading
+✓ memory copy
+✓ 32721 us left till next periodical poll
+Available interval: 32715 us. Read 479 entries.
+✓ reading
+✓ memory copy
+✓ 24961 us left till next periodical poll
+Available interval: 24955 us. Read 365 entries.
+✓ reading
+✓ memory copy
+✓ 17385 us left till next periodical poll
+Available interval: 17378 us. Read 254 entries.
+✓ reading
+✓ memory copy
+✓ 9985 us left till next periodical poll
+Available interval: 9979 us. Read 146 entries.
+✓ reading
+✓ memory copy
+✓ 2766 us left till next periodical poll
+Periodical reading - port: 128, h: 0, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14001 us, 48813 us til next round.
+Available interval: 48791 us. Read 713 entries.
+✓ reading
+✓ memory copy
+✓ 40613 us left till next periodical poll
+.
+Available interval: 40606 us. Read 118 entries.
+✓ reading
+✓ memory copy
+Port 128, tw store in ./tw_data/0/tw_data/1654597819_589696.bin
+Data signal queue is empty
+✓ 33154 us left till next periodical poll
+
+-----------------------------------------------------------------
+Port 128 - data plane query signal - src_ip: 81.30.222.195, dst_ip: 81.30.222.195, src_port: 31548, dst_port: 57851, type: 4, iso_id: 0, enqueue_ts: 1165928892, dequeue_ts: 1167415766.
+-----------------------------------------------------------------
+flip highest bit
+Data plane - port 128, h: 0, sh: 0, iso id: 0, iso prefix: 0, table idx: 0, write signal to file: ./tw_data/0/signal_data/1654597819_709693.bin.
+Available interval: 29566 us. Read 432 entries.
+✓ reading
+✓ memory copy
+✓ 21783 us left till next periodical poll
+Available interval: 21775 us. Read 318 entries.
+✓ reading
+✓ memory copy
+✓ 14193 us left till next periodical poll
+Available interval: 14186 us. Read 207 entries.
+✓ reading
+✓ memory copy
+✓ 6839 us left till next periodical poll
+Available interval: 6832 us. Read 99 entries.
+✓ reading
+✓ memory copy
+✓ -293 us left till next periodical poll
+Periodical reading - port: 128, h: 1, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 13998 us, 48816 us til next round.
+Available interval: 48794 us. Read 713 entries.
+✓ reading
+✓ memory copy
+✓ 40664 us left till next periodical poll
+Available interval: 40657 us. Read 594 entries.
+✓ reading
+✓ memory copy
+✓ 32733 us left till next periodical poll
+Available interval: 32726 us. Read 478 entries.
+✓ reading
+✓ memory copy
+✓ 24976 us left till next periodical poll
+Available interval: 24968 us. Read 365 entries.
+✓ reading
+✓ memory copy
+✓ 17428 us left till next periodical poll
+Available interval: 17421 us. Read 254 entries.
+✓ reading
+✓ memory copy
+✓ 10054 us left till next periodical poll
+Available interval: 10048 us. Read 147 entries.
+✓ reading
+✓ memory copy
+✓ 2863 us left till next periodical poll
+Periodical reading - port: 128, h: 1, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 13997 us, 48817 us til next round.
+.
+Available interval: 48796 us. Read 489 entries.
+✓ reading
+✓ memory copy
+Port 128, tw store in ./tw_data/0/tw_data/1654597819_709693.bin
+Data signal queue is empty
+✓ 40729 us left till next periodical poll
+
+-----------------------------------------------------------------
+Port 128 - data plane query signal - src_ip: 2.60.13.210, dst_ip: 2.60.13.210, src_port: 40357, dst_port: 45422, type: 4, iso_id: 0, enqueue_ts: 1284396587, dequeue_ts: 1285887898.
+-----------------------------------------------------------------
+flip highest bit
+Data plane - port 128, h: 1, sh: 0, iso id: 0, iso prefix: 0, table idx: 0, write signal to file: ./tw_data/0/signal_data/1654597819_825694.bin.
+Available interval: 39605 us. Read 579 entries.
+✓ reading
+✓ memory copy
+✓ 31670 us left till next periodical poll
+Available interval: 31664 us. Read 463 entries.
+✓ reading
+✓ memory copy
+✓ 23886 us left till next periodical poll
+Available interval: 23879 us. Read 349 entries.
+✓ reading
+✓ memory copy
+✓ 16274 us left till next periodical poll
+Available interval: 16267 us. Read 238 entries.
+✓ reading
+✓ memory copy
+✓ 8904 us left till next periodical poll
+Available interval: 8895 us. Read 130 entries.
+✓ reading
+✓ memory copy
+✓ 1717 us left till next periodical poll
+Periodical reading - port: 128, h: 0, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 13994 us, 48820 us til next round.
+Available interval: 48797 us. Read 714 entries.
+✓ reading
+✓ memory copy
+✓ 40626 us left till next periodical poll
+Available interval: 40619 us. Read 594 entries.
+✓ reading
+✓ memory copy
+✓ 32669 us left till next periodical poll
+Available interval: 32662 us. Read 478 entries.
+✓ reading
+✓ memory copy
+✓ 24917 us left till next periodical poll
+Available interval: 24911 us. Read 364 entries.
+✓ reading
+✓ memory copy
+✓ 17239 us left till next periodical poll
+.
+Available interval: 17232 us. Read 187 entries.
+✓ reading
+✓ memory copy
+Port 128, tw store in ./tw_data/0/tw_data/1654597819_825694.bin
+Data signal queue is empty
+✓ 9513 us left till next periodical poll
+Periodical reading - port: 128, h: 0, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14053 us, 48761 us til next round.
+
+-----------------------------------------------------------------
+Port 128 - data plane query signal - src_ip: 101.61.8.106, dst_ip: 101.61.8.106, src_port: 25564, dst_port: 12815, type: 4, iso_id: 0, enqueue_ts: 1428394820, dequeue_ts: 1429011997.
+-----------------------------------------------------------------
+flip highest bit
+Data plane - port 128, h: 0, sh: 0, iso id: 0, iso prefix: 0, table idx: 0, write signal to file: ./tw_data/0/signal_data/1654597819_969690.bin.
+Available interval: 21360 us. Read 311 entries.
+✓ reading
+✓ memory copy
+✓ 13826 us left till next periodical poll
+Available interval: 13819 us. Read 201 entries.
+✓ reading
+✓ memory copy
+✓ 6514 us left till next periodical poll
+Available interval: 6506 us. Read 94 entries.
+✓ reading
+✓ memory copy
+✓ -615 us left till next periodical poll
+Periodical reading - port: 128, h: 1, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 13994 us, 48820 us til next round.
+Available interval: 48800 us. Read 714 entries.
+✓ reading
+✓ memory copy
+✓ 40639 us left till next periodical poll
+Available interval: 40633 us. Read 594 entries.
+✓ reading
+✓ memory copy
+✓ 32706 us left till next periodical poll
+Available interval: 32700 us. Read 478 entries.
+✓ reading
+✓ memory copy
+✓ 24954 us left till next periodical poll
+Available interval: 24948 us. Read 365 entries.
+✓ reading
+✓ memory copy
+✓ 17391 us left till next periodical poll
+Available interval: 17384 us. Read 254 entries.
+✓ reading
+✓ memory copy
+✓ 10002 us left till next periodical poll
+Available interval: 9996 us. Read 146 entries.
+✓ reading
+✓ memory copy
+✓ 2774 us left till next periodical poll
+Periodical reading - port: 128, h: 1, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 13962 us, 48852 us til next round.
+Available interval: 48830 us. Read 716 entries.
+✓ reading
+✓ memory copy
+✓ 40677 us left till next periodical poll
+.
+Available interval: 40671 us. Read 223 entries.
+✓ reading
+✓ memory copy
+Port 128, tw store in ./tw_data/0/tw_data/1654597819_969690.bin
+Data signal queue is empty
+✓ 33060 us left till next periodical poll
+Periodical reading - port: 128, h: 1, sh: 0, iso_id: 0, iso_prefix: 0
+-----------------------------------------------------------------
+Port 128 - data plane query signal - src_ip: 101.61.8.106, dst_ip: 101.61.8.106, src_port: 25564, dst_port: 12815, type: 4, iso_id: 0, enqueue_ts: 1585268684, dequeue_ts: 1585884745.
+-----------------------------------------------------------------
+flip highest bit
+
+Port 128, periodiocal poll finishes, it needs: 14089 us, 48725 us til next round.
+Data plane - port 128, h: 1, sh: 1, iso id: 0, iso prefix: 0, table idx: 0, write signal to file: ./tw_data/0/signal_data/1654597820_125699.bin.
+Available interval: 48609 us. Read 706 entries.
+✓ reading
+✓ memory copy
+✓ 40453 us left till next periodical poll
+Available interval: 40447 us. Read 587 entries.
+✓ reading
+✓ memory copy
+✓ 32516 us left till next periodical poll
+Available interval: 32510 us. Read 472 entries.
+✓ reading
+✓ memory copy
+✓ 24797 us left till next periodical poll
+Available interval: 24791 us. Read 360 entries.
+✓ reading
+✓ memory copy
+✓ 17236 us left till next periodical poll
+Available interval: 17230 us. Read 250 entries.
+✓ reading
+✓ memory copy
+✓ 9844 us left till next periodical poll
+Available interval: 9838 us. Read 143 entries.
+✓ reading
+✓ memory copy
+✓ 2657 us left till next periodical poll
+Periodical reading - port: 128, h: 0, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 13987 us, 48827 us til next round.
+Available interval: 48805 us. Read 714 entries.
+✓ reading
+✓ memory copy
+✓ 40663 us left till next periodical poll
+Available interval: 40657 us. Read 595 entries.
+✓ reading
+✓ memory copy
+✓ 32705 us left till next periodical poll
+.
+Available interval: 32699 us. Read 269 entries.
+✓ reading
+✓ memory copy
+Port 128, tw store in ./tw_data/0/tw_data/1654597820_125699.bin
+Data signal queue is empty
+✓ 24919 us left till next periodical poll
+
+-----------------------------------------------------------------
+Port 128 - data plane query signal - src_ip: 93.177.248.146, dst_ip: 93.177.248.146, src_port: 42334, dst_port: 14548, type: 4, iso_id: 0, enqueue_ts: 1678089108, dequeue_ts: 1679578478.
+-----------------------------------------------------------------
+flip highest bit
+Data plane - port 128, h: 0, sh: 0, iso id: 0, iso prefix: 0, table idx: 0, write signal to file: ./tw_data/0/signal_data/1654597820_221698.bin.
+Available interval: 21474 us. Read 314 entries.
+✓ reading
+✓ memory copy
+✓ 13887 us left till next periodical poll
+Available interval: 13879 us. Read 203 entries.
+✓ reading
+✓ memory copy
+✓ 6578 us left till next periodical poll
+Available interval: 6572 us. Read 96 entries.
+✓ reading
+✓ memory copy
+✓ -565 us left till next periodical poll
+Periodical reading - port: 128, h: 1, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 13991 us, 48823 us til next round.
+Available interval: 48800 us. Read 714 entries.
+✓ reading
+✓ memory copy
+✓ 40653 us left till next periodical poll
+Available interval: 40646 us. Read 594 entries.
+✓ reading
+✓ memory copy
+✓ 32670 us left till next periodical poll
+Available interval: 32662 us. Read 478 entries.
+✓ reading
+✓ memory copy
+✓ 24911 us left till next periodical poll
+Available interval: 24905 us. Read 364 entries.
+✓ reading
+✓ memory copy
+✓ 17363 us left till next periodical poll
+Available interval: 17357 us. Read 254 entries.
+✓ reading
+✓ memory copy
+✓ 9975 us left till next periodical poll
+Available interval: 9969 us. Read 145 entries.
+✓ reading
+✓ memory copy
+✓ 2766 us left till next periodical poll
+Periodical reading - port: 128, h: 1, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 13952 us, 48862 us til next round.
+Available interval: 48840 us. Read 716 entries.
+✓ reading
+✓ memory copy
+✓ 40692 us left till next periodical poll
+.
+Available interval: 40685 us. Read 218 entries.
+✓ reading
+✓ memory copy
+Port 128, tw store in ./tw_data/0/tw_data/1654597820_221698.bin
+Data signal queue is empty
+✓ 33066 us left till next periodical poll
+
+-----------------------------------------------------------------
+Port 128 - data plane query signal - src_ip: 217.153.3.211, dst_ip: 217.153.3.211, src_port: 38299, dst_port: 54105, type: 4, iso_id: 0, enqueue_ts: 1796276759, dequeue_ts: 1797748273.
+-----------------------------------------------------------------
+flip highest bit
+Data plane - port 128, h: 1, sh: 0, iso id: 0, iso prefix: 0, table idx: 0, write signal to file: ./tw_data/0/signal_data/1654597820_337689.bin.
+Available interval: 31802 us. Read 466 entries.
+✓ reading
+✓ memory copy
+✓ 23988 us left till next periodical poll
+Available interval: 23981 us. Read 352 entries.
+✓ reading
+✓ memory copy
+✓ 16388 us left till next periodical poll
+Available interval: 16380 us. Read 240 entries.
+✓ reading
+✓ memory copy
+✓ 9034 us left till next periodical poll
+Available interval: 9025 us. Read 132 entries.
+✓ reading
+✓ memory copy
+✓ 1880 us left till next periodical poll
+Periodical reading - port: 128, h: 0, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 13982 us, 48832 us til next round.
+Available interval: 48810 us. Read 714 entries.
+✓ reading
+✓ memory copy
+✓ 40647 us left till next periodical poll
+Available interval: 40641 us. Read 595 entries.
+✓ reading
+✓ memory copy
+✓ 32703 us left till next periodical poll
+Available interval: 32696 us. Read 478 entries.
+✓ reading
+✓ memory copy
+✓ 24940 us left till next periodical poll
+Available interval: 24934 us. Read 365 entries.
+✓ reading
+✓ memory copy
+✓ 17382 us left till next periodical poll
+Available interval: 17376 us. Read 254 entries.
+✓ reading
+✓ memory copy
+✓ 10002 us left till next periodical poll
+Available interval: 9996 us. Read 146 entries.
+✓ reading
+✓ memory copy
+✓ 2803 us left till next periodical poll
+Periodical reading - port: 128, h: 0, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14084 us, 48730 us til next round.
+.
+Available interval: 48708 us. Read 354 entries.
+✓ reading
+✓ memory copy
+Port 128, tw store in ./tw_data/0/tw_data/1654597820_337689.bin
+Data signal queue is empty
+✓ 40878 us left till next periodical poll
+
+-----------------------------------------------------------------
+Port 128 - data plane query signal - src_ip: 73.145.135.124, dst_ip: 73.145.135.124, src_port: 47607, dst_port: 21458, type: 4, iso_id: 0, enqueue_ts: 1914202253, dequeue_ts: 1915692729.
+-----------------------------------------------------------------
+flip highest bit
+Data plane - port 128, h: 0, sh: 0, iso id: 0, iso prefix: 0, table idx: 0, write signal to file: ./tw_data/0/signal_data/1654597820_457691.bin.
+Available interval: 37548 us. Read 545 entries.
+✓ reading
+✓ memory copy
+✓ 29682 us left till next periodical poll
+Available interval: 29674 us. Read 431 entries.
+✓ reading
+✓ memory copy
+✓ 21921 us left till next periodical poll
+Available interval: 21914 us. Read 318 entries.
+✓ reading
+✓ memory copy
+✓ 14398 us left till next periodical poll
+Available interval: 14390 us. Read 209 entries.
+✓ reading
+✓ memory copy
+✓ 7083 us left till next periodical poll
+Available interval: 7076 us. Read 102 entries.
+✓ reading
+✓ memory copy
+✓ -48 us left till next periodical poll
+Periodical reading - port: 128, h: 1, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 13976 us, 48838 us til next round.
+Available interval: 48817 us. Read 715 entries.
+✓ reading
+✓ memory copy
+✓ 40614 us left till next periodical poll
+Available interval: 40607 us. Read 595 entries.
+✓ reading
+✓ memory copy
+✓ 32672 us left till next periodical poll
+Available interval: 32665 us. Read 478 entries.
+✓ reading
+✓ memory copy
+✓ 24901 us left till next periodical poll
+Available interval: 24895 us. Read 364 entries.
+✓ reading
+✓ memory copy
+✓ 17304 us left till next periodical poll
+Available interval: 17297 us. Read 253 entries.
+✓ reading
+✓ memory copy
+✓ 9818 us left till next periodical poll
+.
+Available interval: 9811 us. Read 86 entries.
+✓ reading
+✓ memory copy
+Port 128, tw store in ./tw_data/0/tw_data/1654597820_457691.bin
+Data signal queue is empty
+✓ 2385 us left till next periodical poll
+Periodical reading - port: 128, h: 1, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 13976 us, 48838 us til next round.
+Periodical reading - port: 128, h: 1, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 13968 us, 48846 us til next round.
+Periodical reading - port: 128, h: 1, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14066 us, 48748 us til next round.
+Periodical reading - port: 128, h: 1, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14052 us, 48762 us til next round.
+Periodical reading - port: 128, h: 1, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14035 us, 48779 us til next round.
+Periodical reading - port: 128, h: 1, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14057 us, 48757 us til next round.
+Periodical reading - port: 128, h: 1, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14076 us, 48738 us til next round.
+Periodical reading - port: 128, h: 1, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14070 us, 48744 us til next round.
+Periodical reading - port: 128, h: 1, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14031 us, 48783 us til next round.
+Periodical reading - port: 128, h: 1, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14081 us, 48733 us til next round.
+Periodical reading - port: 128, h: 1, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14073 us, 48741 us til next round.
+Periodical reading - port: 128, h: 1, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14131 us, 48683 us til next round.
+Periodical reading - port: 128, h: 1, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14049 us, 48765 us til next round.
+Periodical reading - port: 128, h: 1, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14074 us, 48740 us til next round.
+Periodical reading - port: 128, h: 1, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14037 us, 48777 us til next round.
+Periodical reading - port: 128, h: 1, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14078 us, 48736 us til next round.
+Periodical reading - port: 128, h: 1, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14067 us, 48747 us til next round.
+Periodical reading - port: 128, h: 1, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14058 us, 48756 us til next round.
+Periodical reading - port: 128, h: 1, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14053 us, 48761 us til next round.
+Periodical reading - port: 128, h: 1, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14050 us, 48764 us til next round.
+Periodical reading - port: 128, h: 1, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14069 us, 48745 us til next round.
+Periodical reading - port: 128, h: 1, sh: 0, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14042 us, 48772 us til next round.
+Periodical reading - port: 128, h: 1, sh: 1, iso_id: 0, iso_prefix: 0
+Port 128, periodiocal poll finishes, it needs: 14083 us, 48731 us til next round.
+
+Time window retrieve Ends!

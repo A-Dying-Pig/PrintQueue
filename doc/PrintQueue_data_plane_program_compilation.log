@@ -1,0 +1,274 @@
+root@localhost:~/PrintQueue/PrintQueue_Tofino# make
+cd /opt/bf-sde-8.4.0//pkgsrc/p4-build/; make clean
+make[1]: Entering directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build'
+Making clean in tofino
+make[2]: Entering directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build/tofino'
+test -z "printqueue/tofino.bin printqueue/context/context.json  printqueue/src/pd.c printqueue/src/pdcli.c ./printqueue/cli/xml/pd_printqueue.xml ./printqueue/thrift/p4_pd_rpc.thrift printqueue/gen-cpp/p4_prefix.h printqueue/gen-cpp/p4_prefix0.cpp printqueue/gen-cpp/p4_prefix1.cpp printqueue/gen-cpp/p4_prefix2.cpp printqueue/gen-cpp/p4_prefix3.cpp printqueue/gen-cpp/p4_prefix4.cpp printqueue/gen-cpp/p4_prefix5.cpp printqueue/gen-cpp/p4_prefix6.cpp printqueue/gen-cpp/p4_prefix7.cpp printqueue/gen-cpp/p4_pd_rpc_constants.h printqueue/gen-cpp/p4_pd_rpc_types.h printqueue/gen-cpp/res_constants.h printqueue/gen-cpp/res_types.h printqueue/gen-cpp/p4_pd_rpc_constants.cpp printqueue/gen-cpp/p4_pd_rpc_types.cpp printqueue/gen-cpp/res_constants.cpp printqueue/gen-cpp/res_types.cpp printqueue/thrift-src/bfn_pd_rpc_server.cpp printqueue/thrift-src/bfn_pd_rpc_server.h printqueue/thrift-src/p4_pd_rpc_server.ipp ./printqueue/gen-py/p4_pd_rpc/constants.py ./printqueue/gen-py/p4_pd_rpc/ttypes.py ./printqueue/gen-py/p4_pd_rpc/__init__.py p4c.ts" || rm -f printqueue/tofino.bin printqueue/context/context.json  printqueue/src/pd.c printqueue/src/pdcli.c ./printqueue/cli/xml/pd_printqueue.xml ./printqueue/thrift/p4_pd_rpc.thrift printqueue/gen-cpp/p4_prefix.h printqueue/gen-cpp/p4_prefix0.cpp printqueue/gen-cpp/p4_prefix1.cpp printqueue/gen-cpp/p4_prefix2.cpp printqueue/gen-cpp/p4_prefix3.cpp printqueue/gen-cpp/p4_prefix4.cpp printqueue/gen-cpp/p4_prefix5.cpp printqueue/gen-cpp/p4_prefix6.cpp printqueue/gen-cpp/p4_prefix7.cpp printqueue/gen-cpp/p4_pd_rpc_constants.h printqueue/gen-cpp/p4_pd_rpc_types.h printqueue/gen-cpp/res_constants.h printqueue/gen-cpp/res_types.h printqueue/gen-cpp/p4_pd_rpc_constants.cpp printqueue/gen-cpp/p4_pd_rpc_types.cpp printqueue/gen-cpp/res_constants.cpp printqueue/gen-cpp/res_types.cpp printqueue/thrift-src/bfn_pd_rpc_server.cpp printqueue/thrift-src/bfn_pd_rpc_server.h printqueue/thrift-src/p4_pd_rpc_server.ipp ./printqueue/gen-py/p4_pd_rpc/constants.py ./printqueue/gen-py/p4_pd_rpc/ttypes.py ./printqueue/gen-py/p4_pd_rpc/__init__.py p4c.ts
+rm -rf .libs _libs
+rm -rf printqueue/gen-cpp/.libs printqueue/gen-cpp/_libs
+rm -rf printqueue/src/.libs printqueue/src/_libs
+rm -rf printqueue/thrift-src/.libs printqueue/thrift-src/_libs
+test -z "libpd.la libpdcli.la libpdthrift.la" || rm -f libpd.la libpdcli.la libpdthrift.la
+rm -f ./so_locations
+rm -f *.o
+rm -f printqueue/gen-cpp/*.o
+rm -f printqueue/gen-cpp/*.lo
+rm -f printqueue/src/*.o
+rm -f printqueue/src/*.lo
+rm -f printqueue/thrift-src/*.o
+rm -f printqueue/thrift-src/*.lo
+rm -f *.lo
+make[2]: Leaving directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build/tofino'
+make[2]: Entering directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build'
+rm -rf .libs _libs
+rm -f *.lo
+make[2]: Leaving directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build'
+make[1]: Leaving directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build'
+cd /opt/bf-sde-8.4.0//pkgsrc/p4-build/; make -j6; make -j6 install
+make[1]: Entering directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build'
+make  all-recursive
+make[2]: Entering directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build'
+Making all in tofino
+make[3]: Entering directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build/tofino'
+PYTHONPATH=/opt/bf-sde-8.4.0//install/lib/python2.7/site-packages:$PYTHONPATH /opt/bf-sde-8.4.0//install/bin/p4c-tofino --verbose 2 --o ./printqueue --p4-name=printqueue -S --jobs 4 --p4-prefix=printqueue    /root/PrintQueue/PrintQueue_Tofino/src/data/main.p4
+Parsing successful
+Warning: header instance 'ig_prsr_ctrl' is not reachable and will be removed
+Warning: header instance 'ig_pg_md' is not reachable and will be removed
+Warning: header instance 'QM_md' is not reachable and will be removed
+Warning: table 'ipv4_routing' is not reachable and will be removed
+Warning: table 'forward_S104_tb' is not reachable and will be removed
+Warning: table 'qdepth_alerting_threshold_4' is not reachable and will be removed
+Warning: header type 'ingress_parser_control_signals' is not reachable and will be removed
+Warning: header type 'generator_metadata_t' is not reachable and will be removed
+Warning: header type 'QM_matadata_t' is not reachable and will be removed
+Warning: action 'pkt_forward_S101' is not reachable and will be removed
+Warning: action 'pkt_forward' is not reachable and will be removed
+Warning: action 'pkt_drop' is not reachable and will be removed
+Warning: action 'to_S104' is not reachable and will be removed
+Semantic checking successful
+SPHagrb0cfmvmiVPTDCW|
+WARNING: No 'start_e2e_mirrored' parser entry point for E2E mirrored packets; falling back to 'start'
+WARNING: More bits (16) specified than required (4) to address pre_pkt_qdepth_r from table trigger_data_plane_query_tb.
+The most significant 12 bits will result in an out-of-range address.
+WARNING: More bits (16) specified than required (4) to address data_query_lock_r from table data_query_lock_tb.
+The most significant 12 bits will result in an out-of-range address.
+WARNING: More bits (16) specified than required (4) to address highest_bit_r from table reverse_highest_bit_tb.
+The most significant 12 bits will result in an out-of-range address.
+WARNING: More bits (16) specified than required (4) to address highest_bit_r from table read_highest_bit_tb.
+The most significant 12 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW0_tts_r from table TW0_check_tts_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW0_src_ip_r from table TW0_check_src_ip_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW0_dst_ip_r from table TW0_check_dst_ip_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW0_src_port_r from table TW0_check_src_port_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW0_dst_port_r from table TW0_check_dst_port_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW1_tts_r from table TW1_check_tts_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW1_src_ip_r from table TW1_check_src_ip_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW1_dst_ip_r from table TW1_check_dst_ip_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW1_src_port_r from table TW1_check_src_port_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW1_dst_port_r from table TW1_check_dst_port_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW2_tts_r from table TW2_check_tts_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW2_src_ip_r from table TW2_check_src_ip_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW2_dst_ip_r from table TW2_check_dst_ip_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW2_src_port_r from table TW2_check_src_port_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW2_dst_port_r from table TW2_check_dst_port_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW3_tts_r from table TW3_check_tts_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW3_src_ip_r from table TW3_check_src_ip_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW3_dst_ip_r from table TW3_check_dst_ip_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW3_src_port_r from table TW3_check_src_port_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: More bits (32) specified than required (14) to address TW3_dst_port_r from table TW3_check_dst_port_tb.
+The most significant 18 bits will result in an out-of-range address.
+WARNING: Parser error codes were not allocated space in the ingress pipeline.  Packets that result in ingress parse errors will be dropped in the parser.
+WARNING: Parser error codes were not allocated space in the egress pipeline.  Packets that result in egress parse errors will still enter the egress MAU pipeline.
+PYTHONPATH=/opt/bf-sde-8.4.0//install/lib/python2.7/site-packages:$PYTHONPATH /opt/bf-sde-8.4.0//install/bin/generate_tofino_pd --path ./printqueue --manifest ./printqueue/manifest.json  --p4-name=printqueue --p4-prefix=printqueue -o ./printqueue
+The context.json is: ./printqueue/context/context.json
+PYTHONPATH=/opt/bf-sde-8.4.0//install/lib/python2.7/site-packages:$PYTHONPATH /opt/bf-sde-8.4.0//install/bin/gencli ./printqueue/cli/pd.json -po ./printqueue/src -xo ./printqueue/cli/xml -xd /opt/bf-sde-8.4.0//install/share/cli/xml -ll /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue
+thrift -r --gen cpp -o ./printqueue ./printqueue/thrift/p4_pd_rpc.thrift
+mv -f ./printqueue/gen-cpp/printqueue.h ./printqueue/gen-cpp/p4_prefix.h
+sed --in-place 's/include "printqueue.h"/include "p4_prefix.h"/' ./printqueue/gen-cpp/printqueue.cpp
+python ../tools/split_pd_thrift.py ./printqueue/gen-cpp/printqueue.cpp ./printqueue/gen-cpp/ 8
+thrift -r --gen py -o ./printqueue ./printqueue/thrift/p4_pd_rpc.thrift
+make  all-am
+make[4]: Entering directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build/tofino'
+/bin/bash ../libtool  --tag=CC   --mode=compile gcc -std=gnu99 -DHAVE_CONFIG_H -I. -I..  -I./printqueue -I/opt/bf-sde-8.4.0//install/include     -g -O2 -MT printqueue/src/libpd_la-pd.lo -MD -MP -MF printqueue/src/.deps/libpd_la-pd.Tpo -c -o printqueue/src/libpd_la-pd.lo `test -f 'printqueue/src/pd.c' || echo './'`printqueue/src/pd.c
+/bin/bash ../libtool  --tag=CC   --mode=compile gcc -std=gnu99 -DHAVE_CONFIG_H -I. -I..  -I./printqueue -I/opt/bf-sde-8.4.0//install/include     -g -O2 -MT printqueue/src/libpdcli_la-pdcli.lo -MD -MP -MF printqueue/src/.deps/libpdcli_la-pdcli.Tpo -c -o printqueue/src/libpdcli_la-pdcli.lo `test -f 'printqueue/src/pdcli.c' || echo './'`printqueue/src/pdcli.c
+libtool: compile:  gcc -std=gnu99 -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I/opt/bf-sde-8.4.0//install/include -g -O2 -MT printqueue/src/libpdcli_la-pdcli.lo -MD -MP -MF printqueue/src/.deps/libpdcli_la-pdcli.Tpo -c printqueue/src/pdcli.c  -fPIC -DPIC -o printqueue/src/.libs/libpdcli_la-pdcli.o
+libtool: compile:  gcc -std=gnu99 -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I/opt/bf-sde-8.4.0//install/include -g -O2 -MT printqueue/src/libpd_la-pd.lo -MD -MP -MF printqueue/src/.deps/libpd_la-pd.Tpo -c printqueue/src/pd.c  -fPIC -DPIC -o printqueue/src/.libs/libpd_la-pd.o
+/bin/bash ../libtool  --tag=CXX   --mode=compile g++ -DHAVE_CONFIG_H -I. -I..  -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include   -fno-var-tracking-assignments   -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix0.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix0.Tpo -c -o printqueue/gen-cpp/libpdthrift_la-p4_prefix0.lo `test -f 'printqueue/gen-cpp/p4_prefix0.cpp' || echo './'`printqueue/gen-cpp/p4_prefix0.cpp
+/bin/bash ../libtool  --tag=CXX   --mode=compile g++ -DHAVE_CONFIG_H -I. -I..  -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include   -fno-var-tracking-assignments   -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix1.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix1.Tpo -c -o printqueue/gen-cpp/libpdthrift_la-p4_prefix1.lo `test -f 'printqueue/gen-cpp/p4_prefix1.cpp' || echo './'`printqueue/gen-cpp/p4_prefix1.cpp
+/bin/bash ../libtool  --tag=CXX   --mode=compile g++ -DHAVE_CONFIG_H -I. -I..  -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include   -fno-var-tracking-assignments   -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix2.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix2.Tpo -c -o printqueue/gen-cpp/libpdthrift_la-p4_prefix2.lo `test -f 'printqueue/gen-cpp/p4_prefix2.cpp' || echo './'`printqueue/gen-cpp/p4_prefix2.cpp
+/bin/bash ../libtool  --tag=CXX   --mode=compile g++ -DHAVE_CONFIG_H -I. -I..  -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include   -fno-var-tracking-assignments   -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix3.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix3.Tpo -c -o printqueue/gen-cpp/libpdthrift_la-p4_prefix3.lo `test -f 'printqueue/gen-cpp/p4_prefix3.cpp' || echo './'`printqueue/gen-cpp/p4_prefix3.cpp
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix0.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix0.Tpo -c printqueue/gen-cpp/p4_prefix0.cpp  -fPIC -DPIC -o printqueue/gen-cpp/.libs/libpdthrift_la-p4_prefix0.o
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix1.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix1.Tpo -c printqueue/gen-cpp/p4_prefix1.cpp  -fPIC -DPIC -o printqueue/gen-cpp/.libs/libpdthrift_la-p4_prefix1.o
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix2.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix2.Tpo -c printqueue/gen-cpp/p4_prefix2.cpp  -fPIC -DPIC -o printqueue/gen-cpp/.libs/libpdthrift_la-p4_prefix2.o
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix3.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix3.Tpo -c printqueue/gen-cpp/p4_prefix3.cpp  -fPIC -DPIC -o printqueue/gen-cpp/.libs/libpdthrift_la-p4_prefix3.o
+libtool: compile:  gcc -std=gnu99 -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I/opt/bf-sde-8.4.0//install/include -g -O2 -MT printqueue/src/libpd_la-pd.lo -MD -MP -MF printqueue/src/.deps/libpd_la-pd.Tpo -c printqueue/src/pd.c -o printqueue/src/libpd_la-pd.o >/dev/null 2>&1
+mv -f printqueue/src/.deps/libpd_la-pd.Tpo printqueue/src/.deps/libpd_la-pd.Plo
+/bin/bash ../libtool  --tag=CXX   --mode=compile g++ -DHAVE_CONFIG_H -I. -I..  -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include   -fno-var-tracking-assignments   -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix4.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix4.Tpo -c -o printqueue/gen-cpp/libpdthrift_la-p4_prefix4.lo `test -f 'printqueue/gen-cpp/p4_prefix4.cpp' || echo './'`printqueue/gen-cpp/p4_prefix4.cpp
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix4.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix4.Tpo -c printqueue/gen-cpp/p4_prefix4.cpp  -fPIC -DPIC -o printqueue/gen-cpp/.libs/libpdthrift_la-p4_prefix4.o
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix3.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix3.Tpo -c printqueue/gen-cpp/p4_prefix3.cpp -o printqueue/gen-cpp/libpdthrift_la-p4_prefix3.o >/dev/null 2>&1
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix1.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix1.Tpo -c printqueue/gen-cpp/p4_prefix1.cpp -o printqueue/gen-cpp/libpdthrift_la-p4_prefix1.o >/dev/null 2>&1
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix0.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix0.Tpo -c printqueue/gen-cpp/p4_prefix0.cpp -o printqueue/gen-cpp/libpdthrift_la-p4_prefix0.o >/dev/null 2>&1
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix2.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix2.Tpo -c printqueue/gen-cpp/p4_prefix2.cpp -o printqueue/gen-cpp/libpdthrift_la-p4_prefix2.o >/dev/null 2>&1
+libtool: compile:  gcc -std=gnu99 -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I/opt/bf-sde-8.4.0//install/include -g -O2 -MT printqueue/src/libpdcli_la-pdcli.lo -MD -MP -MF printqueue/src/.deps/libpdcli_la-pdcli.Tpo -c printqueue/src/pdcli.c -o printqueue/src/libpdcli_la-pdcli.o >/dev/null 2>&1
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix4.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix4.Tpo -c printqueue/gen-cpp/p4_prefix4.cpp -o printqueue/gen-cpp/libpdthrift_la-p4_prefix4.o >/dev/null 2>&1
+mv -f printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix1.Tpo printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix1.Plo
+/bin/bash ../libtool  --tag=CXX   --mode=compile g++ -DHAVE_CONFIG_H -I. -I..  -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include   -fno-var-tracking-assignments   -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix5.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix5.Tpo -c -o printqueue/gen-cpp/libpdthrift_la-p4_prefix5.lo `test -f 'printqueue/gen-cpp/p4_prefix5.cpp' || echo './'`printqueue/gen-cpp/p4_prefix5.cpp
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix5.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix5.Tpo -c printqueue/gen-cpp/p4_prefix5.cpp  -fPIC -DPIC -o printqueue/gen-cpp/.libs/libpdthrift_la-p4_prefix5.o
+mv -f printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix3.Tpo printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix3.Plo
+/bin/bash ../libtool  --tag=CXX   --mode=compile g++ -DHAVE_CONFIG_H -I. -I..  -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include   -fno-var-tracking-assignments   -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix6.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix6.Tpo -c -o printqueue/gen-cpp/libpdthrift_la-p4_prefix6.lo `test -f 'printqueue/gen-cpp/p4_prefix6.cpp' || echo './'`printqueue/gen-cpp/p4_prefix6.cpp
+mv -f printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix0.Tpo printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix0.Plo
+/bin/bash ../libtool  --tag=CXX   --mode=compile g++ -DHAVE_CONFIG_H -I. -I..  -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include   -fno-var-tracking-assignments   -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix7.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix7.Tpo -c -o printqueue/gen-cpp/libpdthrift_la-p4_prefix7.lo `test -f 'printqueue/gen-cpp/p4_prefix7.cpp' || echo './'`printqueue/gen-cpp/p4_prefix7.cpp
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix6.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix6.Tpo -c printqueue/gen-cpp/p4_prefix6.cpp  -fPIC -DPIC -o printqueue/gen-cpp/.libs/libpdthrift_la-p4_prefix6.o
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix7.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix7.Tpo -c printqueue/gen-cpp/p4_prefix7.cpp  -fPIC -DPIC -o printqueue/gen-cpp/.libs/libpdthrift_la-p4_prefix7.o
+mv -f printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix2.Tpo printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix2.Plo
+/bin/bash ../libtool  --tag=CXX   --mode=compile g++ -DHAVE_CONFIG_H -I. -I..  -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include   -fno-var-tracking-assignments   -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_pd_rpc_constants.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_pd_rpc_constants.Tpo -c -o printqueue/gen-cpp/libpdthrift_la-p4_pd_rpc_constants.lo `test -f 'printqueue/gen-cpp/p4_pd_rpc_constants.cpp' || echo './'`printqueue/gen-cpp/p4_pd_rpc_constants.cpp
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_pd_rpc_constants.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_pd_rpc_constants.Tpo -c printqueue/gen-cpp/p4_pd_rpc_constants.cpp  -fPIC -DPIC -o printqueue/gen-cpp/.libs/libpdthrift_la-p4_pd_rpc_constants.o
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_pd_rpc_constants.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_pd_rpc_constants.Tpo -c printqueue/gen-cpp/p4_pd_rpc_constants.cpp -o printqueue/gen-cpp/libpdthrift_la-p4_pd_rpc_constants.o >/dev/null 2>&1
+mv -f printqueue/gen-cpp/.deps/libpdthrift_la-p4_pd_rpc_constants.Tpo printqueue/gen-cpp/.deps/libpdthrift_la-p4_pd_rpc_constants.Plo
+/bin/bash ../libtool  --tag=CXX   --mode=compile g++ -DHAVE_CONFIG_H -I. -I..  -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include   -fno-var-tracking-assignments   -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_pd_rpc_types.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_pd_rpc_types.Tpo -c -o printqueue/gen-cpp/libpdthrift_la-p4_pd_rpc_types.lo `test -f 'printqueue/gen-cpp/p4_pd_rpc_types.cpp' || echo './'`printqueue/gen-cpp/p4_pd_rpc_types.cpp
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_pd_rpc_types.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_pd_rpc_types.Tpo -c printqueue/gen-cpp/p4_pd_rpc_types.cpp  -fPIC -DPIC -o printqueue/gen-cpp/.libs/libpdthrift_la-p4_pd_rpc_types.o
+mv -f printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix4.Tpo printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix4.Plo
+/bin/bash ../libtool  --tag=CXX   --mode=compile g++ -DHAVE_CONFIG_H -I. -I..  -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include   -fno-var-tracking-assignments   -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-res_constants.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-res_constants.Tpo -c -o printqueue/gen-cpp/libpdthrift_la-res_constants.lo `test -f 'printqueue/gen-cpp/res_constants.cpp' || echo './'`printqueue/gen-cpp/res_constants.cpp
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-res_constants.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-res_constants.Tpo -c printqueue/gen-cpp/res_constants.cpp  -fPIC -DPIC -o printqueue/gen-cpp/.libs/libpdthrift_la-res_constants.o
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-res_constants.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-res_constants.Tpo -c printqueue/gen-cpp/res_constants.cpp -o printqueue/gen-cpp/libpdthrift_la-res_constants.o >/dev/null 2>&1
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_pd_rpc_types.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_pd_rpc_types.Tpo -c printqueue/gen-cpp/p4_pd_rpc_types.cpp -o printqueue/gen-cpp/libpdthrift_la-p4_pd_rpc_types.o >/dev/null 2>&1
+mv -f printqueue/gen-cpp/.deps/libpdthrift_la-res_constants.Tpo printqueue/gen-cpp/.deps/libpdthrift_la-res_constants.Plo
+/bin/bash ../libtool  --tag=CXX   --mode=compile g++ -DHAVE_CONFIG_H -I. -I..  -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include   -fno-var-tracking-assignments   -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-res_types.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-res_types.Tpo -c -o printqueue/gen-cpp/libpdthrift_la-res_types.lo `test -f 'printqueue/gen-cpp/res_types.cpp' || echo './'`printqueue/gen-cpp/res_types.cpp
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-res_types.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-res_types.Tpo -c printqueue/gen-cpp/res_types.cpp  -fPIC -DPIC -o printqueue/gen-cpp/.libs/libpdthrift_la-res_types.o
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-res_types.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-res_types.Tpo -c printqueue/gen-cpp/res_types.cpp -o printqueue/gen-cpp/libpdthrift_la-res_types.o >/dev/null 2>&1
+mv -f printqueue/src/.deps/libpdcli_la-pdcli.Tpo printqueue/src/.deps/libpdcli_la-pdcli.Plo
+/bin/bash ../libtool  --tag=CXX   --mode=compile g++ -DHAVE_CONFIG_H -I. -I..  -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include   -fno-var-tracking-assignments   -g -std=c++11 -MT printqueue/thrift-src/libpdthrift_la-bfn_pd_rpc_server.lo -MD -MP -MF printqueue/thrift-src/.deps/libpdthrift_la-bfn_pd_rpc_server.Tpo -c -o printqueue/thrift-src/libpdthrift_la-bfn_pd_rpc_server.lo `test -f 'printqueue/thrift-src/bfn_pd_rpc_server.cpp' || echo './'`printqueue/thrift-src/bfn_pd_rpc_server.cpp
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/thrift-src/libpdthrift_la-bfn_pd_rpc_server.lo -MD -MP -MF printqueue/thrift-src/.deps/libpdthrift_la-bfn_pd_rpc_server.Tpo -c printqueue/thrift-src/bfn_pd_rpc_server.cpp  -fPIC -DPIC -o printqueue/thrift-src/.libs/libpdthrift_la-bfn_pd_rpc_server.o
+mv -f printqueue/gen-cpp/.deps/libpdthrift_la-p4_pd_rpc_types.Tpo printqueue/gen-cpp/.deps/libpdthrift_la-p4_pd_rpc_types.Plo
+/bin/bash ../libtool  --tag=CC   --mode=link gcc -std=gnu99   -g -O2 -L/opt/bf-sde-8.4.0//install/lib  -o libpd.la -rpath /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue printqueue/src/libpd_la-pd.lo  -lpthread -lthrift
+mv -f printqueue/gen-cpp/.deps/libpdthrift_la-res_types.Tpo printqueue/gen-cpp/.deps/libpdthrift_la-res_types.Plo
+/bin/bash ../libtool  --tag=CC   --mode=link gcc -std=gnu99   -g -O2 -L/opt/bf-sde-8.4.0//install/lib  -o libpdcli.la -rpath /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue printqueue/src/libpdcli_la-pdcli.lo  -lpthread -lthrift
+libtool: link: gcc -std=gnu99 -shared  -fPIC -DPIC  printqueue/src/.libs/libpd_la-pd.o   -L/opt/bf-sde-8.4.0//install/lib -lpthread -lthrift  -O2   -Wl,-soname -Wl,libpd.so.0 -o .libs/libpd.so.0.0.0
+libtool: link: (cd ".libs" && rm -f "libpd.so.0" && ln -s "libpd.so.0.0.0" "libpd.so.0")
+libtool: link: (cd ".libs" && rm -f "libpd.so" && ln -s "libpd.so.0.0.0" "libpd.so")
+libtool: link: ar cru .libs/libpd.a  printqueue/src/libpd_la-pd.o
+libtool: link: ranlib .libs/libpd.a
+libtool: link: ( cd ".libs" && rm -f "libpd.la" && ln -s "../libpd.la" "libpd.la" )
+libtool: link: gcc -std=gnu99 -shared  -fPIC -DPIC  printqueue/src/.libs/libpdcli_la-pdcli.o   -L/opt/bf-sde-8.4.0//install/lib -lpthread -lthrift  -O2   -Wl,-soname -Wl,libpdcli.so.0 -o .libs/libpdcli.so.0.0.0
+libtool: link: (cd ".libs" && rm -f "libpdcli.so.0" && ln -s "libpdcli.so.0.0.0" "libpdcli.so.0")
+libtool: link: (cd ".libs" && rm -f "libpdcli.so" && ln -s "libpdcli.so.0.0.0" "libpdcli.so")
+libtool: link: ar cru .libs/libpdcli.a  printqueue/src/libpdcli_la-pdcli.o
+libtool: link: ranlib .libs/libpdcli.a
+libtool: link: ( cd ".libs" && rm -f "libpdcli.la" && ln -s "../libpdcli.la" "libpdcli.la" )
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix5.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix5.Tpo -c printqueue/gen-cpp/p4_prefix5.cpp -o printqueue/gen-cpp/libpdthrift_la-p4_prefix5.o >/dev/null 2>&1
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix6.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix6.Tpo -c printqueue/gen-cpp/p4_prefix6.cpp -o printqueue/gen-cpp/libpdthrift_la-p4_prefix6.o >/dev/null 2>&1
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/gen-cpp/libpdthrift_la-p4_prefix7.lo -MD -MP -MF printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix7.Tpo -c printqueue/gen-cpp/p4_prefix7.cpp -o printqueue/gen-cpp/libpdthrift_la-p4_prefix7.o >/dev/null 2>&1
+libtool: compile:  g++ -DHAVE_CONFIG_H -I. -I.. -I./printqueue -I./printqueue/gen-cpp -I/opt/bf-sde-8.4.0//install/include -fno-var-tracking-assignments -g -std=c++11 -MT printqueue/thrift-src/libpdthrift_la-bfn_pd_rpc_server.lo -MD -MP -MF printqueue/thrift-src/.deps/libpdthrift_la-bfn_pd_rpc_server.Tpo -c printqueue/thrift-src/bfn_pd_rpc_server.cpp -o printqueue/thrift-src/libpdthrift_la-bfn_pd_rpc_server.o >/dev/null 2>&1
+mv -f printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix6.Tpo printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix6.Plo
+mv -f printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix5.Tpo printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix5.Plo
+mv -f printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix7.Tpo printqueue/gen-cpp/.deps/libpdthrift_la-p4_prefix7.Plo
+mv -f printqueue/thrift-src/.deps/libpdthrift_la-bfn_pd_rpc_server.Tpo printqueue/thrift-src/.deps/libpdthrift_la-bfn_pd_rpc_server.Plo
+/bin/bash ../libtool  --tag=CXX   --mode=link g++ -fno-var-tracking-assignments   -g -std=c++11 -L/opt/bf-sde-8.4.0//install/lib  -o libpdthrift.la -rpath /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue printqueue/gen-cpp/libpdthrift_la-p4_prefix0.lo printqueue/gen-cpp/libpdthrift_la-p4_prefix1.lo printqueue/gen-cpp/libpdthrift_la-p4_prefix2.lo printqueue/gen-cpp/libpdthrift_la-p4_prefix3.lo printqueue/gen-cpp/libpdthrift_la-p4_prefix4.lo printqueue/gen-cpp/libpdthrift_la-p4_prefix5.lo printqueue/gen-cpp/libpdthrift_la-p4_prefix6.lo printqueue/gen-cpp/libpdthrift_la-p4_prefix7.lo printqueue/gen-cpp/libpdthrift_la-p4_pd_rpc_constants.lo printqueue/gen-cpp/libpdthrift_la-p4_pd_rpc_types.lo printqueue/gen-cpp/libpdthrift_la-res_constants.lo printqueue/gen-cpp/libpdthrift_la-res_types.lo printqueue/thrift-src/libpdthrift_la-bfn_pd_rpc_server.lo  -lpthread -lthrift
+libtool: link: g++  -fPIC -DPIC -shared -nostdlib /usr/lib/gcc/x86_64-linux-gnu/4.9/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/4.9/crtbeginS.o  printqueue/gen-cpp/.libs/libpdthrift_la-p4_prefix0.o printqueue/gen-cpp/.libs/libpdthrift_la-p4_prefix1.o printqueue/gen-cpp/.libs/libpdthrift_la-p4_prefix2.o printqueue/gen-cpp/.libs/libpdthrift_la-p4_prefix3.o printqueue/gen-cpp/.libs/libpdthrift_la-p4_prefix4.o printqueue/gen-cpp/.libs/libpdthrift_la-p4_prefix5.o printqueue/gen-cpp/.libs/libpdthrift_la-p4_prefix6.o printqueue/gen-cpp/.libs/libpdthrift_la-p4_prefix7.o printqueue/gen-cpp/.libs/libpdthrift_la-p4_pd_rpc_constants.o printqueue/gen-cpp/.libs/libpdthrift_la-p4_pd_rpc_types.o printqueue/gen-cpp/.libs/libpdthrift_la-res_constants.o printqueue/gen-cpp/.libs/libpdthrift_la-res_types.o printqueue/thrift-src/.libs/libpdthrift_la-bfn_pd_rpc_server.o   -L/opt/bf-sde-8.4.0//install/lib -lpthread -lthrift -L/usr/lib/gcc/x86_64-linux-gnu/4.9 -L/usr/lib/gcc/x86_64-linux-gnu/4.9/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/4.9/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/4.9/../../.. -lstdc++ -lm -lc -lgcc_s /usr/lib/gcc/x86_64-linux-gnu/4.9/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/4.9/../../../x86_64-linux-gnu/crtn.o    -Wl,-soname -Wl,libpdthrift.so.0 -o .libs/libpdthrift.so.0.0.0
+libtool: link: (cd ".libs" && rm -f "libpdthrift.so.0" && ln -s "libpdthrift.so.0.0.0" "libpdthrift.so.0")
+libtool: link: (cd ".libs" && rm -f "libpdthrift.so" && ln -s "libpdthrift.so.0.0.0" "libpdthrift.so")
+libtool: link: ar cru .libs/libpdthrift.a  printqueue/gen-cpp/libpdthrift_la-p4_prefix0.o printqueue/gen-cpp/libpdthrift_la-p4_prefix1.o printqueue/gen-cpp/libpdthrift_la-p4_prefix2.o printqueue/gen-cpp/libpdthrift_la-p4_prefix3.o printqueue/gen-cpp/libpdthrift_la-p4_prefix4.o printqueue/gen-cpp/libpdthrift_la-p4_prefix5.o printqueue/gen-cpp/libpdthrift_la-p4_prefix6.o printqueue/gen-cpp/libpdthrift_la-p4_prefix7.o printqueue/gen-cpp/libpdthrift_la-p4_pd_rpc_constants.o printqueue/gen-cpp/libpdthrift_la-p4_pd_rpc_types.o printqueue/gen-cpp/libpdthrift_la-res_constants.o printqueue/gen-cpp/libpdthrift_la-res_types.o printqueue/thrift-src/libpdthrift_la-bfn_pd_rpc_server.o
+libtool: link: ranlib .libs/libpdthrift.a
+libtool: link: ( cd ".libs" && rm -f "libpdthrift.la" && ln -s "../libpdthrift.la" "libpdthrift.la" )
+make[4]: Leaving directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build/tofino'
+make[3]: Leaving directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build/tofino'
+make[3]: Entering directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build'
+make[3]: Leaving directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build'
+make[2]: Leaving directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build'
+make[1]: Leaving directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build'
+make[1]: Entering directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build'
+Making install in tofino
+make[2]: Entering directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build/tofino'
+make  install-am
+make[3]: Entering directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build/tofino'
+make[4]: Entering directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build/tofino'
+make[4]: Nothing to be done for 'install-exec-am'.
+ /bin/mkdir -p '/opt/bf-sde-8.4.0//install/share/cli/xml'
+ /bin/mkdir -p '/opt/bf-sde-8.4.0//install/lib/python2.7/site-packages/tofinopd/printqueue'
+ /bin/mkdir -p '/opt/bf-sde-8.4.0//install/include/tofinopd/printqueue/pd'
+ /bin/mkdir -p '/opt/bf-sde-8.4.0//install/share/tofinopd/printqueue'
+ /usr/bin/install -c -m 644 ./printqueue/cli/xml/pd_printqueue.xml '/opt/bf-sde-8.4.0//install/share/cli/xml'
+ /usr/bin/install -c -m 644 printqueue/pd/pd.h '/opt/bf-sde-8.4.0//install/include/tofinopd/printqueue/pd'
+ /usr/bin/install -c -m 644 printqueue/tofino.bin printqueue/context/context.json '/opt/bf-sde-8.4.0//install/share/tofinopd/printqueue'
+ /usr/bin/install -c -m 644 ./printqueue/gen-py/__init__.py '/opt/bf-sde-8.4.0//install/lib/python2.7/site-packages/tofinopd/printqueue'
+Byte-compiling python modules...
+__init__.py
+Byte-compiling python modules (optimized versions) ...
+__init__.py
+ /bin/mkdir -p '/opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue'
+ /bin/mkdir -p '/opt/bf-sde-8.4.0//install/lib/python2.7/site-packages/tofinopd/printqueue/p4_pd_rpc'
+ /bin/bash ../libtool   --mode=install /usr/bin/install -c   libpd.la libpdcli.la libpdthrift.la '/opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue'
+ /usr/bin/install -c -m 644 ./printqueue/gen-py/p4_pd_rpc/constants.py ./printqueue/gen-py/p4_pd_rpc/ttypes.py ./printqueue/gen-py/p4_pd_rpc/__init__.py ./printqueue/gen-py/p4_pd_rpc/printqueue.py '/opt/bf-sde-8.4.0//install/lib/python2.7/site-packages/tofinopd/printqueue/p4_pd_rpc'
+libtool: install: /usr/bin/install -c .libs/libpd.so.0.0.0 /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpd.so.0.0.0
+libtool: install: (cd /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue && { ln -s -f libpd.so.0.0.0 libpd.so.0 || { rm -f libpd.so.0 && ln -s libpd.so.0.0.0 libpd.so.0; }; })
+libtool: install: (cd /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue && { ln -s -f libpd.so.0.0.0 libpd.so || { rm -f libpd.so && ln -s libpd.so.0.0.0 libpd.so; }; })
+libtool: install: /usr/bin/install -c .libs/libpd.lai /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpd.la
+libtool: install: /usr/bin/install -c .libs/libpdcli.so.0.0.0 /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpdcli.so.0.0.0
+Byte-compiling python modules...
+constants.pyttypes.pylibtool: install: (cd /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue && { ln -s -f libpdcli.so.0.0.0 libpdcli.so.0 || { rm -f libpdcli.so.0 && ln -s libpdcli.so.0.0.0 libpdcli.so.0; }; })
+libtool: install: (cd /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue && { ln -s -f libpdcli.so.0.0.0 libpdcli.so || { rm -f libpdcli.so && ln -s libpdcli.so.0.0.0 libpdcli.so; }; })
+libtool: install: /usr/bin/install -c .libs/libpdcli.lai /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpdcli.la
+libtool: install: /usr/bin/install -c .libs/libpdthrift.so.0.0.0 /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpdthrift.so.0.0.0
+libtool: install: (cd /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue && { ln -s -f libpdthrift.so.0.0.0 libpdthrift.so.0 || { rm -f libpdthrift.so.0 && ln -s libpdthrift.so.0.0.0 libpdthrift.so.0; }; })
+libtool: install: (cd /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue && { ln -s -f libpdthrift.so.0.0.0 libpdthrift.so || { rm -f libpdthrift.so && ln -s libpdthrift.so.0.0.0 libpdthrift.so; }; })
+libtool: install: /usr/bin/install -c .libs/libpdthrift.lai /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpdthrift.la
+libtool: install: /usr/bin/install -c .libs/libpd.a /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpd.a
+libtool: install: chmod 644 /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpd.a
+libtool: install: ranlib /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpd.a
+libtool: install: /usr/bin/install -c .libs/libpdcli.a /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpdcli.a
+__init__.pyprintqueue.pylibtool: install: chmod 644 /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpdcli.a
+libtool: install: ranlib /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpdcli.a
+libtool: install: /usr/bin/install -c .libs/libpdthrift.a /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpdthrift.a
+libtool: install: chmod 644 /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpdthrift.a
+libtool: install: ranlib /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue/libpdthrift.a
+libtool: finish: PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/lib/platform-config/current/onl/bin:/lib/platform-config/current/onl/sbin:/lib/platform-config/current/onl/lib/bin:/lib/platform-config/current/onl/lib/sbin:/opt/bf-sde-8.4.0//install/bin:/sbin" ldconfig -n /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue
+----------------------------------------------------------------------
+Libraries have been installed in:
+   /opt/bf-sde-8.4.0//install/lib/tofinopd/printqueue
+
+If you ever happen to want to link against installed libraries
+in a given directory, LIBDIR, you must either use libtool, and
+specify the full pathname of the library, or use the `-LLIBDIR'
+flag during linking and do at least one of the following:
+   - add LIBDIR to the `LD_LIBRARY_PATH' environment variable
+     during execution
+   - add LIBDIR to the `LD_RUN_PATH' environment variable
+     during linking
+   - use the `-Wl,-rpath -Wl,LIBDIR' linker flag
+   - have your system administrator add LIBDIR to `/etc/ld.so.conf'
+
+See any operating system documentation about shared libraries for
+more information, such as the ld(1) and ld.so(8) manual pages.
+----------------------------------------------------------------------
+
+Byte-compiling python modules (optimized versions) ...
+constants.pyttypes.py__init__.pyprintqueue.py
+make[4]: Leaving directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build/tofino'
+make[3]: Leaving directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build/tofino'
+make[2]: Leaving directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build/tofino'
+make[2]: Entering directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build'
+make[3]: Entering directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build'
+make[3]: Nothing to be done for 'install-exec-am'.
+make[3]: Nothing to be done for 'install-data-am'.
+make[3]: Leaving directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build'
+make[2]: Leaving directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build'
+make[1]: Leaving directory '/opt/bf-sde-8.4.0/pkgsrc/p4-build'

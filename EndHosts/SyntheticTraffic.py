@@ -116,4 +116,5 @@ class SyntheticTraffic:
 
 if __name__ == '__main__':
     trace = SyntheticTraffic()
+    trace.generate_trace(0.1, 0.025, trace.ws_flows, 3)
     trace.generate_trace(0.1, 0.025, trace.dm_flows, 3)

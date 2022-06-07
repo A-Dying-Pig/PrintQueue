@@ -1,0 +1,226 @@
+yiran@lab101: DPDK_receive_pkt$ make run
+sudo ./build/printqueue -l 0-2 -n 4 -- -P -p 1
+[sudo] password for yiran:
+Sorry, try again.
+[sudo] password for yiran:
+EAL: Detected CPU lcores: 24
+EAL: Detected NUMA nodes: 2
+EAL: Detected shared linkage of DPDK
+EAL: Multi-process socket /var/run/dpdk/rte/mp_socket
+EAL: Selected IOVA mode 'PA'
+EAL: No available 1048576 kB hugepages reported
+EAL: Probe PCI driver: net_ixgbe (8086:10fb) device: 0000:82:00.1 (socket 1)
+TELEMETRY: No legacy callbacks, legacy socket not created
+timer hz: 2400000000
+Lcore 0: RX port 0
+Initializing port 0... done:
+
+Checking link status.........done
+Port 0 Link up at 10 Gbps FDX Autoneg
+PRINTQUEUE: lcore 1 has nothing to do
+PRINTQUEUE: entering main loop on lcore 0
+PRINTQUEUE:  -- lcoreid=0 portid=0
+PRINTQUEUE: lcore 2 has nothing to do
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                        0
+Packets received:                    0
+Packets dropped:                     0
+Aggregate statistics ===============================
+Total PrintQueue packets received:                  0
+Total packets received:              0
+Total packets dropped:               0
+====================================================
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                        0
+Packets received:                    0
+Packets dropped:                     0
+Aggregate statistics ===============================
+Total PrintQueue packets received:                  0
+Total packets received:              0
+Total packets dropped:               0
+====================================================
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                        0
+Packets received:                    0
+Packets dropped:                     0
+Aggregate statistics ===============================
+Total PrintQueue packets received:                  0
+Total packets received:              0
+Total packets dropped:               0
+====================================================
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                        0
+Packets received:                    0
+Packets dropped:                     0
+Aggregate statistics ===============================
+Total PrintQueue packets received:                  0
+Total packets received:              0
+Total packets dropped:               0
+====================================================
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                        0
+Packets received:                    0
+Packets dropped:                     0
+Aggregate statistics ===============================
+Total PrintQueue packets received:                  0
+Total packets received:              0
+Total packets dropped:               0
+====================================================
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                        0
+Packets received:                    0
+Packets dropped:                     0
+Aggregate statistics ===============================
+Total PrintQueue packets received:                  0
+Total packets received:              0
+Total packets dropped:               0
+====================================================
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                        0
+Packets received:                    0
+Packets dropped:                     0
+Aggregate statistics ===============================
+Total PrintQueue packets received:                  0
+Total packets received:              0
+Total packets dropped:               0
+====================================================
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                        0
+Packets received:                    0
+Packets dropped:                     0
+Aggregate statistics ===============================
+Total PrintQueue packets received:                  0
+Total packets received:              0
+Total packets dropped:               0
+====================================================
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                        0
+Packets received:                    0
+Packets dropped:                     0
+Aggregate statistics ===============================
+Total PrintQueue packets received:                  0
+Total packets received:              0
+Total packets dropped:               0
+====================================================
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                        0
+Packets received:                    0
+Packets dropped:                     0
+Aggregate statistics ===============================
+Total PrintQueue packets received:                  0
+Total packets received:              0
+Total packets dropped:               0
+====================================================
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                        0
+Packets received:                    0
+Packets dropped:                     0
+Aggregate statistics ===============================
+Total PrintQueue packets received:                  0
+Total packets received:              0
+Total packets dropped:               0
+====================================================
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                        0
+Packets received:                    0
+Packets dropped:                     0
+Aggregate statistics ===============================
+Total PrintQueue packets received:                  0
+Total packets received:              0
+Total packets dropped:               0
+====================================================
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                        0
+Packets received:                    0
+Packets dropped:                     0
+Aggregate statistics ===============================
+Total PrintQueue packets received:                  0
+Total packets received:              0
+Total packets dropped:               0
+====================================================
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                        0
+Packets received:                    0
+Packets dropped:                     0
+Aggregate statistics ===============================
+Total PrintQueue packets received:                  0
+Total packets received:              0
+Total packets dropped:               0
+====================================================
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                   544322
+Packets received:               544322
+Packets dropped:                544322
+Aggregate statistics ===============================
+Total PrintQueue packets received:             544322
+Total packets received:         544322
+Total packets dropped:          544322
+====================================================
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                   590505
+Packets received:               590505
+Packets dropped:                590505
+Aggregate statistics ===============================
+Total PrintQueue packets received:             590505
+Total packets received:         590505
+Total packets dropped:          590505
+====================================================
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                   590505
+Packets received:               590505
+Packets dropped:                590505
+Aggregate statistics ===============================
+Total PrintQueue packets received:             590505
+Total packets received:         590505
+Total packets dropped:          590505
+====================================================
+
+Port statistics ====================================
+Statistics for port 0 ------------------------------
+PrintQueue Packets received:                   590505
+Packets received:               590505
+Packets dropped:                590505
+Aggregate statistics ===============================
+Total PrintQueue packets received:             590505
+Total packets received:         590505
+Total packets dropped:          590505
+====================================================
+^C
+
+Signal 2 received, preparing to exit...
+Closing port 0... Done
+Bye...

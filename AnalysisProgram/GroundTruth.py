@@ -111,7 +111,7 @@ class GroundTruth:
             'timestamp): {4} nanoseconds\nAverage queue length: {2}\nAverage interval: {3}'
             .format(self.pkt_num, self.dequeue_total, self.average_queue_len, self.average_interval, self.enqueue_total))
         # draw
-        self.draw_queue_length()
+        # self.draw_queue_length()
         # self.draw_total_distribution(self.first_ets, self.last_ets)
 
     def packet_experiencing_high_delay(self, threshold=500):
@@ -368,7 +368,7 @@ class GroundTruth:
         plt.close()
 
 
-def Comparison(path, alpha, k, T, TW0_TB, TW0_z, sample_threshold=[1000, 2000, 5000, 10000, 15000, 20000]):
+def Comparison(path, alpha, k, T, TW0_TB, TW0_z, sample_threshold=[1000, 2000, 5000, 10000, 15000, 20000], packet_sample_number=20):
     """
     Compare TW with related works: Count-Min Sketch, HashPipe, FlowRadar
     :param path: the path to the parent folder of RAW and INT data
@@ -382,7 +382,6 @@ def Comparison(path, alpha, k, T, TW0_TB, TW0_z, sample_threshold=[1000, 2000, 5
     # exp1
     hash_list = HashFunction()
     print("Sampling packets")
-    packet_sample_number = 50
     pkts = gt.packet_experiencing_high_delay2(sample_threshold)
     sample_pkts = []
     sample_pkts_ids = []
@@ -486,6 +485,8 @@ def DataPlaneQuery(path, alpha, k, T, TW0_TB, TW0_z):
     print('---------------------------------------------------------------------------------------')
     print('---------------    Compare Data Plane Query with Related Works   ----------------------')
     print('---------------------------------------------------------------------------------------')
+    csv_file = open(os.path.join(path, 'data_plane_query_accuracy.csv'), 'w')
+    resultWriter = csv.writer(csv_file, dialect='excel-tab')
     for pkt in tw.signals:
         pkt['gt'] = gt.retrieve(pkt['enqueue_ts'], pkt['dequeue_ts'])
         pkt['tw_dpq'], tws, query_interval, ret_window = tw.retrieve(pkt['enqueue_ts'], pkt['dequeue_ts'])
@@ -494,14 +495,15 @@ def DataPlaneQuery(path, alpha, k, T, TW0_TB, TW0_z):
             if PQ_p == 0 and PQ_r == 0:
                 continue
             print('Time Windows Data Plane Query, Number Precision: {0}, Number Recall: {1}'.format(PQ_p, PQ_r))
+            resultWriter.writerow([PQ_p, PQ_r])
+    csv_file.close()
 
-def timer(path, alpha, k, T, TW0_TB, TW0_z):
+def timer(path, alpha, k, T, TW0_TB, TW0_z, packet_sample_number=20):
     '''
     Count the execution time of query
     '''
     tw = TimeWindowController(path=path, alpha=alpha, k=k, T=T, TW0_TB=TW0_TB, TW0_z=TW0_z)
     gt = GroundTruth(path)
-    packet_sample_number = 20
     stairs = [1000, 2000, 5000, 10000, 15000, 20000]
     pkts = gt.packet_experiencing_high_delay2(stairs)
     sample_pkts = []
@@ -527,6 +529,6 @@ def timer(path, alpha, k, T, TW0_TB, TW0_z):
 
 
 if __name__ == '__main__':
-    Comparison(path='./d/ports/4/0', alpha=2, k=10, T=4, TW0_TB=10, TW0_z=1024 / 1250, sample_threshold=[10000])
-    DataPlaneQuery(path='./d/ports/4/0', alpha=2, k=10, T=4, TW0_TB=10, TW0_z=1024 / 1250)
+    Comparison(path='./d/ports/1/0', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250, sample_threshold=[10000])
+    DataPlaneQuery(path='./d/ports/1/0', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250)
     # timer(path='./d/syn3/1000', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250)

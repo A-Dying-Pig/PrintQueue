@@ -1,0 +1,7 @@
+root@localhost:~/PrintQueue/PrintQueue_Tofino# make printqueue
+gcc -I $SDE/pkgsrc/p4-build/tofinopd/printqueue/ -I$SDE_INSTALL/include -I$SDE/pkgsrc/bf-drivers/include  -I$SDE/pkgsrc/bf-drivers/bf_switchd -g -O2 -std=gnu99 \
+        -L/usr/local/lib -L$SDE_INSTALL/lib -L$SDE/pkgsrc/bf-drivers/src -L$SDE/pkgsrc/bf-drivers/bf_switchd\
+    src/ctrl/PrintQueue.c $SDE/pkgsrc/p4-build/tofinopd/printqueue/src/pd.c -o PrintQueue \
+    -ldriver -lbfsys -lbfutils -lbf_switchd_lib \
+        -lm -ldl -lpthread \
+        -ltofinopdfixed_thrift -lthrift

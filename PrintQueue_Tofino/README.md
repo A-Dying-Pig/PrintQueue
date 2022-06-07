@@ -6,8 +6,10 @@ The code is tested under `SDE-8.4.0`.
 
 ## Insert Kernel Module
 Load kernel module before launching control plane program:
-* with data plane query: `make kpkt`: load `bf_kpkt`.
-* without data plane query: `make kdrv`: load `bf_kdrv`.
+
+* PrintQueue - `make kpkt`: load `bf_kpkt`.
+* Other programs - `make kdrv`: load `bf_kdrv`.
+
 Unload the current module and turn off control plane program before switching to the other module. 
 Check modules with `lsmod` and unload with `rmmod [MOD NAME]`.
 
@@ -22,32 +24,30 @@ make clean_tw
 make clean_qm
 ```
 
-Execute:
+Compile the data plane program:
 ```shell script
 make configure
 make compile
 ```
-to compile the data plane program.
 
-After the successful compilation, execute:
+After the data plane compilation, compile the control plane program:
 ```shell script
 make printqueue
 ```
-to compile the control plane program.
 
-Finally, launch the control and data plane program together with:
+Launch the control and data plane program together with:
 ```shell script
-# without data plane query
 make runPQ
-# with data plane query
-make runPQ kernel=true
 ```
-Control plane enables query process, including periodically reading switch registers and reading upon switch signals, by running:
+Control plane starts to read data plane registers by running the commands in **another** terminal:
 ```shell script
 kill -s USR1 [PID]
 # [PID] is the program ID.
 # [PID] is printed when the control plane program is launched.
 ```
+
+The register values of time windows and queue monitors will be stored in the `../tw_data/[Port ID]/tw_data` and `../qm_data/[Port ID]/qm_data` folder.
+The data plane query signals will be stored in the `../tw_data/[Port ID]/signal_data/` and `../qm_data/[Port ID]/signal_data/`.
 
 ## Testbed Topology
 The experiments in the paper are carried on in the following testbed.
@@ -85,51 +85,57 @@ This section introduces how to manipulate different parts of the code.
 PrintQueue consists of two data structure, i.e., time windows and queue monitor.
 Only one structure can run in the data plane at a time.
 Decide which data structure is activated in the `main.p4`.
-Three options are available:
-* `time_windows.p4`: time windows without *data plane query*.
-* `time_windows_data_query.p4`: time windows with *data plane query*.
-* `queue_monitor.p4`: queue monitor with *data plane query*
+Two options:
+* `time_windows_data_query.p4`: time windows with data plane query.
+* `queue_monitor.p4`: queue monitor with data plane query.
 
 Comment the unused parts and compile the program.
 
 To modify the parameters of time windows and queue monitor, modify the constants and parameter values in `includes.p4`.
-To change the number of time windows, add or delete windows in the control flow parts of `time_windows.p4` and `time_windows_data_query.p4`.
+To change the number of time windows, add or delete windows in the control flow parts of `time_windows_data_query.p4`.
 
 ### Modify Control Plane
 Control plane program must be in accord with the data plane program if the activated data structure or parameter values changes.
-Modify the parameter values in `PrintQueue.c`. Comment or uncomment the time windows or queue monitor code to keep pace with the data plane.
+Modify the parameter values in `PrintQueue.c` (`line 481 - 494`). Comment or uncomment the time windows or queue monitor code to keep pace with the data plane.
 
 For higher reading throughput, the control plane program uses *C*, instead of *Python*, API to poll and reset register values.
 Beyond that, the program get rids of some unnecessary code to further accelerate reading and save memories.
-However, the acceleration makes handle IDs of registers hard-coded in the program. The handle IDs may change under different environments.
-Users must check their own IDs and update the `line 333` and `line 430` after successful compilation.
+However, the acceleration makes handle IDs of registers **hard-coded** in the program. The handle IDs may change under different environments.
+Users must check their own IDs and update the `line 300, 328, 399, 425` after successful compilation.
 The handler IDs can be found in `$SDE/pkgsrc/p4-build/tofino/printqueue/src/pd.c`.
 
 In the testbed, all the links go through `pipeline 1` of the switch.
 Thus the control plane program only stores register values of `pipeline 1`.
 However, you may use other pipelines in your setting, as Tofino has 4 pipelines.
-In this case, please modify the code in `line 353` and `line 446`.
+In this case, please modify the code in `line 352` and `line 445`.
 
 ### Data Plane Query
 *data plane query* is process that data plane program triggers control plane program to read and store register values.
-The trigger signal is that the queue depth as a packet enqueues is larger than the packet's preset threshold.
+The trigger signal is that the queue depth, as a packet enqueues, is larger than the packet's preset threshold.
 There are two ways to set thresholds.
 
-* Populate flows' thresholds via a flow table `qdepth_alerting_threshold_` in the `ingress.p4`.
-The control plane program reads the content of `qdepth_threshold.csv` and populates entries.
-The data plane program matches every packet's flow ID in the table to get thresholds.
+* Modify the content of `qdepth_threshold.csv`. The control plane program populates the file entries to a flow table `qdepth_alerting_threshold_` in the `ingress.p4`.
+The data plane program matches every packet's flow ID in the table to get thresholds. If no match is found, set the threshold to the default value (defined as `DEFAULT_QDEPTH_THRESHOLD` in `includes.p4`).
 
 * End hosts can send packets, with `type` fields of Ethernet headers equal `0x080d`, to set thresholds for the packets.
 The packets contain a 32-bit header, standing for the threshold, after Ethernet, IPv4, and TCP header as shown below:
 <img src="../doc/probe_packet_headers.png" width="200">
 
+Probe packets have higher priority than flow table when setting thresholds. 
 
-Probe packets have higher priority than flow table when setting thresholds.
+The signals are stored in `.bin` files in the `../tw_data/[Port ID]/signal_data` and `../qm_data/[Port ID]/signal_data`.
+The layout of binary files is:
+<img src="../doc/signal_binary_layout.png" width="350">
+
+`Type` can have the following values:
+* 1: sequence number overflows of queue monitor.
+* 2: data plane query of queue monitor.
+* 4: data plane query of time windows.
 
 Control plane program leverages a tunnel between CPU and data plane to receive trigger signals.
 `bf_kpkt` kernel module needs to be loaded to create the tunnel.
 The default CPU port of pipeline 1 is `192`.
-Modify the code in `line 757` if using other pipelines or different devices.
+Modify the code in `line 846` if using other pipelines or different devices.
 When program is successfully launched, a new network interface will be created, on which CPU listens to get data plane signals.
 Turn on the interface:
 ```shell script
@@ -138,7 +144,7 @@ ifconfig [INTERFACE NAME] up
 ```
 
 ## Binary Data
-The register values of time windows and queue monitor are stored in folder `./tw_data` and `./qm_data`.
+The register values of time windows and queue monitor are stored in folder `../tw_data/[Port ID]/tw_data` and `../qm_data/[Port ID]/qm_data`.
 The values are stored in binary format `.bin`.
 The layout of binary files is, for example:
 * a set of time windows with `k = 12`, `T = 4`:
@@ -149,7 +155,21 @@ The layout of binary files is, for example:
 
 <img src="../doc/qm_binary_layout.png" width="700">
 
-Use the code in `../AnalysisProgram` to process the register values and diagnose how a certain packet is delayed by others.
+When evaluating time windows, put the folder `gt_data` collected from receiver servers in the `../tw_data/[Port ID]/`.
+`gt_data` serves as the ground truth data. 
+Use the code in `../AnalysisProgram` to get P&R accuracy of time windows.
+
+## Port Isolation
+Time windows and queue monitor are implemented on certain ports.
+Each port has it individual set of registers without interfering each other.
+To enable PrintQueue on certain port, modify `./src/ctrl/port_isolation.csv`.
+Add the port's data plane ID with a Port ID starting from 0.
+The register values of the port are stored in `../tw_data/[Port ID]` and `../qm_data/[Port ID]`.
+
+To modify the number of registers for a single port, modify the `SINGLE_PORT_` in the `includes.py` and `k, kq` in the `PrintQueue.c`.
+To modify the total number of all registers, modify `INDEX_NUM`,`HALF_INDEX_NUM`, `TOTAL_QDEPTH`,`HALF_QDEPTH` in the `includes.py` and `highest_shift_bit`, `second_highest_shift_bit` in the `PrintQueue.c`.
+
+
 
 ## Other commands
 Clean time windows' and queue monitor's binary data:

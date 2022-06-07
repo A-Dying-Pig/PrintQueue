@@ -1,0 +1,14 @@
+yiran@lab106: uw$ sudo tcpreplay -i p2p1 -K -x 1000000000000 --netmap -l 1000 --duration=1 univ1_pt1_tcp_666135.pcap
+[sudo] password for yiran:
+Switching network driver for p2p1 to netmap bypass mode... done!
+File Cache is enabled
+Actual: 5598525 packets (463395544 bytes) sent in 1.00 seconds
+Rated: 463329751.1 Bps, 3706.63 Mbps, 5597730.12 pps
+Flows: 27194 flows, 27190.13 fps, 5995215 flow packets, 0 non-flow
+Statistics for network device: p2p1
+        Successful packets:        5598525
+        Failed packets:            0
+        Truncated packets:         0
+        Retried packets (ENOBUFS): 0
+        Retried packets (EAGAIN):  21913
+Switching network driver for p2p1 to normal mode... done!
