@@ -527,6 +527,6 @@ def timer(path, alpha, k, T, TW0_TB, TW0_z):
 
 
 if __name__ == '__main__':
-    Comparison(path='./d/ports/1/0', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250, sample_threshold=[10000])
-    DataPlaneQuery(path='./d/ports/1/0', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250)
+    Comparison(path='./d/ports/4/0', alpha=2, k=10, T=4, TW0_TB=10, TW0_z=1024 / 1250, sample_threshold=[10000])
+    DataPlaneQuery(path='./d/ports/4/0', alpha=2, k=10, T=4, TW0_TB=10, TW0_z=1024 / 1250)
     # timer(path='./d/syn3/1000', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250)

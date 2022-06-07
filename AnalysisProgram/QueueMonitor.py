@@ -127,6 +127,15 @@ class QueueMonitor:
             current_ret = []
             j = 0
             larger_one_found = False
+            # check whether all the registers are empty
+            all_empty = True
+            for z in range(0, len(current_QM)):
+                if current_QM[z]['FID'] != '0000000000000000':
+                    all_empty = False
+                    break
+            if all_empty:
+                ret.append({'ts': self.QM_registers[i]['ts'], 'qdepth': 0, 'QM_result': []})
+                continue
             # check whether there is an later packet in the previous stack
             for item in prev_ret:
                 while j <= item['index']:
@@ -154,4 +163,4 @@ class QueueMonitor:
 
 
 if __name__ == '__main__':
-    qm = QueueMonitor(path='./QM_RAW/3')
+    qm = QueueMonitor(path='./d/qm/0/qm_data')
