@@ -9,13 +9,11 @@
 #include "ingress.p4"
 
 //-------------------------------------------------------------------------//
-//                Include Only One of the Three File                       //
+//                Include Only One of the Two File                       //
 //-------------------------------------------------------------------------//
-//    1. time windows without data plane query (time_windows.p4)           //
-//    2. time windows with data plane query (time_windows_data_query.p4)   //
-//    3. queue monitor with data plane query (queue_monitor.p4)            //
+//    1. time windows with data plane query (time_windows_data_query.p4)   //
+//    2. queue monitor with data plane query (queue_monitor.p4)            //
 //-------------------------------------------------------------------------//
-// #include "time_windows.p4"
 #include "time_windows_data_query.p4"
 // #include "queue_monitor.p4"
 
@@ -24,7 +22,6 @@ control ingress {
 }
 
 control egress {
-    // time_windows_periodical_pipe();
     time_windows_data_pipe();
     // queue_monitor_pipe();
 }

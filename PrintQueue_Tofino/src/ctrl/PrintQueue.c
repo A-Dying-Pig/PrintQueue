@@ -396,7 +396,7 @@ p4_pd_queue_monitor_register_range_read
   int pipe_count, num_vals_per_pipe;
   status = pipe_stful_query_get_sizes(sess_hdl,
                                       dev_tgt.device_id,
-                                      100663303,
+                                      100663304,
                                       &pipe_count,
                                       &num_vals_per_pipe);
   if(status != PIPE_MGR_SUCCESS) return status;
@@ -422,7 +422,7 @@ p4_pd_queue_monitor_register_range_read
     // ------------------------------------------------------------------------------------------------------------------
     //   Please check and modify the handle_id under your environment. They can be found at your pd.c after compilation.
     //-------------------------------------------------------------------------------------------------------------------
-    int handle_id[] = {100663303, 100663304,100663305}; // src_ip, dst_ip, seq_num
+    int handle_id[] = {100663304, 100663305,100663306}; // src_ip, dst_ip, seq_num
 
     uint total = 0;
     for (int rn = 0; rn < 3; rn ++){
@@ -470,7 +470,7 @@ typedef struct ipv4_address{
 } ipv4_address_t;
 
 // -------------------------------------------------------------------//
-//           The following is the configurable parameters             //
+//    The following is the configurable parameters of TIME WINDOWS    //
 //                Tune them according to your setting                 //
 //--------------------------------------------------------------------//
 // for a single port
@@ -478,10 +478,23 @@ typedef struct ipv4_address{
 // T: the number of time windows
 // a: compression factor
 // duration: the number of seconds for which the periodical register reading lasts
-static uint32_t k = 11, T = 4, a = 1, duration = 2, TB0 = 10;
-// total registers 2^14
-static uint32_t highest_shift_bit = 13, second_highest_shift_bit = 12;
+static uint32_t k = 12, T = 4, a = 1, duration = 2, TB0 = 10;
+static uint32_t highest_shift_bit = 13, second_highest_shift_bit = 12;  // total registers 2^14
+//-----------------------------------------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------//
+//    The following is the configurable parameters of QUEUE MONITOR   //
+//                Tune them according to your setting                 //
+//--------------------------------------------------------------------//
+// for a single port
+// kq: the cell number of a single queue monitor: 2^kq
+// max_qdepth: the maximum qdepth number, must be smaller than 2^kq
+// read_interval: the number of microseconds which is the reading interval
+// duration_q: the number of seconds for which the periodical register reading lasts
+static uint32_t kq = 15, max_qdepth = 25000, read_interval = 100000, duration_q = 5;
+static uint32_t highest_shift_bit_q = 16, second_highest_shift_bit_q = 15; // total registers 2^17
+//-----------------------------------------------------------------------------------------------------------------------------------
 static uint32_t highest[MAX_PORT_NUM], second_highest[MAX_PORT_NUM], cell_number = 0;  // highest i-th item <-> i-th port entry
+static bool wrap[MAX_PORT_NUM];
 
 //--------------------------------------------------------------------------//
 //                                                                          //
@@ -619,6 +632,9 @@ void* listen_on_interface_thread(){
         data_signal[data_signal_tail].enqueue_ts = enqueue_ts;
         data_signal[data_signal_tail].dequeue_ts = dequeue_ts;
         data_signal[data_signal_tail].isolation_prefix = iso_id << k;
+        if (rcv_signal == 2){
+          wrap[data_signal[data_signal_tail].table_idx] = true;   //seq num overflow
+        }
         //flip highest bit ASAP
         printf("flip highest bit\n");
         data_signal[data_signal_tail].previous_highest = highest[data_signal[data_signal_tail].table_idx];
@@ -718,6 +734,7 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < MAX_PORT_NUM; i++){
     highest[i] = 0;
     second_highest[i] = 0;
+    wrap[i] = false;
   }
   cell_number = 1 << k;
 
@@ -921,7 +938,7 @@ printf("Successfully isolate ports\n");
 // /*                                                                    */
 // /*--------------------------------------------------------------------*/
 printf("\n\n-----------------------------------------------------\nTime Windows is Activating\n-----------------------------------------------------\n\n");
-uint32_t prev_highest = 0, prev_second_highest = 0, estimated_retrieve_interval = 0, data_query_start = 0, data_query_num = 0, data_query_end = 0, storage_start = 0, index = 0;
+uint32_t estimated_retrieve_interval = 0, data_query_start = 0, data_query_num = 0, data_query_end = 0, storage_start = 0, index = 0;
 int32_t available_interval = 0;
 double reading_ratio = 0.05;
 // set second highest bit
@@ -1073,13 +1090,13 @@ while(running_flag){
             fclose(f);
             memset(data_dir, 0, 100);
             // unlock data plane
+            p4_pd_printqueue_register_range_reset_data_query_lock_r(sess_hdl, dev_tgt, data_signal[data_signal_head].iso_id, 1);
             data_signal_head = (data_signal_head + 1) % (MAX_PORT_NUM + 2);
             if (data_signal_head == data_signal_tail){
               printf("Data signal queue is empty\n");
               new_signal = false;
             }
             finish_last = true;
-            p4_pd_printqueue_register_range_reset_data_query_lock_r(sess_hdl, dev_tgt, data_signal[data_signal_head].iso_id, 1);
           }
           gettimeofday(&s_us, NULL);
           available_interval = e_us[0].tv_sec * 1000000 + e_us[0].tv_usec + retrieve_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
@@ -1101,156 +1118,176 @@ while(running_flag){
 /*                                                                    */
 /*--------------------------------------------------------------------*/
 // printf("\n\n-----------------------------------------------------\nQueue Monitor is Activating\n-----------------------------------------------------\n\n"  );
-// // -------------------------------------------------------------------//
-// //           The following is the configurable parameters             //
-// //                Tune them according to your setting                 //
-// //--------------------------------------------------------------------//
-// // k: the depth of the stack (data structure) is 2^k
-// // max_qdepth: the maximum qdepth number, must be smaller than 2^k
-// // read_interval: the number of microseconds which is the reading interval
-// // duration: the number of seconds for which the periodical register reading lasts
-// uint32_t k = 15, max_qdepth = 25000, read_interval = 100000, duration = 5;
-// //--------------------------------------------------------------------//
-// //--------------------------------------------------------------------//
-// uint32_t highest = 0, second_highest = 0, time_pass = 0, index = 0;
-// uint32_t prev_highest = 0, prev_second_highest = 0, estimated_retrieve_interval = 0, data_query_start = 0, data_query_num = 0, data_query_end = 0, storage_start = 0;
+// uint32_t time_pass = 0, index = 0, estimated_retrieve_interval = 0, data_query_start = 0, data_query_num = 0, data_query_end = 0, storage_start = 0;
 // int32_t available_interval = 0;
 // double reading_ratio = 0.05;
-// bool wrap = false;
 // printf("Queue monitor retrieve interval: %ld us\n", read_interval);
-// // set second highest bit
-// p4_pd_printqueue_check_stack_action_spec_t action_set_second_highest_bit;
-// action_set_second_highest_bit.action_second_highest = second_highest << k;
-// status_tmp = p4_pd_printqueue_check_stack_tb_set_default_action_check_stack(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
-// if(status_tmp!=0) {
-//   printf("Error setting the second highest bit!\n");
-//   return false;
-// }
-// second_highest = 1;
-// printf("Successfully set the second highest bit\n");
 
+// // set second highest bit
+// p4_pd_printqueue_prepare_qm_tb_match_spec_t second_highest_matches[MAX_PORT_NUM];
+// p4_pd_printqueue_prepare_qm_action_spec_t second_highest_actions[MAX_PORT_NUM];
+// for (i = 0; i < port_entry_num; i++){
+//   second_highest_matches[i].PQ_md_isolation_id = port_table[i].isolation_id;
+//   second_highest_actions[i].action_second_highest = second_highest[i];
+//   status_tmp = p4_pd_printqueue_prepare_qm_tb_table_add_with_prepare_qm(sess_hdl, dev_tgt, &second_highest_matches[i], &second_highest_actions[i], &handlers[0]);
+//   if(status_tmp != 0){
+//     printf("Error adding table entries - prepare TW0!\n");
+//     return false;
+//   }
+// }
+// for (i = 0; i < port_entry_num; i++){
+//   second_highest[i] = 1; 
+// }
 // //initialize buffers used to store register values
 // uint8_t buffer[300000];
 // uint8_t data_query_buffer[300000], data_query_tmp_buffer[300000];
-// char data_dir[100];
+// char data_dir[100], sig_data_dir[100];
 // memset(buffer, 0, 300000);
 // memset(data_dir, 0, 100);
+// uint32_t per_round_count = 0;
 // while(running_flag){
 //   gettimeofday(&initial_us, NULL);
-//   gettimeofday(&e_us, NULL);
+//   for (i = 0; i < port_entry_num; i ++){
+//       gettimeofday(&e_us[i], NULL);
+//   }
 //   while(loop_flag){
-//       gettimeofday(&s_us, NULL);
-//       time_pass = (s_us.tv_sec - e_us.tv_sec) * 1000000 + s_us.tv_usec - e_us.tv_usec;
-//       if (time_pass >= read_interval){
-//         action_set_second_highest_bit.action_second_highest = second_highest << k;
-//         status_tmp = p4_pd_printqueue_check_stack_tb_set_default_action_check_stack(sess_hdl,dev_tgt,&action_set_second_highest_bit, &handlers[0]);
-//         gettimeofday(&e_us, NULL);
-//         if(status_tmp!=0) {
-//           printf("Error setting second highest bit!\n");
-//           return false;
-//         }
-//         second_highest ^= 1;
-//         // read and reset just recorded QM
-//         index = (highest << (k + 1)) + (second_highest << k);
-//         p4_pd_queue_monitor_register_range_read(sess_hdl, dev_tgt, index, max_qdepth, 1, &actual_read, buffer, &value_count, 1);
-//         // reset registers after read: only store delta data
-//         p4_pd_printqueue_register_range_reset_src_ip_r(sess_hdl, dev_tgt, index, max_qdepth);
-//         p4_pd_printqueue_register_range_reset_dst_ip_r(sess_hdl, dev_tgt, index, max_qdepth); 
-//         p4_pd_printqueue_register_range_reset_seq_array_r(sess_hdl, dev_tgt, index, max_qdepth);
-//         // store the register values
-//         if (wrap){
-//           sprintf(data_dir, "./qm_data/%ld_%ld_1.bin",e_us.tv_sec,e_us.tv_usec); // e_us is the time after the operatin of bit flip, also the start of the reading
-//           wrap = false;
-//         }else{
-//           sprintf(data_dir, "./qm_data/%ld_%ld_0.bin",e_us.tv_sec,e_us.tv_usec); // e_us is the time after the operatin of bit flip, also the start of the reading
-//         }
-//         FILE * f = fopen(data_dir, "wb");
-//         fwrite(buffer, 1, 300000, f);
-//         fclose(f);
-//         memset(buffer, 0, 300000);
-//         memset(data_dir, 0, 100);
+//       for (i = 0; i < port_entry_num; i++){
 //         gettimeofday(&s_us, NULL);
-//         estimated_retrieve_interval = ( s_us.tv_sec - e_us.tv_sec ) * 1000000 + s_us.tv_usec - e_us.tv_usec;
-//         printf("\nPeriodiocal poll needs: %d us.\n", estimated_retrieve_interval);
+//         time_pass = (s_us.tv_sec - e_us[i].tv_sec) * 1000000 + s_us.tv_usec - e_us[i].tv_usec;
+//         if (time_pass >= read_interval){
+//           if  (i == 0){
+//             per_round_count = 0;
+//           }
+//           second_highest_actions[i].action_second_highest = second_highest[i] << second_highest_shift_bit_q;
+//           status_tmp = p4_pd_printqueue_prepare_qm_tb_table_modify_with_prepare_qm_by_match_spec(sess_hdl, dev_tgt, &second_highest_matches[i], &second_highest_actions[i]);
+//           gettimeofday(&e_us[i], NULL);
+//           if(status_tmp!=0) {
+//             printf("Error setting second highest bit!\n");
+//             return false;
+//           }
+//           second_highest[i] ^= 1;
+//           // read and reset just recorded QM
+//           printf("Periodical reading - port: %d, h: %d, sh: %d, iso_id: %d, iso_prefix: %d", port_table[i].port, highest[i], second_highest[i], port_table[i].isolation_id, port_table[i].isolation_prefix);
+//           index = port_table[i].isolation_prefix + (second_highest[i] << second_highest_shift_bit_q) + (highest[i] << highest_shift_bit_q);
+//           p4_pd_queue_monitor_register_range_read(sess_hdl, dev_tgt, index, max_qdepth, 1, &actual_read, buffer, &value_count, 1);
+//           // reset registers after read: only store delta data
+//           p4_pd_printqueue_register_range_reset_src_ip_r(sess_hdl, dev_tgt, index, max_qdepth);
+//           p4_pd_printqueue_register_range_reset_dst_ip_r(sess_hdl, dev_tgt, index, max_qdepth); 
+//           p4_pd_printqueue_register_range_reset_seq_array_r(sess_hdl, dev_tgt, index, max_qdepth);
+//           // store the register values
+//           if (wrap[i]){
+//             sprintf(data_dir, "./qm_data/%d/qm_data/%ld_%ld_1.bin",i,e_us[i].tv_sec,e_us[i].tv_usec); // e_us is the time after the operatin of bit flip, also the start of the reading
+//             wrap[i] = false;
+//           }else{
+//             sprintf(data_dir, "./qm_data/%d/qm_data/%ld_%ld_0.bin",i,e_us[i].tv_sec,e_us[i].tv_usec); // e_us is the time after the operatin of bit flip, also the start of the reading
+//           }
+//           FILE * f = fopen(data_dir, "wb");
+//           fwrite(buffer, 1, 300000, f);
+//           fclose(f);
+//           memset(buffer, 0, 300000);
+//           memset(data_dir, 0, 100);
+//           gettimeofday(&s_us, NULL);
+//           estimated_retrieve_interval = ( s_us.tv_sec - e_us[i].tv_sec ) * 1000000 + s_us.tv_usec - e_us[i].tv_usec;
+//           available_interval = e_us[0].tv_sec * 1000000 + e_us[0].tv_usec + read_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
+//           printf("\nPort %d, periodiocal poll finishes, it needs: %d us, %d us til next round.\n", port_table[i].port ,estimated_retrieve_interval,available_interval);
+//           per_round_count += 1;
+//         }
+//       }
+//       gettimeofday(&s_us, NULL);
+//       if (s_us.tv_sec - initial_us.tv_sec > duration_q){
+//           printf("\nQueue Monitor retrieve Ends!\n");
+//           loop_flag = false;
+//           signal_flag = false;
+//           break;
+//         }
+//       available_interval = e_us[0].tv_sec * 1000000 + e_us[0].tv_usec + read_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
+//       if (available_interval < 2000){
+//         // printf("*");
+//         continue;
 //       }
 //       //-----------------------------------------------------------------------------------//
 //       //                               Data Plane Query                                    //
 //       //-----------------------------------------------------------------------------------//
-//       if ( !new_signal && !poll_ready){
-//         if (estimated_retrieve_interval){
-//           memset(data_query_buffer, 0, 300000);
-//           poll_ready = true;
-//         }
-//       }
-//       if (poll_ready && new_signal){
-//         printf("flip highest bit\n");
-//         prev_highest = highest;
-//         prev_second_highest = second_highest ^ 1;
-//         highest ^= 1;
-//         data_query_start = (prev_highest << (k + 1)) + (prev_second_highest << k);
-//         data_query_end = data_query_start + max_qdepth;
-//         storage_start = 0;
-//         poll_ready = false;
-//         if (data_signal.type == 2){
-//           // seq num overflow
-//           wrap = true;
-//         }
-//       }
-//       if (!poll_ready && new_signal){
-//         gettimeofday(&s_us, NULL);
-//         available_interval = e_us.tv_sec * 1000000 + e_us.tv_usec + read_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
-//         if (available_interval < 15000){
-//           // printf("x");
-//           continue;
-//         }      
-//         data_query_num = floor(((double)available_interval / (double)estimated_retrieve_interval) * reading_ratio * (double)max_qdepth);
-//         if (data_query_start + data_query_num >= data_query_end){
-//           printf(".\n");
-//           data_query_num = data_query_end - data_query_start;
-//         }
-//         if(data_query_num != 0){
-//           printf("Available interval: %d us. Read %d entries.\n", available_interval, data_query_num);
-//           memset(data_query_tmp_buffer, 0, 300000);
-//           p4_pd_queue_monitor_register_range_read(sess_hdl, dev_tgt, data_query_start, data_query_num, 1, &actual_read, data_query_tmp_buffer, &value_count, 1);
-//           p4_pd_printqueue_register_range_reset_src_ip_r(sess_hdl, dev_tgt, data_query_start, data_query_num);
-//           p4_pd_printqueue_register_range_reset_dst_ip_r(sess_hdl, dev_tgt, data_query_start, data_query_num); 
-//           p4_pd_printqueue_register_range_reset_seq_array_r(sess_hdl, dev_tgt, data_query_start, data_query_num);
-//           data_query_start += data_query_num;
-//           printf("✓ reading\n");
-//           memcpy(data_query_buffer + storage_start * 4, data_query_tmp_buffer, data_query_num * 4);
-//           memcpy(data_query_buffer + storage_start * 4 + max_qdepth * 4, data_query_tmp_buffer + data_query_num * 4, data_query_num * 4);
-//           memcpy(data_query_buffer + storage_start * 4 + max_qdepth * 8, data_query_tmp_buffer + data_query_num * 8, data_query_num * 4);
-//           storage_start += data_query_num;
-//           printf("✓ memory copy \n");
-//         }
-//         if (data_query_start == data_query_end){
-//           gettimeofday(&s_us, NULL);
-//           available_interval = e_us.tv_sec * 1000000 + e_us.tv_usec + read_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
-//           if (available_interval < 2500){
-//             printf(" W ");
-//             continue;
+//       if (per_round_count == port_entry_num){
+//         if (!poll_ready && finish_last){
+//           if (estimated_retrieve_interval && new_signal){
+//             memset(data_query_buffer, 0, 300000);
+//             poll_ready = true;
+//             finish_last = false;
 //           }
-//           // all registers are read
-//           sprintf(data_dir, "./qm_data/%ld_%ld_0.bin",data_signal.ts.tv_sec,data_signal.ts.tv_usec);  // start of reading
-//           printf("Store in %s\n", data_dir);
-//           FILE * f = fopen(data_dir, "wb");
-//           fwrite(data_query_buffer, 1, 300000, f);
+//         }
+//         if (poll_ready && !finish_last){
+//           memset(sig_data_dir, 0, 100);
+//           sprintf(sig_data_dir, "./qm_data/%d/signal_data/%ld_%ld.bin", data_signal[data_signal_head].table_idx, data_signal[data_signal_head].ts.tv_sec, data_signal[data_signal_head].ts.tv_usec); 
+//           printf("Data plane - port %d, h: %d, sh: %d, iso id: %d, iso prefix: %d, table idx: %d, write signal to file: %s.\n", data_signal[data_signal_head].data_port, data_signal[data_signal_head].previous_highest, data_signal[data_signal_head].previous_second_highest, data_signal[data_signal_head].iso_id, data_signal[data_signal_head].isolation_prefix, data_signal[data_signal_head].table_idx, sig_data_dir);
+//           FILE * f = fopen(sig_data_dir, "wb");
+//           fwrite(&data_signal[data_signal_head].type, 4, 1, f);
 //           fclose(f);
-//           memset(data_dir, 0, 100);
-//           // unlock data plane
-//           p4_pd_printqueue_register_reset_all_data_query_lock_r(sess_hdl, dev_tgt);
+//           data_query_start = data_signal[data_signal_head].isolation_prefix + (data_signal[data_signal_head].previous_highest << highest_shift_bit_q) + (data_signal[data_signal_head].previous_second_highest << second_highest_shift_bit_q);
+//           data_query_end = data_query_start + max_qdepth;
+//           storage_start = 0;
 //           poll_ready = false;
-//           new_signal = false;
+//         }
+//         if (!poll_ready && !finish_last){
+//           gettimeofday(&s_us, NULL);
+//           available_interval = e_us[0].tv_sec * 1000000 + e_us[0].tv_usec + read_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
+//           if (available_interval < 15000){
+//             // printf("x");
+//             continue;
+//           }  
+//           data_query_num = floor(((double)available_interval / (double)estimated_retrieve_interval) * reading_ratio * (double)max_qdepth);
+//           if (data_query_start + data_query_num >= data_query_end){
+//             printf(".\n");
+//             data_query_num = data_query_end - data_query_start;
+//           }
+//           if(data_query_num != 0){
+//             printf("Available interval: %d us. Read %d entries.\n", available_interval, data_query_num);
+//             memset(data_query_tmp_buffer, 0, 300000);
+//             p4_pd_queue_monitor_register_range_read(sess_hdl, dev_tgt, data_query_start, data_query_num, 1, &actual_read, data_query_tmp_buffer, &value_count, 1);
+//             p4_pd_printqueue_register_range_reset_src_ip_r(sess_hdl, dev_tgt, data_query_start, data_query_num);
+//             p4_pd_printqueue_register_range_reset_dst_ip_r(sess_hdl, dev_tgt, data_query_start, data_query_num); 
+//             p4_pd_printqueue_register_range_reset_seq_array_r(sess_hdl, dev_tgt, data_query_start, data_query_num);
+//             data_query_start += data_query_num;
+//             printf("✓ reading\n");
+//             memcpy(data_query_buffer + storage_start * 4, data_query_tmp_buffer, data_query_num * 4);
+//             memcpy(data_query_buffer + storage_start * 4 + max_qdepth * 4, data_query_tmp_buffer + data_query_num * 4, data_query_num * 4);
+//             memcpy(data_query_buffer + storage_start * 4 + max_qdepth * 8, data_query_tmp_buffer + data_query_num * 8, data_query_num * 4);
+//             storage_start += data_query_num;
+//             printf("✓ memory copy \n");
+//           }
+//           if (data_query_start == data_query_end){
+//             gettimeofday(&s_us, NULL);
+//             available_interval = e_us[0].tv_sec * 1000000 + e_us[0].tv_usec + read_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
+//             if (available_interval < 2500){
+//               printf(" W ");
+//               continue;
+//             }
+//             // all registers are read
+//             sprintf(data_dir, "./qm_data/%d/qm_data/%ld_%ld_0.bin",data_signal[data_signal_head].table_idx, data_signal[data_signal_head].ts.tv_sec, data_signal[data_signal_head].ts.tv_usec);  // start of reading
+//             printf("Port %d, tw store in %s\n", data_signal[data_signal_head].data_port, data_dir);
+//             FILE * f = fopen(data_dir, "wb");
+//             fwrite(data_query_buffer, 1, 300000, f);
+//             fclose(f);
+//             memset(data_dir, 0, 100);
+//             // unlock data plane
+//             p4_pd_printqueue_register_range_reset_data_query_lock_r(sess_hdl, dev_tgt, data_signal[data_signal_head].iso_id, 1);
+//             data_signal_head = (data_signal_head + 1) % (MAX_PORT_NUM + 2);
+//             if (data_signal_head == data_signal_tail){
+//               printf("Data signal queue is empty\n");
+//               new_signal = false;
+//             }
+//             finish_last = true;
+//           }
+//           gettimeofday(&s_us, NULL);
+//           available_interval = e_us[0].tv_sec * 1000000 + e_us[0].tv_usec + read_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
+//           printf("✓ %d us left till next periodical poll\n", available_interval);
 //         }
 //         gettimeofday(&s_us, NULL);
-//         available_interval = e_us.tv_sec * 1000000 + e_us.tv_usec + read_interval - (s_us.tv_sec * 1000000 + s_us.tv_usec);
-//         printf("✓ %d us left till next periodical poll\n", available_interval);
-//       }
-//       gettimeofday(&s_us, NULL);
-//       if (s_us.tv_sec - initial_us.tv_sec > duration){
-//         printf("\nQueue monitor retrieve Ends!\n");
-//         loop_flag = false;
-//         signal_flag = false;
+//         if (s_us.tv_sec - initial_us.tv_sec > duration_q){
+//           printf("\nQueue monitor retrieve Ends!\n");
+//           loop_flag = false;
+//           signal_flag = false;
+//         }
 //       }
 //   }
 // }

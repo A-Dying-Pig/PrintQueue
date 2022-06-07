@@ -89,11 +89,14 @@ clean_tw:
 clean_qm:
 	rm -rf qm_data
 	mkdir qm_data
-
-# clean time window signals
-clean_sgl:
-	rm -rf signal_data
-	mkdir signal_data
+	mkdir -p qm_data/0/qm_data
+	mkdir -p qm_data/0/signal_data
+	mkdir -p qm_data/1/qm_data
+	mkdir -p qm_data/1/signal_data
+	mkdir -p qm_data/2/qm_data
+	mkdir -p qm_data/2/signal_data
+	mkdir -p qm_data/3/qm_data
+	mkdir -p qm_data/3/signal_data
 
 # load bf_kdrv.ko
 kdrv:

@@ -17,7 +17,7 @@
 ****************************************************/
 register stack_top_r{
     width: 32;
-    instance_count: 1;
+    instance_count: MAX_PORT_NUM;
 }
 
 blackbox stateful_alu check_stack_bb{
@@ -41,8 +41,23 @@ table check_stack_tb{
     size: 1;
 }
 
-action check_stack(second_highest){
-    check_stack_bb.execute_stateful_alu(0);         //check whether stack length has changed
+action check_stack(){
+    check_stack_bb.execute_stateful_alu(PQ_md.isolation_id);         //check whether stack length has changed
+}
+
+@pragma stage 0
+table prepare_qm_tb{
+    reads{
+        PQ_md.isolation_id: exact;
+    }
+    actions{
+        prepare_qm;
+    }
+    default_action: prepare_qm;
+    size:MAX_PORT_NUM;
+}
+
+action prepare_qm(second_highest){
     // update QM metadata
     modify_field(R_md.second_highest, second_highest);
     modify_field(QM_md.src_addr, ipv4.src_addr);
@@ -51,7 +66,7 @@ action check_stack(second_highest){
 
 register seq_num_r{
     width: 32;
-    instance_count: 1;
+    instance_count: MAX_PORT_NUM;
 }
 
 blackbox stateful_alu increment_seq_num_bb{
@@ -71,13 +86,13 @@ table increment_seq_num_tb{
 }
 
 action increment_seq_num(){
-    increment_seq_num_bb.execute_stateful_alu(0);   // increase seq number to prepare for stack change
+    increment_seq_num_bb.execute_stateful_alu(PQ_md.isolation_id);   // increase seq number to prepare for stack change
 }
 
 // data plane query
 register pre_pkt_qdepth_r{
     width: 32;
-    instance_count: 1;
+    instance_count: MAX_PORT_NUM;
 } 
 
 blackbox stateful_alu compare_pre_pkt_qdepth_bb{
@@ -102,12 +117,12 @@ table compare_pre_pkt_qdepth_tb{
 }
 
 action compare_pre_pkt_qdepth(){
-    compare_pre_pkt_qdepth_bb.execute_stateful_alu(0);      // compare qdepth with the threshold to decide whether triggering data plane query
+    compare_pre_pkt_qdepth_bb.execute_stateful_alu(PQ_md.isolation_id);      // compare qdepth with the threshold to decide whether triggering data plane query
 }
 
 register idx_immediate_r{
     width: 32;
-    instance_count: 1;
+    instance_count: MAX_PORT_NUM;
 }
 
 blackbox stateful_alu cal_idx_immediate_bb{
@@ -127,7 +142,7 @@ table cal_idx_immediate_tb{
 }
 
 action cal_idx_immediate(){
-    cal_idx_immediate_bb.execute_stateful_alu(0);       // use ALU to copy the 19-bit eg_intr_md.enq_qdepth to a 32-bit metadata
+    cal_idx_immediate_bb.execute_stateful_alu(PQ_md.isolation_id);       // use ALU to copy the 19-bit eg_intr_md.enq_qdepth to a 32-bit metadata
 }
 
 /***************************************************
@@ -139,7 +154,7 @@ action cal_idx_immediate(){
 
 register data_query_lock_r{
     width: 16;
-    instance_count: 1;
+    instance_count: MAX_PORT_NUM;
 }
 
 blackbox stateful_alu data_query_lock_bb{
@@ -159,7 +174,7 @@ table data_query_lock_tb{
 }
 
 action data_query_lock(){
-    data_query_lock_bb.execute_stateful_alu(0);     // lock to avoid another data plane query when registers are not ready
+    data_query_lock_bb.execute_stateful_alu(PQ_md.isolation_id);     // lock to avoid another data plane query when registers are not ready
 }
 
 @pragma stage 1
@@ -209,7 +224,7 @@ action data_query_set_signal(){
 
 register highest_bit_r{
     width: 32;
-    instance_count: 1;
+    instance_count: MAX_PORT_NUM;
 }
 
 blackbox stateful_alu reverse_highest_bit_bb{
@@ -230,10 +245,11 @@ table reverse_highest_bit_tb{
 
 field_list mirror_fl {
   PQ_md.mirror_signal;
+  PQ_md.isolation_id;
 }
 
 action reverse_highest_bit(){
-    reverse_highest_bit_bb.execute_stateful_alu(0);     // flip the highest bit due to data plane query or seq overflow
+    reverse_highest_bit_bb.execute_stateful_alu(PQ_md.isolation_id);     // flip the highest bit due to data plane query or seq overflow
     // ---------------------------------------------------------
     // send signal to control plane to trigger register reading 
     // ---------------------------------------------------------
@@ -256,7 +272,20 @@ table read_highest_bit_tb{
 }
 
 action read_highest_bit(){
-    read_highest_bit_bb.execute_stateful_alu(0);      // just read the highest bit
+    read_highest_bit_bb.execute_stateful_alu(PQ_md.isolation_id);      // just read the highest bit
+}
+
+@pragma stage 2
+table bit_or_iso_prefix_tb{
+    actions{
+        bit_or_iso_prefix;
+    }
+    default_action: bit_or_iso_prefix;
+    size: 1;
+}
+
+action bit_or_iso_prefix(){
+    bit_or(QM_md.idx, QM_md.idx,R_md.isolation_prefix);
 }
 
 /***************************************************
@@ -391,14 +420,16 @@ action modify_signal(){
     modify_field(ethernet.ether_type, ETHERTYPE_PRINTQUEUE_SIGNAL);
     add_header(printqueue_signal);
     modify_field(printqueue_signal.signal_type, PQ_md.mirror_signal);
+    modify_field(printqueue_signal.isolation_id, PQ_md.isolation_id);
 }
 
 //--------------------------------------------------------------------------
 //             Control flow of queue monitor pipeline
 //--------------------------------------------------------------------------
 control queue_monitor_pipe{
-    if(valid(ipv4) and valid(tcp) and eg_intr_md_from_parser_aux.clone_src == NOT_CLONED){
+    if(valid(ipv4) and valid(tcp) and eg_intr_md_from_parser_aux.clone_src == NOT_CLONED and PQ_md.disable_PQ == 0){
         apply(check_stack_tb);
+        apply(prepare_qm_tb);
         apply(increment_seq_num_tb);
         apply(compare_pre_pkt_qdepth_tb);
         apply(cal_idx_immediate_tb);
@@ -420,6 +451,7 @@ control queue_monitor_pipe{
         }else{
             apply(read_highest_bit_tb);
         }
+        apply(bit_or_iso_prefix_tb);
         apply(update_idx_highest_bit_tb);
         if(PQ_md.stack_len_change == 1){
             // update stack when switch qdepth changes
