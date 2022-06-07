@@ -197,9 +197,9 @@ header_type QM_matadata_t{
 #define INDEX_NUM 16384                 // extra space for periodical and data plane query
 #define HALF_INDEX_NUM 8192
 // for a single port, cell number of a time window
-#define SINGLE_PORT_INDEX_NUM 2048
-#define SINGLE_PORT_INDEX_BIT 11
-#define SIGNLE_PORT_INDEX_MASK 0x7ff
+#define SINGLE_PORT_INDEX_NUM 4096
+#define SINGLE_PORT_INDEX_BIT 12
+#define SIGNLE_PORT_INDEX_MASK 0xfff
 //------------------------------------------------------------------------//
 //   The nanoseconds that a packet experiences in the ingress pipeline    //
 //------------------------------------------------------------------------//
@@ -209,10 +209,12 @@ header_type QM_matadata_t{
 // 2. calculate duration with the chip frequency, e.g. 1.22 GHz 
 #define INGRESS_PROCESSING_TIME 47      
 
-#define QUARTER_QDEPTH 32768 // 2^15 = 32768    // stack depth
 #define HALF_QDEPTH 65536 // 2^16 = 65536
 #define TOTAL_QDEPTH 131072 // 2^17 = 131072    // extra space for periodical and data plane query
-#define QUARTER_QDEPTH_MASK 0x7fff
+// for a single port, stack depth of a queue monitor
+#define SINGLE_PORT_QM_INDEX_NUM 32768
+#define SINGLE_PORT_QM_INDEX_BIT 15
+#define SINGLE_PORT_QM_INDEX_MASK 0x7fff
 
 #define DEFAULT_QDEPTH_THRESHOLD 10000
 #define THRESHOLD_FLOW_NUMBER 1024
