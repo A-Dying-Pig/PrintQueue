@@ -19,7 +19,8 @@ The repository consists of three parts:
 * 4x Servers with a DPDK-compatible NIC and multi-core CPU. We use `Intel XL710 for 40GbE QSFP+` and `Intel 82599ES 10-Gigabit SFI/SFP+`.
 
 The machines are connected as follows:
-<img src="../doc/testbed_topology.png" width="350">
+
+<img src="./doc/testbed_topology.png" width="350">
 
 ### Software
 The current version of PrintQueue is tested on:
@@ -137,7 +138,7 @@ Therefore, we store all the immediate register values and INT headers collected 
 All the data is stored in `.bin` files. The way of interpretation is introduced in `EndHosts` and `PrintQueue_Tofino`.
 You can directly calculate the accuracy with the immediate data.
 
-Download the [immediate data](). Run the following scripts. Check P&R accuracy in csv files in the subfolder of `immediate_data` folder. 
+Download the [immediate data](https://cloud.tsinghua.edu.cn/f/5d4cc9feebf84f4f9da9/?dl=1). Run the following scripts. Check P&R accuracy in csv files in the subfolder of `immediate_data` folder. 
 Note that we randomly choose some immediate data to save space.  The results in the paper actually come from multiple sets of data.
 
 * Figure 8: Accuracy vs Queue Depth

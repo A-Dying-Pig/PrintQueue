@@ -125,7 +125,8 @@ Probe packets have higher priority than flow table when setting thresholds.
 
 The signals are stored in `.bin` files in the `../tw_data/[Port ID]/signal_data` and `../qm_data/[Port ID]/signal_data`.
 The layout of binary files is:
-<img src="../doc/signal_binary_layout.png" width="350">
+
+<img src="../doc/signal_binary_layout.png" width="700">
 
 `Type` can have the following values:
 * 1: sequence number overflows of queue monitor.
