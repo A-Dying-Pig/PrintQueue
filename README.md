@@ -56,8 +56,8 @@ The program starts to listen to the NIC and receive packets.
 PrintQueue INT headers are extracted and stored in the `gt_data` folder. 
 Then data later serves as the ground truth when calculate accuracy.
 
-<!-- See the receiver program [log](./doc/Receiver_listen.log) in our testbed.
- -->
+See the receiver program [log](./doc/Receiver_listen.log) in our testbed.
+
 ### Step 3: send traffic at senders and activate PrintQueue
 Download and unzip the pre-processed [traces](https://cloud.tsinghua.edu.cn/f/c0c8ffa93d704730b826/?dl=1).
 
@@ -72,8 +72,8 @@ At two senders, run simultaneously:
     cd traces/uw
     sudo tcpreplay -i p2p2 -K -x 1000000000000 --netmap -l 1000 --duration=2 univ1_pt12_tcp_597678.pcap
     ```
-<!-- See the tcpreplay [log](./doc/Sender.log) in our testbed.
- -->
+See the tcpreplay [log](./doc/Sender.log) in our testbed.
+
 When servers send traffic, activate PrintQueue in switch. In another switch terminal, run:
 ```
 kill -s USR1 [PID]
@@ -134,7 +134,7 @@ Each line is the accuracy for one signal.
 ## Reproduce Results
 Every time when changing parameters, traces, and port settings, you need to go through the above process, collect data from different parts, and run the scripts.
 We know the difficulty of building such a complex system.
-Therefore, we store all the intermediate register values and INT headers collected from out testbed, **unmodified**.
+Therefore, we store all the intermediate register values and INT headers collected from our testbed, **unmodified**.
 All the data is stored in `.bin` files. The way of interpretation is introduced in `EndHosts` and `PrintQueue_Tofino`.
 You can directly calculate the accuracy with the intermediate data.
 
@@ -241,11 +241,10 @@ Note that we randomly choose some intermediate data to save space.  The results 
       python3 ./reproduce.py --a 3 --k 12 --T 4 --TB 6 --z 0.582 --path ./intermediate_data/Parameters/3_12_4
       ```
  
- * Figure 13: SRAM usage - the numbers come from Tofino resource usage. 
-<!--  [log (a=2,k=12,T=4)](./doc/resources.log). -->
+ * Figure 13: SRAM usage - the numbers come from Tofino resource usage [log (a=2,k=12,T=4)](./doc/resources.log).
  (Note: we will modify the number. when submit the first version paper, we do not fully implement PQ. The utilization is under-estimated)
  
- * Figure 12: Transmission overhead can be calculated, as every periods certain number of register values should be transmitted to the control plane.
+ * Figure 12: Transmission overhead can be calculated, as certain number of register values should be transmitted to the control plane periodically.
  The accuracy comes from previous experiments.
  
  * Figure 15: Port Isolation (Not drawn in the paper yet). Implement PrintQueue for each port to isolate ports' mutual impacts. 
