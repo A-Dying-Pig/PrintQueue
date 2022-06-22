@@ -138,7 +138,7 @@ Therefore, we store all the intermediate register values and INT headers collect
 All the data is stored in `.bin` files. The way of interpretation is introduced in `EndHosts` and `PrintQueue_Tofino`.
 You can directly calculate the accuracy with the intermediate data.
 
-Download the [intermediate data](https://cloud.tsinghua.edu.cn/f/5d4cc9feebf84f4f9da9/?dl=1). Run the following scripts. Check P&R accuracy in csv files in the subfolder of `intermediate_data` folder. 
+Download the [intermediate data](https://cloud.tsinghua.edu.cn/f/25bb69bc1d2647508c1c/?dl=1). Run the following scripts. Check P&R accuracy in csv files in the subfolder of `intermediate_data` folder. 
 Note that we randomly choose some intermediate data to save space.  The results in the paper actually come from multiple sets of data.
 
 * Figure 8: Accuracy vs Queue Depth
