@@ -42,7 +42,7 @@ make printqueue
 make runPQ
 ```
 The data plane and control plane programs should be successfully compiled. 
-See the data plane program compilation [log](./doc/PrintQueue_data_plane_program_compilation.log) and control plane program compilation [log](./doc/PrintQueue_control_plane_program_compilation.log) in our testbed.
+<!-- See the data plane program compilation [log](./doc/PrintQueue_data_plane_program_compilation.log) and control plane program compilation [log](./doc/PrintQueue_control_plane_program_compilation.log) in our testbed. -->
 
 ### Step 2: Receive traffic in receivers
 In receiver servers, run:
@@ -56,8 +56,8 @@ The program starts to listen to the NIC and receive packets.
 PrintQueue INT headers are extracted and stored in the `gt_data` folder. 
 Then data later serves as the ground truth when calculate accuracy.
 
-See the receiver program [log](./doc/Receiver_listen.log) in our testbed.
-
+<!-- See the receiver program [log](./doc/Receiver_listen.log) in our testbed.
+ -->
 ### Step 3: send traffic at senders and activate PrintQueue
 Download and unzip the pre-processed [traces](https://cloud.tsinghua.edu.cn/f/c0c8ffa93d704730b826/?dl=1).
 
@@ -72,8 +72,8 @@ At two senders, run simultaneously:
     cd traces/uw
     sudo tcpreplay -i p2p2 -K -x 1000000000000 --netmap -l 1000 --duration=2 univ1_pt12_tcp_597678.pcap
     ```
-See the tcpreplay [log](./doc/Sender.log) in our testbed.
-
+<!-- See the tcpreplay [log](./doc/Sender.log) in our testbed.
+ -->
 When servers send traffic, activate PrintQueue in switch. In another switch terminal, run:
 ```
 kill -s USR1 [PID]
@@ -83,8 +83,8 @@ kill -s USR1 [PID]
 The control plane program starts to poll and store register values from data planes.
 The register values are stored in `qm_data` and `tw_data`, which are later used to track culprit packets.
 
-See the PrintQueue control plane program [log](./doc/PrintQueue_control_plane_program_runtime.log) in our testbed.
-
+<!-- See the PrintQueue control plane program [log](./doc/PrintQueue_control_plane_program_runtime.log) in our testbed.
+ -->
 ### Step 4: collect PrintQueue result and ground truth
 
 Data is distributed across machines:
@@ -241,7 +241,8 @@ Note that we randomly choose some immediate data to save space.  The results in 
       python3 ./reproduce.py --a 3 --k 12 --T 4 --TB 6 --z 0.582 --path ./immediate_data/Parameters/3_12_4
       ```
  
- * Figure 13: SRAM usage - the numbers come from Tofino resource usage [log (a=2,k=12,T=4)](./doc/resources.log).
+ * Figure 13: SRAM usage - the numbers come from Tofino resource usage. 
+<!--  [log (a=2,k=12,T=4)](./doc/resources.log). -->
  (Note: we will modify the number. when submit the first version paper, we do not fully implement PQ. The utilization is under-estimated)
  
  * Figure 12: Transmission overhead can be calculated, as every periods certain number of register values should be transmitted to the control plane.
