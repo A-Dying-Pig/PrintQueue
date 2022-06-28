@@ -42,7 +42,7 @@ make printqueue
 make runPQ
 ```
 The data plane and control plane programs should be successfully compiled. 
-<!-- See the data plane program compilation [log](./doc/PrintQueue_data_plane_program_compilation.log) and control plane program compilation [log](./doc/PrintQueue_control_plane_program_compilation.log) in our testbed. -->
+See the data plane program compilation [log](./doc/PrintQueue_data_plane_program_compilation.log) and control plane program compilation [log](./doc/PrintQueue_control_plane_program_compilation.log) in our testbed.
 
 ### Step 2: Receive traffic in receivers
 In receiver servers, run:
@@ -83,8 +83,8 @@ kill -s USR1 [PID]
 The control plane program starts to poll and store register values from data planes.
 The register values are stored in `qm_data` and `tw_data`, which are later used to track culprit packets.
 
-<!-- See the PrintQueue control plane program [log](./doc/PrintQueue_control_plane_program_runtime.log) in our testbed.
- -->
+See the PrintQueue control plane program [log](./doc/PrintQueue_control_plane_program_runtime.log) in our testbed.
+
 ### Step 4: collect PrintQueue result and ground truth
 
 Data is distributed across machines:
