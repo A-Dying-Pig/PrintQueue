@@ -33,13 +33,13 @@ The current version of PrintQueue is tested on:
 In switch, run:
 ```
 cd PrintQueue_Tofino
-make kpkt
-make clean_tw
+make kpkt          # load bf_kpkt module
+make clean_tw      # clean previous register values
 make clean_qm
-make configure
+make configure     # compile data-plane program
 make compile
-make printqueue
-make runPQ
+make printqueue    # compile control-plane program
+make runPQ         # run the system
 ```
 The data plane and control plane programs should be successfully compiled. 
 See the data plane program compilation [log](./doc/PrintQueue_data_plane_program_compilation.log) and control plane program compilation [log](./doc/PrintQueue_control_plane_program_compilation.log) in our testbed.
@@ -138,7 +138,7 @@ Therefore, we store all the intermediate register values and INT headers collect
 All the data is stored in `.bin` files. The way of interpretation is introduced in `EndHosts` and `PrintQueue_Tofino`.
 You can directly calculate the accuracy with the intermediate data.
 
-Download the [intermediate data](https://cloud.tsinghua.edu.cn/f/25bb69bc1d2647508c1c/?dl=1). Run the following scripts. Check P&R accuracy in csv files in the subfolder of `intermediate_data` folder. 
+Download the [intermediate data](https://cloud.tsinghua.edu.cn/f/3b8eedc1b4ec471687ad/?dl=1). Run the following scripts. Check P&R accuracy in csv files in the subfolder of `intermediate_data` folder. 
 Note that we randomly choose some intermediate data to save space.  The results in the paper actually come from multiple sets of data.
 
 * Figure 8: Accuracy vs Queue Depth
@@ -269,6 +269,14 @@ Note that we randomly choose some intermediate data to save space.  The results 
       ```
       python3 ./reproduce.py --a 2 --k 10 --T 4 --TB 10 --z 0.8192 --path ./intermediate_data/PortIsolation/10ports/ID_0
       ```
+ * Figure 11: Different time windows vs Top-K flows. We let the whole window track Top-K flow packet counts.
+   ```
+   python3 ./reproduce.py -TopK --path ./intermediate_data/TopK
+   ```
+   The results are stored in `TopK.csv` in each subfolder. The file format is as follows:
+   
+   | Time window index | Top-K | Precision | Recall |
+   |---|---|---|---|
  
 ## Contact
 Please raise [issues](https://github.com/A-Dying-Pig/PrintQueue/issues) if you have any questions or doubts about the code.
