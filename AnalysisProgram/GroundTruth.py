@@ -367,6 +367,78 @@ class GroundTruth:
         plt.savefig(os.path.join(self.root_dir, plot_title + '.png'))
         plt.close()
 
+class GroundTruth_stale:
+    def __init__(self, root_dir='./'):
+        files = []
+        data_path = os.path.join(root_dir, 'gt_data')
+        for (root, dirs, fs) in os.walk(data_path):
+            sorted(fs)
+            files = [os.path.join(root, f) for f in fs]
+        self.dequeue_ts_array = []
+        self.queue_len_array = []
+        self.FID_array = []   # port value is big endian
+        self.sum_interval = 0
+        base_dequeue = 0
+        first = 0
+        first_K = 10
+        last_K = 10
+        for f in files:
+            print("loading file: {0}".format(f))
+            with open(f, 'rb') as fptr:
+                chunk = fptr.read(20)
+                p_dqts = int.from_bytes(chunk[0:4], 'big') + base_dequeue
+                p_qlen = int.from_bytes(chunk[4:8], 'big')
+                p_FID = chunk[8:20].hex()
+                chunk = fptr.read(20)
+                while chunk:
+                    dqts = int.from_bytes(chunk[0:4], 'big') + base_dequeue
+                    qlen = int.from_bytes(chunk[4:8], 'big')
+                    FID = chunk[8:20].hex()
+                    chunk = fptr.read(20)
+                    if first < first_K:
+                        first += 1
+                        p_dqts = dqts
+                        p_qlen = qlen
+                        continue
+                    if dqts < p_dqts:
+                        base_dequeue += (1 << 32)
+                        dqts += (1 << 32)
+                    self.dequeue_ts_array.append(dqts)
+                    self.queue_len_array.append(qlen)
+                    self.FID_array.append(FID)
+                    p_dqts = dqts
+                    p_qlen = qlen
+        self.dequeue_ts_array = self.dequeue_ts_array[0:-last_K]
+        self.FID_array = self.FID_array[0:-last_K]
+        self.queue_len_array = self.queue_len_array[0:-last_K]
+        self.first_dts = self.dequeue_ts_array[0]
+        self.last_dts = self.dequeue_ts_array[-1]
+        self.pkt_num = len(self.dequeue_ts_array)
+        self.sum_queue_len = self.queue_len_array[0]
+        p_dqts = self.dequeue_ts_array[0]
+        for i in range(1, self.pkt_num):
+            self.sum_queue_len += self.queue_len_array[i]
+            self.sum_interval += self.dequeue_ts_array[i] - p_dqts
+            p_dqts = self.dequeue_ts_array[i]
+        self.average_interval = self.sum_interval / (self.pkt_num - 1)
+        self.average_queue_len = self.sum_queue_len / self.pkt_num
+        self.dequeue_total = self.last_dts - self.first_dts
+        print(
+            'Packet number {0}, dequeue_total: {1} nanoseconds, nanosecond, average queue length: {2}, average interval: {3}'
+            .format(self.pkt_num, self.dequeue_total, self.average_queue_len, self.average_interval))
+
+    def top(self, ts, te, K=0):
+        # return a sorted list in descending order
+        ret = {}  # {FID: NUMBER}
+        for (index, t) in enumerate(self.dequeue_ts_array):
+            if ts <= t and t <= te:
+                ret[self.FID_array[index]] = ret.get(self.FID_array[index], 0) + 1
+        ret = dict(sorted(ret.items(), key=lambda item: item[1], reverse=True))
+        if K == 0:
+            return ret
+        K = min(K, len(ret))
+        return dict(list(ret.items())[0: K])
+
 
 def Comparison(path, alpha, k, T, TW0_TB, TW0_z, sample_threshold=[1000, 2000, 5000, 10000, 15000, 20000], packet_sample_number=20):
     """
@@ -528,7 +600,40 @@ def timer(path, alpha, k, T, TW0_TB, TW0_z, packet_sample_number=20):
     print("Execute {0} queris, each query takes {1} us, QPS: {2}".format(query_num, per_query_time, QPS))
 
 
+def TopK(path):
+    for (root, dir, file) in os.walk(path):
+        for subdir in dir:
+            current_dir = os.path.join(root, subdir)
+            TW_dir = os.path.join(current_dir, 'tw_data')
+            for (r, d, f) in os.walk(TW_dir):
+                json_file = f[0]
+            json_path = os.path.join(TW_dir, json_file)
+            csv_file = open(os.path.join(current_dir, 'TopK.csv'), 'w')
+            resultWriter = csv.writer(csv_file, dialect='excel-tab')
+            tw = TimeWindowController_stale(path=json_path, alpha=1, k=12, T=5, TW0_TB=6, TW0_z=64 / 105)
+            gt = GroundTruth_stale(current_dir)
+            # Each time windows TopK precision & recall
+            stairs = [50, 100, 200, 500]
+            for i in range(0, tw.T):
+                print('Calculating TopK P&R in time window: {0}'.format(i))
+                ts, te = tw.TW_start_end_timestamp(i)
+                pkt_gt = gt.top(ts, te)
+                pkt_tw = tw.retrieve(ts, te)['TW_result']
+                for j in range(0, len(stairs)):
+                    gt_ret = dict(list(pkt_gt.items())[0: stairs[j]])
+                    tw_ret = dict(list(pkt_tw.items())[0: stairs[j]])
+                    np, nr = precision_and_recall_packet_number(gt_ret, tw_ret)
+                    print("Top-{0}. time window: {1}, Number Precision: {2}, Number Recall: {3}".format(stairs[j], i, np, nr))
+                    resultWriter.writerow(['Window {0}'.format(i), 'Top-{0}'.format(stairs[j]), np, nr])
+                np, nr = precision_and_recall_packet_number(pkt_gt, pkt_tw)
+                print("Top-All. time window: {0}, Number Precision: {1}, Number Recall: {2}".format(i, np, nr))
+                resultWriter.writerow(['Window {0}'.format(i), 'Top-All', np, nr])
+            csv_file.close()
+        break
+
 if __name__ == '__main__':
     Comparison(path='./d/ports/1/0', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250, sample_threshold=[10000])
     DataPlaneQuery(path='./d/ports/1/0', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250)
-    # timer(path='./d/syn3/1000', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250)
+    # # timer(path='./d/syn3/1000', alpha=1, k=12, T=4, TW0_TB=10, TW0_z=1024 / 1250)
+    # TopK('./d/TopK/')
+

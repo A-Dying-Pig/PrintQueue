@@ -479,6 +479,175 @@ class TimeWindowController:
         plt.savefig(os.path.join('fig', bar_title + '.png'))
         plt.close()
 
+num_pipes = 2
+class TimeWindowController_stale:
+    def __init__(self, path, alpha = 1, k = 12, T = 5, TW0_TB = 6, TW0_z = 64/110, save_file_path = None):
+        self.alpha = alpha
+        self.k = k
+        self.index_number_per_window = 2**self.k
+        self.T = T
+        self.TW0_TB = TW0_TB
+        self.TW0_z = TW0_z
+        self.total_duration = int((2**(alpha*T) - 1) / (2**alpha - 1) * 2**(TW0_TB + k))
+        self.TW_result = []    # a linear data structure # {FID: hex, tts: , twid: ,}
+        self.cofficient = self.calculate_coefficient2(TW0_z, alpha,T)
+        self.config = {'alpha': alpha, 'k': k, 'TW0_TB': TW0_TB, 'T': T, 'TW0_z': TW0_z, 'total_duration': self.total_duration}
+        print('Time Window total duration is: {0} nanoseconds, cofficient: {1}'.format(self.total_duration, self.cofficient))
+        self.TW_registers = self.poll_register(path) #  [{ts: , tw:[[{FID: hex, tts:}]] }]
+        self.filter_TW()
+
+    def calculate_coefficient2(self, z, alpha, t):
+        coefficient = [1]
+        co = 1
+        p = 1 - z*z
+        for i in range(0, t-1):
+            map = 2**alpha
+            temp = z * (1 - p**map) / (1-p) / map
+            co *= temp
+            coefficient.append(co)
+            z = 1 - p**map
+        return coefficient
+
+    def poll_register(self, json_path):
+        with open(json_path, 'r') as f:
+            registers = json.load(f)  # [{tts: [], src_ip: [], dst_ip: [], src_port: [], dst_port: []}]
+        ret = []
+        for TWid in range(0, self.T):
+            ret.append([])
+        actual_item_number = self.index_number_per_window * num_pipes
+        for TWid in range(0, self.T):
+            for j in range(0, actual_item_number):
+                if j % num_pipes != 1:
+                    continue
+                temp = {}
+                temp['tts'] = registers[TWid]['tts'][j]
+                sip = registers[TWid]['src_ip'][j]
+                dip = registers[TWid]['dst_ip'][j]
+                if sip < 0:
+                    sip = sip + 2 ** 32
+                if dip < 0:
+                    dip = dip + 2 ** 32
+                sport = registers[TWid]['src_port'][j]
+                dport = registers[TWid]['dst_port'][j]
+                if sport < 0:
+                    sport = sport + 2 ** 16
+                if dport < 0:
+                    dport = dport + 2 ** 16
+                temp['FID'] = (sip.to_bytes(4, 'big') + dip.to_bytes(4, 'big') + sport.to_bytes(2, 'big') + dport.to_bytes(2, 'big')).hex()
+                ret[TWid].append(temp)
+        return ret
+
+    def filter_TW(self):
+        TW0 = self.TW_registers[0]
+        largest_tts = 0
+        largest_idx = 0
+        for j in range(0, self.index_number_per_window):
+            if TW0[j]['tts'] > largest_tts:
+                largest_tts = TW0[j]['tts']
+                largest_idx = j
+        l_tts = self.cell_duration(largest_tts, 0)[2]
+        latest_CID = largest_tts >> self.k
+        count = []  # number of filtered packets in different TW
+        for i in range(0, self.T):
+            count.append(0)
+            first_pre_cycle = 0
+            for j in range(0, largest_idx + 1):
+                if self.TW_registers[i][j]['tts'] == 0:
+                    continue
+                t_CID = self.TW_registers[i][j]['tts'] >> self.k
+                t_idx = self.TW_registers[i][j]['tts'] & (2 ** self.k - 1)
+                if t_CID == latest_CID:
+                    count[i] += 1
+                    self.TW_result.append({'FID': self.TW_registers[i][j]['FID'],
+                                           'tts': self.TW_registers[i][j]['tts'],
+                                           'twid': i})
+                    if first_pre_cycle == 0:
+                        first_pre_cycle = 1
+                        s_tts = self.cell_duration(self.TW_registers[i][j]['tts'], i)[2]
+            first_pre_cycle = 0
+            for j in range(largest_idx + 1, self.index_number_per_window):
+                if self.TW_registers[i][j]['tts'] == 0:
+                    continue
+                t_CID = self.TW_registers[i][j]['tts'] >> self.k
+                t_idx = self.TW_registers[i][j]['tts'] & (2 ** self.k - 1)
+                if t_CID + 1 == latest_CID:
+                    count[i] += 1
+                    self.TW_result.append({'FID': self.TW_registers[i][j]['FID'],
+                                           'tts': self.TW_registers[i][j]['tts'],
+                                           'twid': i})
+                    if first_pre_cycle == 0:
+                        first_pre_cycle = 1
+                        s_tts = self.cell_duration(self.TW_registers[i][j]['tts'], i)[2]
+
+            largest_tts = (largest_tts - 2 ** self.k) >> self.alpha  # the tts of the replaced cell
+            largest_idx = largest_tts & (2 ** self.k - 1)
+            latest_CID = largest_tts >> self.k
+        # retrieve smallest and largest ts
+        # self.TW_result = sorted(self.TW_result, key=lambda x: (x['twid'], x['tts']))
+        self.config['largest_ts'] = l_tts
+        self.config['smallest_ts'] = s_tts
+        print('smallest ts: {0}, largest ts: {1}'.format(self.config['smallest_ts'], self.config['largest_ts']))
+
+    def cell_duration(self, tts, twid):
+        TB = self.TW0_TB + twid * self.alpha
+        return [tts << TB, (tts << TB) + 2**TB - 1, (tts << TB) + 2**(TB - 1)]
+
+    def TW_start_end_timestamp(self, TWid):
+        if not self.TW_result:
+            print('Time window is not polled or filtered!')
+            return
+        ts = 0
+        te = 0
+        first = 1
+        for c in self.TW_result:
+            if c['twid'] != TWid:
+                continue
+            if first == 1:
+                ts = c['tts']
+                te = c['tts']
+                first = 0
+                continue
+            if c['tts'] > te:
+                te = c['tts']
+            if c['tts'] < ts:
+                ts = c['tts']
+        return self.cell_duration(ts, TWid)[2], self.cell_duration(te, TWid)[2]
+
+    def retrieve(self, ts, te):
+        if not self.TW_result:
+            print('Time window is not polled or filtered!')
+            return
+        retrieve_result = {}
+        retrieve_result['ts'] = ts
+        retrieve_result['te'] = te
+        retrieve_result['retrieve_start_ts'] = ts
+        retrieve_result['retrieve_end_ts'] = te
+        retrieve_result['smallest_ts'] = self.config['smallest_ts']
+        retrieve_result['largest_ts'] = self.config['largest_ts']
+        if ts < self.config['smallest_ts']:
+            print('Time Windows start from {0}. Request retrieving from {1}. Retrieve from {0}...'.
+                  format(self.config['smallest_ts'], ts))
+            retrieve_result['retrieve_start_ts'] = self.config['smallest_ts']
+        if te > self.config['largest_ts']:
+            print('Time Windows end at {0}. Request retrieving to {1}. Retrieve to {0}...'.
+                  format(self.config['largest_ts'], te))
+            retrieve_result['retrieve_end_ts'] = self.config['largest_ts']
+        agg = [] # [{FID: N},{FID: N}]
+        for i in range(0,self.T):
+            agg.append({})
+        # retrieve packets within the interval
+        for pkt in self.TW_result:
+            re_ts = self.cell_duration(pkt['tts'], pkt['twid'])[2]
+            if ts <= re_ts and re_ts <= te:
+                agg[pkt['twid']][pkt['FID']] = agg[pkt['twid']].get(pkt['FID'], 0) + 1
+        # get the estimated number of packets
+        TW_result = {} # {FID: EN}
+        for twi, agg_tw in enumerate(agg):
+            for FID, N in agg_tw.items():
+                TW_result[FID] = TW_result.get(FID, 0) + int(N / self.cofficient[twi])
+        TW_result = dict(sorted(TW_result.items(), key=lambda item: item[1], reverse= True))
+        retrieve_result['TW_result'] = TW_result
+        return retrieve_result
 
 def precision_and_recall_packet_number(gt, tw):
     """
