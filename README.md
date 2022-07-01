@@ -97,7 +97,7 @@ To evaluate the accuracy of PrintQueue, collect the `gt_data`, `tw_data`, `signa
 
 Run the script (remember to tune parameters first) to calculate the precision and recall accuracy:
 ```
-cd Analysis Program
+cd AnalysisProgram
 python3 ./GroundTruth.py
 ```
 
