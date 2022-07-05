@@ -33,13 +33,14 @@ The current version of PrintQueue is tested on:
 In switch, run:
 ```
 cd PrintQueue_Tofino
-make kpkt          # load bf_kpkt module
-make clean_tw      # clean previous register values
+make kpkt             # load bf_kpkt module
+ifconfig bf_pci0 up   # turn on the local interface
+make clean_tw         # clean previous register values
 make clean_qm
-make configure     # compile data-plane program
+make configure        # compile data-plane program
 make compile
-make printqueue    # compile control-plane program
-make runPQ         # run the system
+make printqueue       # compile control-plane program
+make runPQ            # run the system
 ```
 The data plane and control plane programs should be successfully compiled. 
 See the data plane program compilation [log](./doc/PrintQueue_data_plane_program_compilation.log) and control plane program compilation [log](./doc/PrintQueue_control_plane_program_compilation.log) in our testbed.
