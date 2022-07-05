@@ -13,6 +13,12 @@ Load kernel module before launching control plane program:
 Unload the current module and turn off control plane program before switching to the other module. 
 Check modules with `lsmod` and unload with `rmmod [MOD NAME]`.
 
+When `bf_kpkt` module is successfully loaded, turn on the local interface between the data plane and the control plane with:
+
+```shell script
+ifconfig bf_pci0 up
+```
+
 ## Compile and Run
 The control plane is written in C language located in `./src/ctrl/` folder.
 The data plane code is written in [P4<sub>14</sub>](https://p4.org/p4-spec/p4-14/v1.1.0/tex/p4.pdf) language located in `./src/data/` folder.
