@@ -142,8 +142,8 @@ You can directly calculate the accuracy with the intermediate data.
 Download the [intermediate data](https://cloud.tsinghua.edu.cn/f/3b8eedc1b4ec471687ad/?dl=1). Run the following scripts. Check P&R accuracy in csv files in the subfolder of `intermediate_data` folder. 
 Note that we randomly choose some intermediate data to save space.  The results in the paper actually come from multiple sets of data.
 
-* Figure 8: Accuracy vs Queue Depth
-    * Under DCTCP traces (not drawn in the paper yet):
+* Figure 9: Accuracy vs Queue Depth
+    * Under DCTCP traces:
         * asynchronous query + data plane query under queue = 1000
           ```
           python3 ./reproduce.py --a 1 --k 12 --T 4 --TB 10 --z 0.8192 --path ./intermediate_data/DifferentQueueDepth/ws/1000
@@ -168,7 +168,7 @@ Note that we randomly choose some intermediate data to save space.  The results 
           ```
           python3 ./reproduce.py --a 1 --k 12 --T 4 --TB 10 --z 0.8192 --path ./intermediate_data/DifferentQueueDepth/ws/20000
           ```
-    * Under VL2 traces (not drawn in the paper yet):
+    * Under VL2 traces:
         * asynchronous query + data plane query under queue = 1000
           ```
           python3 ./reproduce.py --a 1 --k 12 --T 4 --TB 10 --z 0.8192 --path ./intermediate_data/DifferentQueueDepth/dm/1000
@@ -219,12 +219,12 @@ Note that we randomly choose some intermediate data to save space.  The results 
           python3 ./reproduce.py --a 2 --k 12 --T 4 --TB 6 --z 0.582 --path ./intermediate_data/DifferentQueueDepth/uw/20000
           ```
       
- * Figure 9: PrintQueue vs Related Works under UW traces
+ * Figure 10: PrintQueue vs Related Works under UW traces
    ```
    python3 ./reproduce.py --a 2 --k 12 --T 4 --TB 6 --z 0.582 --path ./intermediate_data/RelatedWorks/ --Q 1000 5000 15000 --N 100
    ```
 
- * Figure 10: PrintQueue vs Parameters under UW traces
+ * Figure 11: PrintQueue vs Parameters under UW traces
     * a=2, k=11, T=4:
       ```
       python3 ./reproduce.py --a 2 --k 11 --T 4 --TB 6 --z 0.582 --path ./intermediate_data/Parameters/2_11_4
@@ -242,13 +242,13 @@ Note that we randomly choose some intermediate data to save space.  The results 
       python3 ./reproduce.py --a 3 --k 12 --T 4 --TB 6 --z 0.582 --path ./intermediate_data/Parameters/3_12_4
       ```
  
- * Figure 13: SRAM usage - the numbers come from Tofino resource usage [log (a=2,k=12,T=4)](./doc/resources.log).
+ * Figure 14: SRAM usage - the numbers come from Tofino resource usage [log (a=2,k=12,T=4)](./doc/resources.log).
  (Note: we will modify the number. when submit the first version paper, we do not fully implement PQ. The utilization is under-estimated)
  
- * Figure 12: Transmission overhead can be calculated, as certain number of register values should be transmitted to the control plane periodically.
+ * Figure 13: Transmission overhead can be calculated, as certain number of register values should be transmitted to the control plane periodically.
  The accuracy comes from previous experiments.
  
- * Figure 15: Port Isolation (Not drawn in the paper yet). Implement PrintQueue for each port to isolate ports' mutual impacts. 
+ * Figure 15: Port Isolation. Implement PrintQueue for each port to isolate ports' mutual impacts. 
  Each port has it own set of registers. The figure shows the relation between the accuracy, SRAM usage and the number of ports.
     * 1 port:
       ```
@@ -270,7 +270,7 @@ Note that we randomly choose some intermediate data to save space.  The results 
       ```
       python3 ./reproduce.py --a 2 --k 10 --T 4 --TB 10 --z 0.8192 --path ./intermediate_data/PortIsolation/10ports/ID_0
       ```
- * Figure 11: Different time windows vs Top-K flows. We let the whole window track Top-K flow packet counts.
+ * Figure 12: Different time windows vs Top-K flows. We let the whole window track Top-K flow packet counts.
    ```
    python3 ./reproduce.py -TopK --path ./intermediate_data/TopK
    ```
