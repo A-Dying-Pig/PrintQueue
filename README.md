@@ -5,7 +5,7 @@ The repository implements queue measurement techniques proposed in the paper ent
 > [PrintQueue: Performance Diagnosis via Queue Measurement in the Data Plane]().
 > **Yiran Lei, Liangcheng Yu, Vincent Liu, Mingwei Xu**. SIGCOMM'22.
 
-Please find more information about the paper [here]().
+Please find more information about the paper [here](https://dl.acm.org/doi/10.1145/3544216.3544257).
 
 ## Architecture of the repository
 The repository consists of three parts:
