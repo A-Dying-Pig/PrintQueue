@@ -2,7 +2,7 @@
 
 The repository implements queue measurement techniques proposed in the paper entitled:
 
-> [PrintQueue: Performance Diagnosis via Queue Measurement in the Data Plane]().
+> [PrintQueue: Performance Diagnosis via Queue Measurement in the Data Plane](https://dl.acm.org/doi/pdf/10.1145/3544216.3544257).
 > **Yiran Lei, Liangcheng Yu, Vincent Liu, Mingwei Xu**. SIGCOMM'22.
 
 Please find more information about the paper [here](https://dl.acm.org/doi/10.1145/3544216.3544257).
